@@ -9,7 +9,7 @@ def read_file(file):
 
 
 def main():
-    file = 'output.xml'
+    file = 'tmp/output.xml'
     poets_xml = read_poets_xml(file)
     print json.dumps(poets_xml, indent=4)
 
