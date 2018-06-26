@@ -24,7 +24,7 @@ def get_child(parent, child_name):
 
 
 def get_node_text(node):
-    return node.text if node is not None else None
+    return node.text.strip() if node is not None else None
 
 
 def read_poets_xml(file):
@@ -59,7 +59,7 @@ def parse_message_type(root):
     return {
         "id": root.attrib["id"],
         "doc": get_node_text(doc),
-        "state": parse_state(msg)
+        "fields": parse_state(msg)
     }
 
 
@@ -87,12 +87,14 @@ def parse_state(root):
 
     scalars = [{
         "name": scalar.attrib['name'],
-        "type": scalar.attrib['type']
+        "type": scalar.attrib['type'],
+        "doc": get_node_text(scalar.find('./poets:Documentation')),
     } for scalar in root.findall('./poets:Scalar', namespaces)]
 
     arrays = [{
         "name": array.attrib['name'],
         "type": array.attrib['type'],
+        "doc": get_node_text(array.find('./poets:Documentation')),
         "length": int(array.attrib['length'])
     } for array in root.findall('./poets:Array', namespaces)]
 
