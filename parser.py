@@ -31,11 +31,11 @@ def read_poets_xml(file):
     """Parse POETS xml file."""
 
     root = load_xml(file)
-    graph_type = root.find("./poets:GraphType", namespaces)
-    shared_code = graph_type.find("./poets:SharedCode", namespaces)
-    device_types = graph_type.find("./poets:DeviceTypes", namespaces)
-    message_types = graph_type.find("./poets:MessageTypes", namespaces)
-    graph_type_doc = graph_type.find("./poets:Documentation", namespaces)
+    graph_type = get_child(root, "GraphType")
+    shared_code = get_child(graph_type, "SharedCode")
+    device_types = get_child(graph_type, "DeviceTypes")
+    message_types = get_child(graph_type, "MessageTypes")
+    graph_type_doc = get_child(graph_type, "Documentation")
 
     return {
         "graph_type": {
@@ -71,7 +71,9 @@ def parse_device_type(root):
 
     return {
         "id": root.attrib["id"],
-        "state": parse_state(state)
+        "state": parse_state(state),
+        "ready_to_send": get_child(root, "ReadyToSend").text.strip()
+
     }
 
 
@@ -88,14 +90,14 @@ def parse_state(root):
     scalars = [{
         "name": scalar.attrib['name'],
         "type": scalar.attrib['type'],
-        "doc": get_node_text(scalar.find('./poets:Documentation')),
-    } for scalar in root.findall('./poets:Scalar', namespaces)]
+        "doc": get_node_text(get_child(scalar, "Documentation")),
+    } for scalar in get_children(root, "Scalar")]
 
     arrays = [{
         "name": array.attrib['name'],
         "type": array.attrib['type'],
-        "doc": get_node_text(array.find('./poets:Documentation')),
+        "doc": get_node_text(get_child(scalar, "Documentation")),
         "length": int(array.attrib['length'])
-    } for array in root.findall('./poets:Array', namespaces)]
+    } for array in get_children(root, "Array")]
 
     return {"scalars": scalars, "arrays": arrays}
