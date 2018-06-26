@@ -59,7 +59,7 @@ def parse_message_type(root):
     return {
         "id": root.attrib["id"],
         "doc": get_node_text(doc),
-        "scalars": parse_state(msg)
+        "state": parse_state(msg)
     }
 
 
