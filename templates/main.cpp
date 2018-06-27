@@ -1,3 +1,5 @@
+// vim: set ft=cpp:
+
 #include <stdio.h>
 #include <queue>
 
@@ -13,42 +15,60 @@ public:
     {{- scalar['type'] }} {{ scalar['name'] }};
     {% endfor %}
 
+    {% for array in device['state']['arrays'] %}
+    {{- array['type'] }} {{ array['name'] }}[{{ array['length'] }}];
+    {% endfor %}
+
     {{ CLASS_NAME }} (){
-        // Default constructor
         {% for scalar in device['state']['scalars'] %}
-        {{- scalar['name'] }} = 0;
-        {% endfor %}
+            this->{{ scalar['name'] }} = 0;
+        {%- endfor %}
     }
 
     void print() {
         {% for scalar in device['state']['scalars'] %}
         printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
-        {% endfor %}
+        {%- endfor %}
     }
 };
+
 {% endfor %}
 
-class msg_t {
+{% for message in graph_type['message_types'] %}
+{%- set CLASS_NAME = message['id'] + "_t" -%}
+class {{ CLASS_NAME }} {
 
 public:
 
-    int content;
+    {% for scalar in message['fields']['scalars'] %}
+    {{- scalar['type'] }} {{ scalar['name'] }};
+    {% endfor %}
+
+    {{ CLASS_NAME }} (){
+    {% for scalar in message['fields']['scalars'] %}
+        this->{{ scalar['name'] }} = 0;
+    {%- endfor %}
+    }
 
     void print() {
-        printf("content = %d\n", this->content);
+    {% for scalar in message['fields']['scalars'] %}
+        printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+    {%- endfor %}
     }
 };
 
+{% endfor %}
 
-void receive(node_t *state, msg_t *msg) {
+
+void receive(node_t *state, req_t *msg) {
     printf("I received a message\n");
     (*msg).print();
     // state->counter += msg->content;
 }
 
-msg_t get_trigger() {
-    msg_t result;
-    result.content = 1;
+req_t get_trigger() {
+    req_t result;
+    // result.content = 1;
     return result;
 }
 
@@ -56,9 +76,11 @@ int main() {
 
     node_t states[DEVICE_COUNT];
 
-    msg_t trigger = get_trigger();
+    req_t trigger = get_trigger();
 
     receive(&states[0], &trigger);
+
+    printf("Content of state after receiving message:");
 
     states[0].print();
 
