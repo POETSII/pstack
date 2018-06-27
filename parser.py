@@ -1,3 +1,6 @@
+import json
+import re
+
 import xml.etree.ElementTree as ET
 
 namespaces = {
@@ -23,8 +26,9 @@ def get_child(parent, child_name):
     return parent.find("poets:%s" % child_name, namespaces)
 
 
-def get_node_text(node):
-    return node.text.strip() if node is not None else None
+def get_text(element):
+    """Return inner text of an XML element."""
+    return element.text.strip() if element is not None else None
 
 
 def read_poets_xml(file):
@@ -32,6 +36,7 @@ def read_poets_xml(file):
 
     root = load_xml(file)
     graph_type = get_child(root, "GraphType")
+    graph_inst = get_child(root, "GraphInstance")
     shared_code = get_child(graph_type, "SharedCode")
     device_types = get_child(graph_type, "DeviceTypes")
     message_types = get_child(graph_type, "MessageTypes")
@@ -40,14 +45,56 @@ def read_poets_xml(file):
     return {
         "graph_type": {
             "id": graph_type.attrib['id'],
-            "doc": get_node_text(graph_type_doc),
-            "shared_code": get_node_text(shared_code),
+            "doc": get_text(graph_type_doc),
+            "shared_code": get_text(shared_code),
             "device_types": map(parse_device_type, device_types),
             "message_types": map(parse_message_type, message_types)
-        }
+        },
+        "graph_instance": parse_graph_instance(graph_inst)
     }
 
     return graph_type
+
+
+def parse_graph_instance(root):
+
+    devices = [
+        {
+            "id": device.attrib["id"],
+            "type": device.attrib["type"],
+            "properties": parse_property_str(get_text(get_child(device, "P")))
+        }
+        for device in get_child(root, "DeviceInstances")
+    ]
+
+    # print get_child(root, "EdgeInstances")
+
+    edges = [
+        parse_edge_str(edge.attrib["path"])
+        for edge in get_child(root, "EdgeInstances")
+    ]
+
+    return {"devices": devices, "edges": edges}
+
+
+def parse_edge_str(edge_str):
+    reg1 = r"(\w+)\:(\w+)\-(\w+)\:(\w+)"
+    pat1 = re.compile(reg1, flags=re.MULTILINE)
+
+    for item in pat1.findall(edge_str):
+        return {
+            "src": item[:2],
+            "dst": item[2:]
+        }
+
+
+def parse_property_str(prop_str):
+    """Parse a POETS property string.
+
+    Property strings (in POETS) are string representations of JSON
+    dictionaries, without the leading and trailing brackets.
+    """
+    return json.loads("{%s}" % prop_str) if prop_str else {}
 
 
 def parse_message_type(root):
@@ -58,7 +105,7 @@ def parse_message_type(root):
 
     return {
         "id": root.attrib["id"],
-        "doc": get_node_text(doc),
+        "doc": get_text(doc),
         "fields": parse_state(msg)
     }
 
@@ -109,13 +156,13 @@ def parse_state(root):
     scalars = [{
         "name": scalar.attrib['name'],
         "type": scalar.attrib['type'],
-        "doc": get_node_text(get_child(scalar, "Documentation")),
+        "doc": get_text(get_child(scalar, "Documentation")),
     } for scalar in get_children(root, "Scalar")]
 
     arrays = [{
         "name": array.attrib['name'],
         "type": array.attrib['type'],
-        "doc": get_node_text(get_child(scalar, "Documentation")),
+        "doc": get_text(get_child(scalar, "Documentation")),
         "length": int(array.attrib['length'])
     } for array in get_children(root, "Array")]
 
