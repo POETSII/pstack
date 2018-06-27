@@ -8,21 +8,21 @@ namespaces = {
 }
 
 
-def load_xml(file):
-    """Parse xml file."""
+def load_xml(xml_file):
+    """Parse an XML file."""
     try:
-        return ET.parse(file).getroot()
+        return ET.parse(xml_file).getroot()
     except IOError:
-        raise Exception("File not found: %s" % file)
+        raise Exception("File not found: %s" % xml_file)
 
 
 def get_children(parent, child_name):
-    """Return children of 'parent' with name 'child_name'."""
+    """Return children of 'parent' with a given name."""
     return parent.findall("poets:%s" % child_name, namespaces)
 
 
 def get_child(parent, child_name):
-    """Return child of 'parent' with name 'child_name'."""
+    """Return child of 'parent' with a given name."""
     return parent.find("poets:%s" % child_name, namespaces)
 
 
@@ -35,28 +35,35 @@ def read_poets_xml(file):
     """Parse POETS xml file."""
 
     root = load_xml(file)
+
     graph_type = get_child(root, "GraphType")
     graph_inst = get_child(root, "GraphInstance")
+
+    return {
+        "graph_type": parse_graph_type(graph_type),
+        "graph_instance": parse_graph_instance(graph_inst)
+    }
+
+
+def parse_graph_type(graph_type):
+    """Parse a <GraphType> element."""
+
     shared_code = get_child(graph_type, "SharedCode")
     device_types = get_child(graph_type, "DeviceTypes")
     message_types = get_child(graph_type, "MessageTypes")
     graph_type_doc = get_child(graph_type, "Documentation")
 
     return {
-        "graph_type": {
-            "id": graph_type.attrib['id'],
-            "doc": get_text(graph_type_doc),
-            "shared_code": get_text(shared_code),
-            "device_types": map(parse_device_type, device_types),
-            "message_types": map(parse_message_type, message_types)
-        },
-        "graph_instance": parse_graph_instance(graph_inst)
+        "id": graph_type.attrib['id'],
+        "doc": get_text(graph_type_doc),
+        "shared_code": get_text(shared_code),
+        "device_types": map(parse_device_type, device_types),
+        "message_types": map(parse_message_type, message_types)
     }
 
-    return graph_type
 
-
-def parse_graph_instance(root):
+def parse_graph_instance(graph_inst):
+    """Parse a <GraphInstance> element."""
 
     devices = [
         {
@@ -64,27 +71,39 @@ def parse_graph_instance(root):
             "type": device.attrib["type"],
             "properties": parse_property_str(get_text(get_child(device, "P")))
         }
-        for device in get_child(root, "DeviceInstances")
+        for device in get_child(graph_inst, "DeviceInstances")
     ]
-
-    # print get_child(root, "EdgeInstances")
 
     edges = [
         parse_edge_str(edge.attrib["path"])
-        for edge in get_child(root, "EdgeInstances")
+        for edge in get_child(graph_inst, "EdgeInstances")
     ]
 
     return {"devices": devices, "edges": edges}
 
 
 def parse_edge_str(edge_str):
+    """Parse a POETS edge string.
+
+    POETS Edge strings represent connections between devices are in the
+    following format:
+
+    dev1:pin1-dev2:pin2
+
+    What may be slightly confusing is that this represents a directional
+    connection from dev2 to dev1 (not the other way around).
+
+    In the example above, pin2 of dev2 (an output pin) is connected to pin1 of
+    dev1 (an input pin).
+    """
+
     reg1 = r"(\w+)\:(\w+)\-(\w+)\:(\w+)"
     pat1 = re.compile(reg1, flags=re.MULTILINE)
 
     for item in pat1.findall(edge_str):
         return {
-            "src": item[:2],
-            "dst": item[2:]
+            "dst": item[:2],
+            "src": item[2:]
         }
 
 
@@ -98,7 +117,7 @@ def parse_property_str(prop_str):
 
 
 def parse_message_type(root):
-    """Parse <MessageType> POETS xml element."""
+    """Parse a <MessageType> element."""
 
     doc = get_child(root, "Documentation")
     msg = get_child(root, "Message")
@@ -111,7 +130,7 @@ def parse_message_type(root):
 
 
 def parse_device_type(root):
-    """Parse <DeviceType> POETS xml element."""
+    """Parse a <DeviceType> element."""
 
     msg = get_child(root, "Message")
     state = get_child(root, "State")
@@ -144,9 +163,16 @@ def parse_device_type(root):
 
 
 def parse_state(root):
-    """Parse a POETS xml element with state fields.
+    """Parse an xml element with state fields.
 
     State fields are <Scalar> or <Array> elements.
+
+    There are currently several elements in the POETS schema that contain state
+    fields, including:
+
+    - <State> of <DeviceType>
+    - <Message> of <MessageType>
+    - <Properties> of <DeviceType>
 
     """
 
