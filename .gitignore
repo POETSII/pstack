@@ -153,3 +153,4 @@ $RECYCLE.BIN/
 env/*
 tmp/*
 *.sublime-workspace
+*.exe
