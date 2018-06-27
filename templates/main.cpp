@@ -3,36 +3,13 @@
 #include <stdio.h>
 #include <queue>
 
-#define DEVICE_COUNT 10
+void handler_log(int level, const char *msg) {
+    // do nothing
+}
 
-{% for device in graph_type['device_types'] %}
-{% set CLASS_NAME = device['id'] + "_t" %}
-class {{ CLASS_NAME }} {
+{{ graph_type['shared_code'] }}
 
-public:
-
-    {% for scalar in device['state']['scalars'] %}
-    {{- scalar['type'] }} {{ scalar['name'] }};
-    {% endfor %}
-
-    {% for array in device['state']['arrays'] %}
-    {{- array['type'] }} {{ array['name'] }}[{{ array['length'] }}];
-    {% endfor %}
-
-    {{ CLASS_NAME }} (){
-        {% for scalar in device['state']['scalars'] %}
-            this->{{ scalar['name'] }} = 0;
-        {%- endfor %}
-    }
-
-    void print() {
-        {% for scalar in device['state']['scalars'] %}
-        printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
-        {%- endfor %}
-    }
-};
-
-{% endfor %}
+// Message types
 
 {% for message in graph_type['message_types'] %}
 {%- set CLASS_NAME = message['id'] + "_t" -%}
@@ -55,6 +32,46 @@ public:
         printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
     {%- endfor %}
     }
+};
+
+{% endfor %}
+
+// Device types
+
+{%- for device in graph_type['device_types'] %}
+{% set CLASS_NAME = device['id'] + "_t" %}
+class {{ CLASS_NAME }} {
+
+public:
+
+    {% for scalar in device['state']['scalars'] %}
+    {{- scalar['type'] }} {{ scalar['name'] }};
+    {% endfor %}
+
+    {% for array in device['state']['arrays'] %}
+    {{- array['type'] }} {{ array['name'] }}[{{ array['length'] }}];
+    {% endfor %}
+
+    {{ CLASS_NAME }} (){
+    {%- for scalar in device['state']['scalars'] %}
+        this->{{ scalar['name'] }} = 0;
+    {%- endfor %}
+    }
+
+    void print() {
+        {%- for scalar in device['state']['scalars'] %}
+        printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+        {%- endfor %}
+    }
+
+    {% for pin in device['input_pins'] %}
+    {%- set MSG_TYPE = pin['message_type'] + "_t" %}
+    void receive_{{ MSG_TYPE }}({{ MSG_TYPE }} *message) {
+        {{ CLASS_NAME }}* deviceState = this;
+        {{ pin['on_receive'] }}
+
+    }
+    {% endfor %}
 };
 
 {% endfor %}
