@@ -69,11 +69,30 @@ def parse_device_type(root):
     msg = get_child(root, "Message")
     state = get_child(root, "State")
 
+    input_pins = [
+        {
+            "name": pin.attrib["name"],
+            "message_type": pin.attrib["messageTypeId"],
+            "on_receive": get_child(pin, "OnReceive").text.strip()
+        }
+        for pin in get_children(root, "InputPin")
+    ]
+
+    output_pins = [
+        {
+            "name": pin.attrib["name"],
+            "message_type": pin.attrib["messageTypeId"],
+            "on_send": get_child(pin, "OnSend").text.strip()
+        }
+        for pin in get_children(root, "OutputPin")
+    ]
+
     return {
         "id": root.attrib["id"],
         "state": parse_state(state),
-        "ready_to_send": get_child(root, "ReadyToSend").text.strip()
-
+        "ready_to_send": get_child(root, "ReadyToSend").text.strip(),
+        "input_pins": input_pins,
+        "output_pins": output_pins
     }
 
 
