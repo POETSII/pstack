@@ -11,7 +11,7 @@ def read_file(file):
 
 def main():
     xml_file = 'tmp/output.xml'
-    template_file = 'templates/main.cpp'
+    template_file = 'main.cpp'
 
     markup = read_poets_xml(xml_file)
     # print json.dumps(markup, indent=4)
