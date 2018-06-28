@@ -1,7 +1,7 @@
 // Device types
 
 {%- for device in graph_type['device_types'] %}
-{% set CLASS_NAME = device['id'] + "_t" %}
+{% set CLASS_NAME = device['id'] + "_state_t" %}
 class {{ CLASS_NAME }} {
 
 public:
@@ -26,6 +26,7 @@ public:
         {%- endfor %}
     }
 
+{#
     {% for pin in device['input_pins'] %}
     {%- set MSG_TYPE = pin['message_type'] + "_t" %}
     void receive_{{ MSG_TYPE }}({{ MSG_TYPE }} *message) {
@@ -34,6 +35,8 @@ public:
 
     }
     {% endfor %}
+#}
+
 };
 
 {% endfor %}

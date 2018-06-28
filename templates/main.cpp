@@ -7,28 +7,29 @@ void handler_log(int level, const char *msg) {
     // do nothing
 }
 
-{{ graph_type['shared_code'] }}
-
 {% include 'messages.cpp' %}
+
 {% include 'devices.cpp' %}
 
-void receive(node_t *state, req_t *msg) {
+{{ graph_type['shared_code'] }}
+
+void receive(node_state_t *state, toggle_t *msg) {
     printf("I received a message\n");
     (*msg).print();
     // state->counter += msg->content;
 }
 
-req_t get_trigger() {
-    req_t result;
+toggle_t get_trigger() {
+    toggle_t result;
     // result.content = 1;
     return result;
 }
 
 int main() {
 
-    node_t states[DEVICE_COUNT];
+    node_state_t states[10];
 
-    req_t trigger = get_trigger();
+    toggle_t trigger = get_trigger();
 
     receive(&states[0], &trigger);
 
