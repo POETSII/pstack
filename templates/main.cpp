@@ -19,19 +19,19 @@ void handler_exit(int exitCode) {
 
 {% include 'handlers.cpp' %}
 
-void receive(node_state_t *state, req_t *msg) {
-    printf("I received a message\n");
-    (*msg).print();
-    // state->counter += msg->content;
-}
-
 int main() {
 
     {% include 'init.cpp' %}
 
-    printf("Content of state after receiving message:\n");
+    for (int i=0; i<5; i++){
+        printf("Device %d:\n", i);
+        deviceStates_node[i].print();
+    }
 
-    deviceStates_node[0].print();
+    for (int i=0; i<5; i++){
+        int rts = get_rts_node(deviceStates_node + i, deviceProperties_node + i);
+        printf("rts[%d]: 0x%x\n", i, rts);
+    }
 
     // print_state(&states[0]);
 
