@@ -9,6 +9,8 @@
 {{ graph_type['shared_code'] }}
 {% include 'handlers.cpp' %}
 
+typedef void (*handler_t) (state_t*, prop_t*, msg_t*);
+
 int main() {
 
     {% include 'init.cpp' %}
@@ -23,10 +25,18 @@ int main() {
         printf("rts[%d]: 0x%x\n", i, rts);
     }
 
-    void (*funPtr1) (state_t*, prop_t*, msg_t*) = &{{ get_receive_handler_name('node', 'req') }};
-    void (*funPtr2) (state_t*, prop_t*, msg_t*) = &{{ get_receive_handler_name('node', 'ack') }};
+    handler_t handlers[] = {
+        &{{ get_receive_handler_name('node', 'req') }},
+        &{{ get_receive_handler_name('node', 'ack') }}
+    };
 
-    // print_state(&states[0]);
+    req_msg_t* outgoing = new req_msg_t();
+
+    printf("Outging message (new):\n"); (*outgoing).print();
+
+    send_node_req(deviceStates_node + 0, deviceProperties_node + 0, outgoing);
+
+    printf("Outging message (filled):\n"); (*outgoing).print();
 
     // queue <state> q;
     // state *s1 = states;

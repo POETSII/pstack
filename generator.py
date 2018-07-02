@@ -21,6 +21,10 @@ def get_receive_handler_name(device_type, message_type):
     return "receive_%s_%s" % (device_type, message_type)
 
 
+def get_send_handler_name(device_type, message_type):
+    return "send_%s_%s" % (device_type, message_type)
+
+
 def generate_code(template, content):
     """Generate code from template file and content dict."""
 
@@ -33,7 +37,8 @@ def generate_code(template, content):
         get_prop_class,
         get_msg_class,
         get_rts_flag_variable,
-        get_receive_handler_name
+        get_receive_handler_name,
+        get_send_handler_name
     ]
 
     for func in funcs:
