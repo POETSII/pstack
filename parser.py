@@ -134,6 +134,7 @@ def parse_device_type(root):
 
     msg = get_child(root, "Message")
     state = get_child(root, "State")
+    props = get_child(root, "Properties")
 
     input_pins = [
         {
@@ -156,6 +157,7 @@ def parse_device_type(root):
     return {
         "id": root.attrib["id"],
         "state": parse_state(state),
+        "properties": parse_state(props),
         "ready_to_send": get_child(root, "ReadyToSend").text.strip(),
         "input_pins": input_pins,
         "output_pins": output_pins

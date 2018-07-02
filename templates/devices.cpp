@@ -1,8 +1,10 @@
-// Device types
+// Device state types
 
 {%- for device in graph_type['device_types'] %}
-{% set CLASS_NAME = device['id'] + "_state_t" %}
-class {{ CLASS_NAME }} {
+
+{% set STATE_CLASS_NAME = device['id'] + "_state_t" %}
+
+class {{ STATE_CLASS_NAME }} {
 
 public:
 
@@ -14,7 +16,7 @@ public:
     {{- array['type'] }} {{ array['name'] }}[{{ array['length'] }}];
     {% endfor %}
 
-    {{ CLASS_NAME }} (){
+    {{ STATE_CLASS_NAME }} (){
     {%- for scalar in device['state']['scalars'] %}
         this->{{ scalar['name'] }} = 0;
     {%- endfor %}
@@ -26,16 +28,23 @@ public:
         {%- endfor %}
     }
 
-{#
-    {% for pin in device['input_pins'] %}
-    {%- set MSG_TYPE = pin['message_type'] + "_t" %}
-    void receive_{{ MSG_TYPE }}({{ MSG_TYPE }} *message) {
-        {{ CLASS_NAME }}* deviceState = this;
-        {{ pin['on_receive'] }}
+};
 
-    }
+{% endfor %}
+
+// Device property types
+
+{%- for device in graph_type['device_types'] %}
+
+{% set PROP_CLASS_NAME = device['id'] + "_prop_t" %}
+
+class {{ PROP_CLASS_NAME }} {
+
+public:
+
+    {% for scalar in device['properties']['scalars'] %}
+    {{- scalar['type'] }} {{ scalar['name'] }};
     {% endfor %}
-#}
 
 };
 

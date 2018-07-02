@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <queue>
 
-void handler_log(int level, const char *msg) {
+void handler_log(int level, const char *msg, ...) {
+    // do nothing
+}
+
+void handler_exit(int exitCode) {
     // do nothing
 }
 
@@ -13,14 +17,16 @@ void handler_log(int level, const char *msg) {
 
 {{ graph_type['shared_code'] }}
 
-void receive(node_state_t *state, toggle_t *msg) {
+{% include 'handlers.cpp' %}
+
+void receive(node_state_t *state, req_t *msg) {
     printf("I received a message\n");
     (*msg).print();
     // state->counter += msg->content;
 }
 
-toggle_t get_trigger() {
-    toggle_t result;
+req_t get_trigger() {
+    req_t result;
     // result.content = 1;
     return result;
 }
@@ -29,7 +35,7 @@ int main() {
 
     node_state_t states[10];
 
-    toggle_t trigger = get_trigger();
+    req_t trigger = get_trigger();
 
     receive(&states[0], &trigger);
 
