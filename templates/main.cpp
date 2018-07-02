@@ -3,20 +3,10 @@
 #include <stdio.h>
 #include <queue>
 
-void handler_log(int level, const char *msg, ...) {
-    // do nothing
-}
-
-void handler_exit(int exitCode) {
-    // do nothing
-}
-
+{% include 'globals.cpp' %}
 {% include 'messages.cpp' %}
-
 {% include 'devices.cpp' %}
-
 {{ graph_type['shared_code'] }}
-
 {% include 'handlers.cpp' %}
 
 int main() {
@@ -33,8 +23,8 @@ int main() {
         printf("rts[%d]: 0x%x\n", i, rts);
     }
 
-    void (*funPtr1) (state_t*, prop_t*, msg_t*) = &receive_req_msg_t;
-    void (*funPtr2) (state_t*, prop_t*, msg_t*) = &receive_ack_msg_t;
+    void (*funPtr1) (state_t*, prop_t*, msg_t*) = &{{ get_receive_handler_name('node', 'req') }};
+    void (*funPtr2) (state_t*, prop_t*, msg_t*) = &{{ get_receive_handler_name('node', 'ack') }};
 
     // print_state(&states[0]);
 

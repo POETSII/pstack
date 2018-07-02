@@ -7,7 +7,7 @@ class msg_t {
 };
 
 {% for message in graph_type['message_types'] %}
-{%- set CLASS_NAME = message['id'] + "_msg_t" -%}
+{%- set CLASS_NAME = get_msg_class(message['id']) %}
 class {{ CLASS_NAME }}: public msg_t {
 
 public:

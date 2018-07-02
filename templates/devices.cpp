@@ -14,7 +14,7 @@ class prop_t {
 
 {%- for device in graph_type['device_types'] %}
 
-{% set STATE_CLASS_NAME = device['id'] + "_state_t" %}
+{% set STATE_CLASS_NAME = get_state_class(device['id']) %}
 
 class {{ STATE_CLASS_NAME }}: public state_t {
 
@@ -48,7 +48,7 @@ public:
 
 {%- for device in graph_type['device_types'] %}
 
-{% set PROP_CLASS_NAME = device['id'] + "_prop_t" %}
+{% set PROP_CLASS_NAME = get_prop_class(device['id']) %}
 
 class {{ PROP_CLASS_NAME }}: public prop_t {
 
