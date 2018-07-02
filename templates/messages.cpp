@@ -1,8 +1,14 @@
 // Message types
 
+class msg_t {
+
+    // Base message type
+
+};
+
 {% for message in graph_type['message_types'] %}
-{%- set CLASS_NAME = message['id'] + "_t" -%}
-class {{ CLASS_NAME }} {
+{%- set CLASS_NAME = message['id'] + "_msg_t" -%}
+class {{ CLASS_NAME }}: public msg_t {
 
 public:
 

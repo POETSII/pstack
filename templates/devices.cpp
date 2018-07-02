@@ -1,10 +1,22 @@
 // Device state types
 
+class state_t {
+
+    // Base device state type
+
+};
+
+class prop_t {
+
+    // Base device properties type
+
+};
+
 {%- for device in graph_type['device_types'] %}
 
 {% set STATE_CLASS_NAME = device['id'] + "_state_t" %}
 
-class {{ STATE_CLASS_NAME }} {
+class {{ STATE_CLASS_NAME }}: public state_t {
 
 public:
 
@@ -38,7 +50,7 @@ public:
 
 {% set PROP_CLASS_NAME = device['id'] + "_prop_t" %}
 
-class {{ PROP_CLASS_NAME }} {
+class {{ PROP_CLASS_NAME }}: public prop_t {
 
 public:
 

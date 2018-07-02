@@ -26,13 +26,13 @@
 	{{ PROP_ARR }}[{{ device_index }}].{{ key }} = {{ val }};
 {%- endfor -%}
 
-{%- endfor -%}
+{%- endfor %}
 
 	// Call initialization handler
 
-__init___t *init = new __init___t();
+__init___msg_t *init = new __init___msg_t();
 
 for (int i=0; i<{{ count}}; i++)
-	receive___init___t({{ STAT_ARR }} + i, {{ PROP_ARR }} + i, init);
+	receive___init___msg_t({{ STAT_ARR }} + i, {{ PROP_ARR }} + i, init);
 
 {%- endfor -%}

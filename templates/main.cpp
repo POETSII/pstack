@@ -33,6 +33,9 @@ int main() {
         printf("rts[%d]: 0x%x\n", i, rts);
     }
 
+    void (*funPtr1) (state_t*, prop_t*, msg_t*) = &receive_req_msg_t;
+    void (*funPtr2) (state_t*, prop_t*, msg_t*) = &receive_ack_msg_t;
+
     // print_state(&states[0]);
 
     // queue <state> q;
