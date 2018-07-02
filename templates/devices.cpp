@@ -24,7 +24,7 @@ public:
 
     void print() {
         {%- for scalar in device['state']['scalars'] %}
-        printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+        printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
         {%- endfor %}
     }
 

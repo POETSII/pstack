@@ -25,25 +25,13 @@ void receive(node_state_t *state, req_t *msg) {
     // state->counter += msg->content;
 }
 
-req_t get_trigger() {
-    req_t result;
-    // result.content = 1;
-    return result;
-}
-
 int main() {
 
-    {% include 'init_props.cpp' %}
+    {% include 'init.cpp' %}
 
-    node_state_t states[10];
+    printf("Content of state after receiving message:\n");
 
-    req_t trigger = get_trigger();
-
-    receive(&states[0], &trigger);
-
-    printf("Content of state after receiving message:");
-
-    states[0].print();
+    deviceStates_node[0].print();
 
     // print_state(&states[0]);
 

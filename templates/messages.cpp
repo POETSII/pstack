@@ -18,7 +18,7 @@ public:
 
     void print() {
     {% for scalar in message['fields']['scalars'] %}
-        printf("{{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+        printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
     {%- endfor %}
     }
 };
