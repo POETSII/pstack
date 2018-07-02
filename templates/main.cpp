@@ -33,6 +33,8 @@ req_t get_trigger() {
 
 int main() {
 
+    {% include 'init_props.cpp' %}
+
     node_state_t states[10];
 
     req_t trigger = get_trigger();
