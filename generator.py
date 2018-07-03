@@ -29,6 +29,14 @@ def get_rts_getter_name(device_type):
     return "_get_rts_%s" % device_type
 
 
+def get_state_array(device_type):
+    return "deviceStates_%s" % device_type
+
+
+def get_properties_array(device_type):
+    return "deviceProperties_%s" % device_type
+
+
 def generate_code(template, content):
     """Generate code from template file and content dict."""
 
@@ -44,7 +52,9 @@ def generate_code(template, content):
         get_rts_flag_variable,
         get_receive_handler_name,
         get_send_handler_name,
-        get_rts_getter_name
+        get_rts_getter_name,
+        get_state_array,
+        get_properties_array
     ]
 
     for func in funcs:

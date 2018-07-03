@@ -17,17 +17,17 @@ int main() {
 
     for (int i=0; i<5; i++){
         printf("Device %d:\n", i);
-        deviceStates_node[i].print();
+        {{ get_state_array('node') }}[i].print();
     }
 
     // ---- BEGIN RTS SCAN ----
 
     @ for group in graph_instance['devices']|groupby('type')
 
-    @ set device_type = group.grouper
     @ set devices = group.list
-    @ set PROP_ARR = "deviceProperties_" + device_type
-    @ set STAT_ARR = "deviceStates_" + device_type
+    @ set device_type = group.grouper
+    @ set PROP_ARR = get_properties_array(device_type)
+    @ set STAT_ARR = get_state_array(device_type)
 
     for (int i=0; i<{{ devices|count }}; i++){
 

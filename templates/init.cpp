@@ -5,8 +5,8 @@
 @ set STATE_CLASS_NAME = get_state_class(device_type)
 @ set PROP_CLASS_NAME = get_prop_class(device_type)
 @ set count = group.list|count
-@ set PROP_ARR = "deviceProperties_" + device_type
-@ set STAT_ARR = "deviceStates_" + device_type
+@ set PROP_ARR = get_properties_array(device_type)
+@ set STAT_ARR = get_state_array(device_type)
 
 	// States of {{ device_type }}
 
