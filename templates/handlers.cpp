@@ -33,13 +33,13 @@
     }
     {% endfor %}
 
-    int get_rts_{{ device_type['id']}}(state_t *state, prop_t *props) {
+    int {{ get_rts_getter_name(device_type['id']) }}(state_t *state, prop_t *props) {
         int result;
         int* readyToSend = &result;
         {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
         {{ PROP_CLASS_NAME }}* deviceProperties = ({{ PROP_CLASS_NAME}}*) props;
         {% for out_pin in device_type['output_pins'] %}
-        {% set RTS_FLAG = get_rts_flag_variable(out_pin['message_type']) %}
+        {% set RTS_FLAG = get_rts_flag_variable(out_pin['name']) %}
         const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
         {% endfor %}
         // Begin application code

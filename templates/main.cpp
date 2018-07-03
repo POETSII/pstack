@@ -11,6 +11,16 @@
 
 typedef void (*handler_t) (state_t*, prop_t*, msg_t*);
 
+// {% for device_type in graph_type["device_types"] %}
+// {% for output_pin in device_type["output_pins"] %}
+
+// {% set RTS_FLAG = get_rts_flag_variable(output_pin['name']) %}
+
+// const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
+
+// {% endfor %}
+// {% endfor %}
+
 int main() {
 
     {% include 'init.cpp' %}
@@ -20,23 +30,53 @@ int main() {
         deviceStates_node[i].print();
     }
 
-    for (int i=0; i<5; i++){
-        int rts = get_rts_node(deviceStates_node + i, deviceProperties_node + i);
+    // ---- BEGIN RTS SCAN ----
+
+    {% for group in graph_instance['devices']|groupby('type') %}
+
+    {%- set device_type = group.grouper -%}
+    {%- set devices = group.list -%}
+
+    {%- set PROP_ARR = "deviceProperties_" + device_type %}
+    {%- set STAT_ARR = "deviceStates_" + device_type %}
+
+    for (int i=0; i<{{ devices|count }}; i++){
+
+        int rts = {{ get_rts_getter_name(device_type) }}({{ STAT_ARR }} + i, {{ PROP_ARR }} + i);
         printf("rts[%d]: 0x%x\n", i, rts);
+
+        {% set device_type_obj = graph_type['device_types']|selectattr('id', 'equalto', device_type)|first %}
+
+        {% for output_pin in device_type_obj['output_pins'] %}
+
+        {% set msg_class = get_msg_class(output_pin['message_type']) %}
+
+        if (rts & (1 << {{ loop.index0 }})) {
+            printf(" - {{ output_pin['name'] }}\n");
+
+            {{ msg_class }}* outgoing = new {{ msg_class }}();
+
+            handler_t handler = &{{ get_send_handler_name(device_type, output_pin['message_type']) }};
+
+            handler({{ STAT_ARR }} + i, {{ PROP_ARR }} + i, outgoing);
+
+            printf("Outgoing message (filled):\n"); (*outgoing).print();
+
+        }
+        {% endfor %}
+
     }
 
-    handler_t handlers[] = {
-        &{{ get_receive_handler_name('node', 'req') }},
-        &{{ get_receive_handler_name('node', 'ack') }}
+    {% endfor %}
+
+    // ---- END RTS SCAN ----
+
+    handler_t handlers[][2] = {
+        {
+            &{{ get_receive_handler_name('node', 'req') }},
+            &{{ get_receive_handler_name('node', 'ack') }}
+        }
     };
-
-    req_msg_t* outgoing = new req_msg_t();
-
-    printf("Outging message (new):\n"); (*outgoing).print();
-
-    send_node_req(deviceStates_node + 0, deviceProperties_node + 0, outgoing);
-
-    printf("Outging message (filled):\n"); (*outgoing).print();
 
     // queue <state> q;
     // state *s1 = states;

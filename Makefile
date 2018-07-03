@@ -5,7 +5,7 @@ pretty:
 	@ rm tmp/temp.cpp
 
 gen:
-	@ python psim.py > tmp/main.cpp 2>&1
+	@ python psim.py > tmp/main.cpp
 
 run: pretty
 	@ g++ -o tmp/main.exe tmp/main.cpp
