@@ -34,6 +34,7 @@ def generate_code(template, content):
 
     loader = jinja2.PackageLoader(__name__, 'templates')
     env = jinja2.Environment(loader=loader)
+    env.line_statement_prefix = '@'
 
     # Add functions to Jinja context
     funcs = [

@@ -1,14 +1,14 @@
 // Handler functions
 
-{%- for device_type in graph_type['device_types'] %}
+@ for device_type in graph_type['device_types']
 
-{%- set STATE_CLASS_NAME = get_state_class(device_type['id']) -%}
-{%- set PROP_CLASS_NAME = get_prop_class(device_type['id']) -%}
+@ set STATE_CLASS_NAME = get_state_class(device_type['id'])
+@ set PROP_CLASS_NAME = get_prop_class(device_type['id'])
 
-    {% for pin in device_type['input_pins'] %}
+    @ for pin in device_type['input_pins']
 
-    {%- set MSG_TYPE = get_msg_class(pin['message_type']) %}
-    {%- set HANDLER_NAME = get_receive_handler_name(device_type['id'], pin['message_type']) %}
+    @ set MSG_TYPE = get_msg_class(pin['message_type'])
+    @ set HANDLER_NAME = get_receive_handler_name(device_type['id'], pin['message_type'])
 
     void {{ HANDLER_NAME }}(state_t *state, prop_t *props, msg_t *msg) {
         {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
@@ -17,12 +17,12 @@
         {{ pin['on_receive'] }}
 
     }
-    {% endfor %}
+    @ endfor
 
-    {% for pin in device_type['output_pins'] %}
+    @ for pin in device_type['output_pins']
 
-    {%- set MSG_TYPE = get_msg_class(pin['message_type']) %}
-    {%- set HANDLER_NAME = get_send_handler_name(device_type['id'], pin['message_type']) %}
+    @ set MSG_TYPE = get_msg_class(pin['message_type'])
+    @ set HANDLER_NAME = get_send_handler_name(device_type['id'], pin['message_type'])
 
     void {{ HANDLER_NAME }}(state_t *state, prop_t *props, msg_t *msg) {
         {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
@@ -31,21 +31,21 @@
         {{ pin['on_send'] }}
 
     }
-    {% endfor %}
+    @ endfor
 
     int {{ get_rts_getter_name(device_type['id']) }}(state_t *state, prop_t *props) {
         int result;
         int* readyToSend = &result;
         {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
         {{ PROP_CLASS_NAME }}* deviceProperties = ({{ PROP_CLASS_NAME}}*) props;
-        {% for out_pin in device_type['output_pins'] %}
-        {% set RTS_FLAG = get_rts_flag_variable(out_pin['name']) %}
+        @ for out_pin in device_type['output_pins']
+        @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
         const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
-        {% endfor %}
+        @ endfor
         // Begin application code
         {{ device_type['ready_to_send'] }}
         // End application code
         return result;
     }
 
-{% endfor %}
+@ endfor

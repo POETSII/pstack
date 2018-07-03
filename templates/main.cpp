@@ -3,27 +3,17 @@
 #include <stdio.h>
 #include <queue>
 
-{% include 'globals.cpp' %}
-{% include 'messages.cpp' %}
-{% include 'devices.cpp' %}
+@ include 'globals.cpp'
+@ include 'messages.cpp'
+@ include 'devices.cpp'
 {{ graph_type['shared_code'] }}
-{% include 'handlers.cpp' %}
+@ include 'handlers.cpp'
 
 typedef void (*handler_t) (state_t*, prop_t*, msg_t*);
 
-// {% for device_type in graph_type["device_types"] %}
-// {% for output_pin in device_type["output_pins"] %}
-
-// {% set RTS_FLAG = get_rts_flag_variable(output_pin['name']) %}
-
-// const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
-
-// {% endfor %}
-// {% endfor %}
-
 int main() {
 
-    {% include 'init.cpp' %}
+    @ include 'init.cpp'
 
     for (int i=0; i<5; i++){
         printf("Device %d:\n", i);
@@ -32,26 +22,27 @@ int main() {
 
     // ---- BEGIN RTS SCAN ----
 
-    {% for group in graph_instance['devices']|groupby('type') %}
+    @ for group in graph_instance['devices']|groupby('type')
 
-    {%- set device_type = group.grouper -%}
-    {%- set devices = group.list -%}
-
-    {%- set PROP_ARR = "deviceProperties_" + device_type %}
-    {%- set STAT_ARR = "deviceStates_" + device_type %}
+    @ set device_type = group.grouper
+    @ set devices = group.list
+    @ set PROP_ARR = "deviceProperties_" + device_type
+    @ set STAT_ARR = "deviceStates_" + device_type
 
     for (int i=0; i<{{ devices|count }}; i++){
 
         int rts = {{ get_rts_getter_name(device_type) }}({{ STAT_ARR }} + i, {{ PROP_ARR }} + i);
+
         printf("rts[%d]: 0x%x\n", i, rts);
 
-        {% set device_type_obj = graph_type['device_types']|selectattr('id', 'equalto', device_type)|first %}
+        @ set device_type_obj = graph_type['device_types']|selectattr('id', 'equalto', device_type)|first
 
-        {% for output_pin in device_type_obj['output_pins'] %}
+        @ for output_pin in device_type_obj['output_pins']
 
-        {% set msg_class = get_msg_class(output_pin['message_type']) %}
+        @ set msg_class = get_msg_class(output_pin['message_type'])
 
         if (rts & (1 << {{ loop.index0 }})) {
+
             printf(" - {{ output_pin['name'] }}\n");
 
             {{ msg_class }}* outgoing = new {{ msg_class }}();
@@ -63,11 +54,12 @@ int main() {
             printf("Outgoing message (filled):\n"); (*outgoing).print();
 
         }
-        {% endfor %}
+
+        @ endfor
 
     }
 
-    {% endfor %}
+    @ endfor
 
     // ---- END RTS SCAN ----
 
