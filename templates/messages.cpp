@@ -1,9 +1,5 @@
 // Message types
 
-class msg_t {
-    // Base message type
-};
-
 @ for message in graph_type['message_types']
 @ set CLASS_NAME = get_msg_class(message['id'])
 class {{ CLASS_NAME }}: public msg_t {

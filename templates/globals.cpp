@@ -1,3 +1,5 @@
+// Global functions
+
 void handler_log(int level, const char *msg, ...) {
     // do nothing
 }

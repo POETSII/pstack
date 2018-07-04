@@ -6,7 +6,7 @@ def get_state_class(device_type):
 
 
 def get_prop_class(device_type):
-    return "%s_prop_t" % device_type
+    return "%s_props_t" % device_type
 
 
 def get_msg_class(message_type):
@@ -37,6 +37,11 @@ def get_properties_array(device_type):
     return "deviceProperties_%s" % device_type
 
 
+def build_index(items):
+    unique_items = list(set(items))
+    return {item: index for index, item in enumerate(sorted(unique_items))}
+
+
 def generate_code(template, content):
     """Generate code from template file and content dict."""
 
@@ -54,7 +59,8 @@ def generate_code(template, content):
         get_send_handler_name,
         get_rts_getter_name,
         get_state_array,
-        get_properties_array
+        get_properties_array,
+        build_index
     ]
 
     for func in funcs:

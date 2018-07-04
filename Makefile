@@ -7,6 +7,8 @@ pretty:
 gen:
 	@ python psim.py > tmp/main.cpp
 
-run: pretty
-	@ g++ -o tmp/main.exe tmp/main.cpp
+run: pretty compile
 	@ tmp/main.exe
+
+compile:
+	@ g++ -o tmp/main.exe tmp/main.cpp

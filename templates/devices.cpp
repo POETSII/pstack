@@ -1,13 +1,5 @@
 // Device state types
 
-class state_t {
-    // Base device state type
-};
-
-class prop_t {
-    // Base device properties type
-};
-
 @ for device in graph_type['device_types']
 
 @ set STATE_CLASS_NAME = get_state_class(device['id'])
@@ -46,13 +38,24 @@ public:
 
 @ set PROP_CLASS_NAME = get_prop_class(device['id'])
 
-class {{ PROP_CLASS_NAME }}: public prop_t {
+class {{ PROP_CLASS_NAME }}: public props_t {
 
 public:
 
     @ for scalar in device['properties']['scalars']
     {{- scalar['type'] }} {{ scalar['name'] }};
     @ endfor
+
+    {{ PROP_CLASS_NAME}} (
+        @- for scalar in device['properties']['scalars']
+        {{- scalar['type'] }} {{ scalar['name'] }}
+        {{ ',' if not loop.last else '' }}
+        @- endfor
+    ) {
+        @ for scalar in device['properties']['scalars']
+        this->{{ scalar['name'] }} = {{ scalar['name'] }};
+        @ endfor
+    };
 
 };
 
