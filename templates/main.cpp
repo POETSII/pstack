@@ -67,23 +67,11 @@ int main() {
 
                     printf("  - {{ output_pin['name'] }}\n");
 
-                    {{ msg_class }}* outgoing = new {{ msg_class }}();
+                    msg_t* outgoing = {{ device_array }}[i].send({{ loop.index0 }});
 
-                    handler_t handler = &{{ get_send_handler_name(device_type, msg_type) }};
+                    {{ msg_class }}* outgoing_derived = ({{ msg_class }}*) outgoing;
 
-                    handler({{ device_array }}[i].state, {{ device_array }}[i].props, outgoing);
-
-                    printf("Outgoing message (filled):\n"); (*outgoing).print();
-
-                    msg_t* outgoing_base = (msg_t*) outgoing;
-
-                    // outgoing_base->_src_device_index = i;
-                    // outgoing_base->_src_device_port = {{ loop.index0 }};
-
-                    // deliverable dv;
-                    // dv.msg = outgoing_base;
-
-                    // msg_q.push(dv);
+                    printf("Outgoing message (filled):\n"); (*outgoing_derived).print();
 
                 }
 

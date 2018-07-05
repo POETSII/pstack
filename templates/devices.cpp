@@ -130,6 +130,7 @@
 
         void init();
         void receive(int pin_id, msg_t *msg);
+        msg_t* send(int pin_id);
 
     };
 

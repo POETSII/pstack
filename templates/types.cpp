@@ -27,6 +27,7 @@ public:
     virtual void init() = 0;
     virtual int get_rts() = 0;
     virtual void receive(int, msg_t*) = 0;
+    virtual msg_t* send(int) = 0;
 };
 
 struct input_pin_t {
