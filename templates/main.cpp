@@ -16,7 +16,7 @@
 
 int main() {
 
-    device_t* devices = initialize_devices();
+    device_t* devices = {{ get_init_function_name('node') }}();
 
     // ---- BEGIN RTS SCAN ----
 

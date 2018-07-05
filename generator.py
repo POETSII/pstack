@@ -37,6 +37,10 @@ def get_properties_array(device_type):
     return "deviceProperties_%s" % device_type
 
 
+def get_init_function_name(device_type):
+    return "initialize_%s_devices" % device_type
+
+
 def build_index(items):
     unique_items = list(set(items))
     return {item: index for index, item in enumerate(sorted(unique_items))}
@@ -60,7 +64,8 @@ def generate_code(template, content):
         get_rts_getter_name,
         get_state_array,
         get_properties_array,
-        build_index
+        build_index,
+        get_init_function_name
     ]
 
     for func in funcs:
