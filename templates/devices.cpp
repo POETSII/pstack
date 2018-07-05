@@ -2,33 +2,29 @@
 
 @ for device in graph_type['device_types']
 
-@ set STATE_CLASS_NAME = get_state_class(device['id'])
+    @ set state_class = get_state_class(device['id'])
+    @ set state = device['state']
 
-class {{ STATE_CLASS_NAME }}: public state_t {
+    class {{ state_class }}: public state_t {
 
-public:
+    public:
 
-    @ for scalar in device['state']['scalars']
-    {{- scalar['type'] }} {{ scalar['name'] }};
-    @ endfor
+        {{ lmap(declare_variable, state['scalars']) }}
+        {{ lmap(declare_variable, state['arrays']) }}
 
-    @ for array in device['state']['arrays']
-    {{- array['type'] }} {{ array['name'] }}[{{ array['length'] }}];
-    @ endfor
+        {{ state_class }} (){
+            @ for scalar in state['scalars']
+                this->{{ scalar['name'] }} = 0;
+            @ endfor
+        }
 
-    {{ STATE_CLASS_NAME }} (){
-    @ for scalar in device['state']['scalars']
-        this->{{ scalar['name'] }} = 0;
-    @ endfor
-    }
+        void print() {
+            @ for scalar_name in state['scalars'] | map(attribute='name')
+                printf("  - {{ scalar_name }} = %d\n", this->{{ scalar_name }});
+            @ endfor
+        }
 
-    void print() {
-        @ for scalar in device['state']['scalars']
-        printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
-        @ endfor
-    }
-
-};
+    };
 
 @ endfor
 
@@ -36,27 +32,23 @@ public:
 
 @ for device in graph_type['device_types']
 
-@ set PROP_CLASS_NAME = get_prop_class(device['id'])
+    @ set props_class = get_props_class(device['id'])
+    @ set props = device['properties']
 
-class {{ PROP_CLASS_NAME }}: public props_t {
+    class {{ props_class }}: public props_t {
 
-public:
+    public:
 
-    @ for scalar in device['properties']['scalars']
-    {{- scalar['type'] }} {{ scalar['name'] }};
-    @ endfor
+        {{ lmap(declare_variable, props['scalars']) }}
 
-    {{ PROP_CLASS_NAME}} (
-        @- for scalar in device['properties']['scalars']
-        {{- scalar['type'] }} {{ scalar['name'] }}
-        {{ ',' if not loop.last else '' }}
-        @- endfor
-    ) {
-        @ for scalar in device['properties']['scalars']
-        this->{{ scalar['name'] }} = {{ scalar['name'] }};
-        @ endfor
+        {{ props_class}} (
+            {{ make_argument_list(props['scalars']) }}
+        ) {
+            @ for scalar_name in props['scalars'] | map(attribute='name')
+                this->{{ scalar_name }} = {{ scalar_name }};
+            @ endfor
+        };
+
     };
-
-};
 
 @ endfor

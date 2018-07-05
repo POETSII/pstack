@@ -2,49 +2,54 @@
 
 @ for device_type in graph_type['device_types']
 
-@ set STATE_CLASS_NAME = get_state_class(device_type['id'])
-@ set PROP_CLASS_NAME = get_prop_class(device_type['id'])
+@ set state_class = get_state_class(device_type['id'])
+@ set props_class = get_props_class(device_type['id'])
 
     @ for pin in device_type['input_pins']
 
-    @ set MSG_TYPE = get_msg_class(pin['message_type'])
-    @ set HANDLER_NAME = get_receive_handler_name(device_type['id'], pin['message_type'])
+        @ set msg_class = get_msg_class(pin['message_type'])
+        @ set handler = get_receive_handler_name(device_type['id'], pin['message_type'])
 
-    void {{ HANDLER_NAME }}(state_t *state, props_t *props, msg_t *msg) {
-        {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
-        {{ PROP_CLASS_NAME }}* deviceProperties = ({{ PROP_CLASS_NAME}}*) props;
-        {{ MSG_TYPE }} *message = ({{MSG_TYPE}}*) msg;
-        {{ pin['on_receive'] }}
+        void {{ handler }}(state_t *state, props_t *props, msg_t *msg) {
+            {{ state_class }}* deviceState = ({{ state_class }}*) state;
+            {{ props_class }}* deviceProperties = ({{ props_class}}*) props;
+            {{ msg_class }} *message = ({{msg_class}}*) msg;
+            {{ pin['on_receive'] }}
 
-    }
+        }
+
     @ endfor
 
     @ for pin in device_type['output_pins']
 
-    @ set MSG_TYPE = get_msg_class(pin['message_type'])
-    @ set HANDLER_NAME = get_send_handler_name(device_type['id'], pin['message_type'])
+        @ set msg_class = get_msg_class(pin['message_type'])
+        @ set handler = get_send_handler_name(device_type['id'], pin['message_type'])
 
-    void {{ HANDLER_NAME }}(state_t *state, props_t *props, msg_t *msg) {
-        {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
-        {{ PROP_CLASS_NAME }}* deviceProperties = ({{ PROP_CLASS_NAME}}*) props;
-        {{ MSG_TYPE }} *message = ({{MSG_TYPE}}*) msg;
-        {{ pin['on_send'] }}
+        void {{ handler }}(state_t *state, props_t *props, msg_t *msg) {
+            {{ state_class }}* deviceState = ({{ state_class }}*) state;
+            {{ props_class }}* deviceProperties = ({{ props_class}}*) props;
+            {{ msg_class }} *message = ({{msg_class}}*) msg;
+            {{ pin['on_send'] }}
 
-    }
+        }
+
     @ endfor
 
     int {{ get_rts_getter_name(device_type['id']) }}(state_t *state, props_t *props) {
+
         int result;
         int* readyToSend = &result;
-        {{ STATE_CLASS_NAME }}* deviceState = ({{ STATE_CLASS_NAME }}*) state;
-        {{ PROP_CLASS_NAME }}* deviceProperties = ({{ PROP_CLASS_NAME}}*) props;
+
+        {{ state_class }}* deviceState = ({{ state_class }}*) state;
+        {{ props_class }}* deviceProperties = ({{ props_class}}*) props;
+
         @ for out_pin in device_type['output_pins']
-        @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
-        const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
+            @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
+            const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
         @ endfor
-        // Begin application code
+
         {{ device_type['ready_to_send'] }}
-        // End application code
+
         return result;
     }
 

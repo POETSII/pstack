@@ -14,66 +14,70 @@
 @ include 'handlers.cpp'
 @ include 'init.cpp'
 
+@ set device_type_map = dict_from_list(graph_type['device_types'], 'id')
+
 int main() {
 
-    @ for group in graph_instance['devices']|groupby('type')
+    @ for group in graph_instance['devices'] | groupby('type')
 
-    @ set devices = group.list
-    @ set device_type = group.grouper
-    @ set device_array = get_device_array(device_type)
-    @ set device_init_func = get_init_function_name(device_type)
+        @ set devices = group.list
+        @ set device_type = group.grouper
+        @ set device_array = get_device_array(device_type)
+        @ set device_init_func = get_init_function_name(device_type)
 
-    device_t* {{ device_array }} = {{ device_init_func }}();
+        device_t* {{ device_array }} = {{ device_init_func }}();
 
     @ endfor
 
     // ---- BEGIN RTS SCAN ----
 
-    @ for group in graph_instance['devices']|groupby('type')
+    @ for group in graph_instance['devices'] | groupby('type')
 
-    @ set devices = group.list
-    @ set device_type = group.grouper
-    @ set device_array = get_device_array(device_type)
+        @ set devices = group.list
+        @ set device_type = group.grouper
+        @ set rts_handler = get_rts_getter_name(device_type)
+        @ set device_array = get_device_array(device_type)
 
-    for (int i=0; i<{{ devices|count }}; i++){
+        for (int i=0; i<{{ devices | count }}; i++){
 
-        int rts = {{ get_rts_getter_name(device_type) }}({{ device_array }}[i].state, {{ device_array }}[i].props);
+            int rts = {{ rts_handler }}({{ device_array }}[i].state, {{ device_array }}[i].props);
 
-        printf("rts[%d]: 0x%x\n", i, rts);
+            printf("rts[%d]: 0x%x\n", i, rts);
 
-        @ set device_type_obj = graph_type['device_types']|selectattr('id', 'equalto', device_type)|first
+            @ set device_type_obj = device_type_map[device_type]
 
-        @ for output_pin in device_type_obj['output_pins']
+            @ for output_pin in device_type_obj['output_pins']
 
-        @ set msg_class = get_msg_class(output_pin['message_type'])
+                @ set msg_type = output_pin['message_type']
+                @ set msg_class = get_msg_class(msg_type)
 
-        if (rts & (1 << {{ loop.index0 }})) {
+                if (rts & (1 << {{ loop.index0 }})) {
 
-            printf("  - {{ output_pin['name'] }}\n");
+                    printf("  - {{ output_pin['name'] }}\n");
 
-            {{ msg_class }}* outgoing = new {{ msg_class }}();
+                    {{ msg_class }}* outgoing = new {{ msg_class }}();
 
-            handler_t handler = &{{ get_send_handler_name(device_type, output_pin['message_type']) }};
+                    handler_t handler = &{{ get_send_handler_name(device_type, msg_type) }};
 
-            handler({{ device_array }}[i].state, {{ device_array }}[i].props, outgoing);
+                    handler({{ device_array }}[i].state, {{ device_array }}[i].props, outgoing);
 
-            printf("Outgoing message (filled):\n"); (*outgoing).print();
+                    printf("Outgoing message (filled):\n"); (*outgoing).print();
 
-            msg_t* outgoing_base = (msg_t*) outgoing;
+                    msg_t* outgoing_base = (msg_t*) outgoing;
 
-            // outgoing_base->_src_device_index = i;
-            // outgoing_base->_src_device_port = {{ loop.index0 }};
+                    // outgoing_base->_src_device_index = i;
+                    // outgoing_base->_src_device_port = {{ loop.index0 }};
 
-            // deliverable dv;
-            // dv.msg = outgoing_base;
+                    // deliverable dv;
+                    // dv.msg = outgoing_base;
 
-            // msg_q.push(dv);
+                    // msg_q.push(dv);
+
+                }
+
+            @ endfor
 
         }
-
-        @ endfor
-
-    }
 
     @ endfor
 
@@ -138,7 +142,7 @@ int main() {
     @ set device_type = device['type']
     @ set PROP_ARR = get_properties_array(device_type)
     @ set STAT_ARR = get_state_array(device_type)
-    @ set device_type_obj = graph_type['device_types']|selectattr('id', 'equalto', device_type)|first
+    @ set device_type_obj = device_type_map[device_type]
     @ set outer_loop = loop
 
     @ for output_pin in device_type_obj['output_pins']

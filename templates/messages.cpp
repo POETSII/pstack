@@ -1,26 +1,27 @@
 // Message types
 
 @ for message in graph_type['message_types']
-@ set CLASS_NAME = get_msg_class(message['id'])
-class {{ CLASS_NAME }}: public msg_t {
 
-public:
+    @ set msg_class = get_msg_class(message['id'])
+    @ set fields = message['fields']
 
-    @ for scalar in message['fields']['scalars']
-    {{- scalar['type'] }} {{ scalar['name'] }};
-    @ endfor
+    class {{ msg_class }}: public msg_t {
 
-    {{ CLASS_NAME }} (){
-    @ for scalar in message['fields']['scalars']
-        this->{{ scalar['name'] }} = 0;
-    @ endfor
-    }
+    public:
 
-    void print() {
-    @ for scalar in message['fields']['scalars']
-        printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
-    @ endfor
-    }
-};
+        {{ lmap(declare_variable, fields['scalars']) }}
+
+        {{ msg_class }} (){
+            @ for scalar in fields['scalars']
+                this->{{ scalar['name'] }} = 0;
+            @ endfor
+        }
+
+        void print() {
+            @ for scalar in fields['scalars']
+                printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+            @ endfor
+        }
+    };
 
 @ endfor
