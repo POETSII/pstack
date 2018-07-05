@@ -16,7 +16,16 @@
 
 int main() {
 
-    device_t* devices = {{ get_init_function_name('node') }}();
+    @ for group in graph_instance['devices']|groupby('type')
+
+    @ set devices = group.list
+    @ set device_type = group.grouper
+    @ set device_array = get_device_array(device_type)
+    @ set device_init_func = get_init_function_name(device_type)
+
+    device_t* {{ device_array }} = {{ device_init_func }}();
+
+    @ endfor
 
     // ---- BEGIN RTS SCAN ----
 
@@ -24,10 +33,11 @@ int main() {
 
     @ set devices = group.list
     @ set device_type = group.grouper
+    @ set device_array = get_device_array(device_type)
 
     for (int i=0; i<{{ devices|count }}; i++){
 
-        int rts = {{ get_rts_getter_name(device_type) }}(devices[i].state, devices[i].props);
+        int rts = {{ get_rts_getter_name(device_type) }}({{ device_array }}[i].state, {{ device_array }}[i].props);
 
         printf("rts[%d]: 0x%x\n", i, rts);
 
@@ -45,7 +55,7 @@ int main() {
 
             handler_t handler = &{{ get_send_handler_name(device_type, output_pin['message_type']) }};
 
-            handler(devices[i].state, devices[i].props, outgoing);
+            handler({{ device_array }}[i].state, {{ device_array }}[i].props, outgoing);
 
             printf("Outgoing message (filled):\n"); (*outgoing).print();
 
@@ -82,8 +92,8 @@ int main() {
 
     handler_t handlers[][2] = {
         {
-            &{{ get_receive_handler_name('node', 'req') }},
-            &{{ get_receive_handler_name('node', 'ack') }}
+            &{{ get_receive_handler_name('node_a', 'req') }},
+            &{{ get_receive_handler_name('node_a', 'ack') }}
         }
     };
 

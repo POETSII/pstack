@@ -1,11 +1,9 @@
 @ for group in graph_instance['devices'] | groupby('type')
 
-@ set devices = group.list
-@ set device_type = group.grouper
+	@ set devices = group.list
+	@ set device_type = group.grouper
 
 	device_t* {{ get_init_function_name(device_type) }}() {
-
-		@ set devices = graph_instance['devices']
 
 		device_t *devices = new device_t[{{ devices | count}}];
 
@@ -30,15 +28,15 @@
 		{{ INIT_MSG_T }} *init = new {{ INIT_MSG_T }}();
 
 		for (int i=0; i<{{ devices | count }}; i++) {
-			devices[i].state = new node_state_t();
-			devices[i].props = new node_props_t(
+			devices[i].state = new {{ STATE_CLASS_NAME }}();
+			devices[i].props = new {{ PROPS_CLASS_NAME }} (
 				{%- for prop in scalar_props %}
 					{{- prop['name'] -}} [i]
 					{{- ', ' if not loop.last else '' -}}
 				{%- endfor -%}
 			);
 			{{ INIT_HANDLER }}(devices[i].state, devices[i].props {{ PROP_ARR }}, init);
-			printf("Device %d:\n", i);
+			printf("Device %d ({{ device_type }}):\n", i);
 			{{ STATE_CLASS_NAME }} *ptr = ({{ STATE_CLASS_NAME }}*) devices[i].state;
 			(*ptr).print();
 

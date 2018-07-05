@@ -37,6 +37,10 @@ def get_properties_array(device_type):
     return "deviceProperties_%s" % device_type
 
 
+def get_device_array(device_type):
+    return "devices_%s" % device_type
+
+
 def get_init_function_name(device_type):
     return "initialize_%s_devices" % device_type
 
@@ -65,7 +69,8 @@ def generate_code(template, content):
         get_state_array,
         get_properties_array,
         build_index,
-        get_init_function_name
+        get_init_function_name,
+        get_device_array
     ]
 
     for func in funcs:
