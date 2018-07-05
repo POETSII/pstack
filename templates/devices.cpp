@@ -9,6 +9,10 @@
 
     public:
 
+        void test() {
+
+        }
+
         {{ lmap(declare_variable, state['scalars']) }}
         {{ lmap(declare_variable, state['arrays']) }}
 
@@ -42,12 +46,71 @@
         {{ lmap(declare_variable, props['scalars']) }}
 
         {{ props_class}} (
-            {{ make_argument_list(props['scalars']) }}
+            {{- make_argument_list(props['scalars']) -}}
+        ) {
+            set({{- make_argument_list(props['scalars'], include_types=False) -}});
+        };
+
+        void set (
+            {{- make_argument_list(props['scalars']) -}}
         ) {
             @ for scalar_name in props['scalars'] | map(attribute='name')
                 this->{{ scalar_name }} = {{ scalar_name }};
             @ endfor
         };
+
+        {{ props_class}} () {};
+
+    };
+
+@ endfor
+
+// Device classes
+
+@ for device in graph_type['device_types']
+
+    @ set device_class = get_device_class(device['id'])
+    @ set state_class = get_state_class(device['id'])
+    @ set props_class = get_props_class(device['id'])
+    @ set props = device['properties']
+
+    class {{ device_class }}: public device_t {
+
+    public:
+
+        {{ device_class}} (
+            {{- make_argument_list(props['scalars']) -}}
+        ) {
+            state = new {{ state_class }}();
+
+            props = new {{ props_class }}(
+                {{- make_argument_list(props['scalars'], include_types=False) -}}
+            );
+        };
+
+        {{ device_class}} () {
+            state = new {{ state_class }}();
+            props = new {{ props_class }}();
+        };
+
+        ~{{ device_class}}() {
+            delete state;
+            delete props;
+        }
+
+        void setProperties(
+                {{- make_argument_list(props['scalars']) -}}
+        ) {
+            {{ props_class }} *myProps = ({{ props_class }}*) this->props;
+
+            @ for scalar_name in props['scalars'] | map(attribute='name')
+                myProps->{{ scalar_name }} = {{ scalar_name }};
+            @ endfor
+        }
+
+        int get_rts() {
+            return 0;
+        }
 
     };
 

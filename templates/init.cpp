@@ -4,13 +4,15 @@
 
 	@ set devices = group.list
 	@ set device_type = group.grouper
+	@ set device_class = get_device_class(device_type)
 
 	device_t* {{ get_init_function_name(device_type) }}() {
 
-		device_t *devices = new device_t[{{ devices | count}}];
+		{{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
 
 		@ set state_class = get_state_class(device_type)
 		@ set props_class = get_props_class(device_type)
+		@ set device_class = get_device_class(device_type)
 		@ set count = group.list | count
 		@ set device_type_obj = device_type_map[device_type]
 		@ set scalar_props = device_type_obj['properties']['scalars']
@@ -33,9 +35,7 @@
 
 		for (int i=0; i<{{ devices | count }}; i++) {
 
-			devices[i].state = new {{ state_class }}();
-
-			devices[i].props = new {{ props_class }} (
+			devices[i].setProperties(
 				{%- for prop in scalar_props %}
 					{{- prop['name'] -}} [i]
 					{{- ', ' if not loop.last else '' -}}
@@ -52,7 +52,7 @@
 
 		delete init;
 
-		return devices;
+		return (device_t*) devices;
 
 	}
 

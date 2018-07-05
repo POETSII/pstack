@@ -29,6 +29,12 @@ int main() {
 
     @ endfor
 
+    @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
+
+    // Declare "buckets"; pointers to arrays of device type
+
+    void* buckets[] = { {{ pymap(get_device_array, device_types) | join(', ') }} };
+
     // ---- BEGIN RTS SCAN ----
 
     @ for group in graph_instance['devices'] | groupby('type')

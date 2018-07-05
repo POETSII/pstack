@@ -13,6 +13,10 @@ def get_msg_class(message_type):
     return "%s_msg_t" % message_type
 
 
+def get_device_class(device_type):
+    return "%s_device_t" % device_type
+
+
 def get_rts_flag_variable(output_pin):
     return "RTS_FLAG_%s" % (output_pin)
 
@@ -63,13 +67,19 @@ def declare_variable(variable):
     return "%s %s %s;" % (variable["type"], variable["name"], array_bracket)
 
 
-def make_argument_list(variables):
+def make_argument_list(variables, include_types=True):
     """Create C argument list.
 
     Example: "int a, int b, float c"
+
+    if include_types is False then types are ommitted
+
     """
 
-    parts = ["%(type)s %(name)s" % var for var in variables]
+    format_str = "%(type)s %(name)s" if include_types else "%(name)s"
+
+    parts = [format_str % var for var in variables]
+
     return ", ".join(parts)
 
 
@@ -90,6 +100,14 @@ def dict_from_list(list, field):
     return {item[field]: item for item in list}
 
 
+def unique(items):
+    return list(set(items))
+
+
+def pymap(func, items):
+    return map(func, items)
+
+
 def generate_code(template, content):
     """Generate code from template file and content dict."""
 
@@ -102,6 +120,7 @@ def generate_code(template, content):
         get_state_class,
         get_props_class,
         get_msg_class,
+        get_device_class,
         get_rts_flag_variable,
         get_receive_handler_name,
         get_send_handler_name,
@@ -114,7 +133,9 @@ def generate_code(template, content):
         declare_variable,
         make_argument_list,
         lmap,
-        dict_from_list
+        dict_from_list,
+        unique,
+        pymap
     ]
 
     for func in funcs:

@@ -2,6 +2,8 @@
 
 class state_t {
     // Base device state type
+
+    virtual void test() = 0;
 };
 
 class props_t {
@@ -18,9 +20,11 @@ typedef void (*handler_t) (state_t*, props_t*, msg_t*);
 
 // Simulation types
 
-struct device_t {
+class device_t {
+public:
     state_t *state;
     props_t *props;
+    virtual int get_rts() = 0;
 };
 
 struct input_pin_t {
