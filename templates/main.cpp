@@ -35,6 +35,12 @@ int main() {
 
     void* buckets[] = { {{ pymap(get_device_array, device_types) | join(', ') }} };
 
+    // typedef int (*get_rts_t) ();
+
+    // auto t1 = &(devices_node_b[0].get_rts);
+
+    // printf("t1 = %d\n", t1->*());
+
     // ---- BEGIN RTS SCAN ----
 
     @ for group in graph_instance['devices'] | groupby('type')
@@ -46,7 +52,7 @@ int main() {
 
         for (int i=0; i<{{ devices | count }}; i++){
 
-            int rts = {{ rts_handler }}({{ device_array }}[i].state, {{ device_array }}[i].props);
+            int rts = {{ device_array }}[i].get_rts();
 
             printf("rts[%d]: 0x%x\n", i, rts);
 
@@ -94,18 +100,6 @@ int main() {
     @ set total_devices = graph_instance['devices']|count
 
     state_t* all_states[{{ total_devices }}];
-
-    int* int_arr[] {
-        new int[3] {1, 2, 3},
-        new int[4] {1, 2, 3, 4}
-    };
-
-    handler_t handlers[][2] = {
-        {
-            &{{ get_receive_handler_name('node_a', 'req') }},
-            &{{ get_receive_handler_name('node_a', 'ack') }}
-        }
-    };
 
     // printf("queue size = %d\n", msg_q.size());
     // deliverable dv = msg_q.front();
@@ -187,6 +181,7 @@ int main() {
     // q.pop();
     // printf("queue size = %d\n", q.size());
     // printf("hello %d\n", t.x);
+
 
     return 0;
 }

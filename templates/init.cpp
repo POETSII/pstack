@@ -31,8 +31,6 @@
 
 		@ endfor
 
-		{{ init_msg_t }} *init = new {{ init_msg_t }}();
-
 		for (int i=0; i<{{ devices | count }}; i++) {
 
 			devices[i].setProperties(
@@ -42,15 +40,13 @@
 				{%- endfor -%}
 			);
 
-			{{ init_handler }}(devices[i].state, devices[i].props {{ PROP_ARR }}, init);
+			devices[i].init();
 
 			printf("Device %d ({{ device_type }}):\n", i);
 			{{ state_class }} *ptr = ({{ state_class }}*) devices[i].state;
 			(*ptr).print();
 
 		}
-
-		delete init;
 
 		return (device_t*) devices;
 

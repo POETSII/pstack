@@ -24,7 +24,9 @@ class device_t {
 public:
     state_t *state;
     props_t *props;
+    virtual void init() = 0;
     virtual int get_rts() = 0;
+    virtual void receive(int, msg_t*) = 0;
 };
 
 struct input_pin_t {

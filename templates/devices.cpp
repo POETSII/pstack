@@ -86,11 +86,13 @@
             props = new {{ props_class }}(
                 {{- make_argument_list(props['scalars'], include_types=False) -}}
             );
+
         };
 
         {{ device_class}} () {
             state = new {{ state_class }}();
             props = new {{ props_class }}();
+
         };
 
         ~{{ device_class}}() {
@@ -98,9 +100,9 @@
             delete props;
         }
 
-        void setProperties(
-                {{- make_argument_list(props['scalars']) -}}
-        ) {
+
+        void setProperties({{- make_argument_list(props['scalars']) -}}) {
+
             {{ props_class }} *myProps = ({{ props_class }}*) this->props;
 
             @ for scalar_name in props['scalars'] | map(attribute='name')
@@ -109,8 +111,25 @@
         }
 
         int get_rts() {
-            return 0;
+
+            int result;
+            int* readyToSend = &result;
+
+            {{ state_class }}* deviceState = ({{ state_class }}*) this->state;
+            {{ props_class }}* deviceProperties = ({{ props_class }}*) this->props;
+
+            @ for out_pin in device['output_pins']
+                @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
+                const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
+            @ endfor
+
+            {{ device['ready_to_send'] }}
+
+            return result;
         }
+
+        void init();
+        void receive(int pin_id, msg_t *msg);
 
     };
 
