@@ -9,10 +9,6 @@
 
     public:
 
-        void test() {
-
-        }
-
         {{ lmap(declare_variable, state['scalars']) }}
         {{ lmap(declare_variable, state['arrays']) }}
 
@@ -23,8 +19,8 @@
         }
 
         void print() {
-            @ for scalar_name in state['scalars'] | map(attribute='name')
-                printf("  - {{ scalar_name }} = %d\n", this->{{ scalar_name }});
+            @ for name in state['scalars'] | map(attribute='name')
+                printf("  - {{ name }} = %d\n", this->{{ name }});
             @ endfor
         }
 
@@ -50,8 +46,8 @@
         };
 
         void set ({{- make_argument_list(props['scalars']) -}}) {
-            @ for scalar_name in props['scalars'] | map(attribute='name')
-                this->{{ scalar_name }} = {{ scalar_name }};
+            @ for name in props['scalars'] | map(attribute='name')
+                this->{{ name }} = {{ name }};
             @ endfor
         };
 
@@ -74,19 +70,13 @@
 
     public:
 
-        {{ device_class}} ({{- make_argument_list(props['scalars']) -}}) {
-
-            state = new {{ state_class }}();
-
-            props = new {{ props_class }}(
-                {{ make_argument_list(props['scalars'], include_types=False) }}
-            );
-
-        };
-
         {{ device_class}} () {
             state = new {{ state_class }}();
             props = new {{ props_class }}();
+
+            // Initialize array of destination lists
+
+            this->dsts = new dst_list_t[{{ device['output_pins'] | count }}];
 
         };
 
@@ -94,7 +84,6 @@
             delete state;
             delete props;
         }
-
 
         void setProperties({{- make_argument_list(props['scalars']) -}}) {
 
@@ -105,6 +94,9 @@
             @ endfor
         }
 
+        int getOutputPortCount() {
+            return {{ device['output_pins'] | count }};
+        }
 
         void init();
         int get_rts();

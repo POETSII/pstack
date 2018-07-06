@@ -29,15 +29,50 @@ int main() {
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
 
-    // Declare "buckets"; pointers to arrays of device type
+    // Connections:
 
-    void* buckets[] = { {{ pymap(get_device_array, device_types) | join(', ') }} };
+    device_t* src_dev;
+    device_t* dst_dev;
 
-    // typedef int (*get_rts_t) ();
+    int src_pin;
+    int dst_pin;
 
-    // auto t1 = &(devices_node_b[0].get_rts);
+    dst_list_t dsts;
 
-    // printf("t1 = %d\n", t1->*());
+    // ---
+
+    @ for edge in graph_instance['edges']
+
+        // {{ edge }}
+
+        @ set src_device = edge['src'][0]
+        @ set dst_device = edge['dst'][0]
+
+        @ set src_pin_name = edge['src'][1]
+        @ set dst_pin_name = edge['dst'][1]
+
+        @ set src_device_index = schema.get_device_index(src_device)
+        @ set dst_device_index = schema.get_device_index(dst_device)
+
+        @ set src_device_type = schema.get_device(src_device)['type']
+        @ set dst_device_type = schema.get_device(dst_device)['type']
+
+        @ set src_pin = schema.get_pin_index(src_device_type, src_pin_name, 'output')
+        @ set dst_pin = schema.get_pin_index(dst_device_type, dst_pin_name, 'input')
+
+        src_dev = {{ get_device_array(src_device_type) }} + {{ src_device_index }};
+        dst_dev = {{ get_device_array(dst_device_type) }} + {{ dst_device_index }};
+
+        src_pin = {{ src_pin }};
+        dst_pin = {{ dst_pin }};
+
+        dsts = (*src_dev).getPortDestinations(src_pin);
+
+        dsts.push_back(destination_t(dst_dev, dst_pin));
+
+    @ endfor
+
+    printf("destinations = %d\n", dsts.size());
 
     // ---- BEGIN RTS SCAN ----
 
@@ -169,5 +204,4 @@ int main() {
     // printf("hello %d\n", t.x);
 
 
-    return 0;
-}
+    return 0; }

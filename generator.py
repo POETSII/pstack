@@ -1,13 +1,22 @@
 import jinja2
 
+from itertools import groupby
+
 
 class Schema(object):
 
     def __init__(self, markup):
         self._pin_map = self._build_pin_map(markup)
+        self._device_map = self._build_device_map(markup)
         self._device_type_map = self._build_device_type_map(markup)
+        self._input_pin_index = self._build_pin_index(markup, 'input')
+        self._output_pin_index = self._build_pin_index(markup, 'output')
+        device_type_groups = self._build_device_type_groups(markup)
+
+        self._device_type_index = self._build_device_index(device_type_groups)
 
     def _build_pin_map(self, markup):
+        """Build a map: (device id, pin_name) -> pin."""
 
         result = dict()
 
@@ -21,17 +30,104 @@ class Schema(object):
         return result
 
     def _build_device_type_map(self, markup):
+        """Build a map: device id -> device."""
 
         device_types = markup["graph_type"]["device_types"]
         result = {device["id"]: device for device in device_types}
         return result
 
-    def get_pin(self, device_name, pin_name):
-        key = (device_name, pin_name)
+    def _build_pin_index(self, markup, pin_dir):
+        """Build a map: (device id, pin name) -> index for input/output pins."""
+
+        result = dict()
+        pins_key = 'input_pins' if pin_dir == 'input' else 'output_pins'
+        graph_type = markup["graph_type"]
+
+        for device in graph_type["device_types"]:
+            entries = {
+                (device['id'], pin['name']): ind
+                for ind, pin in enumerate(device[pins_key])
+            }
+            result.update(entries)
+
+        return result
+
+    def _build_device_type_groups(self, markup):
+        """Build list of device type groups.
+
+        Each group is a tuple (device_type, [instances]).
+        """
+
+        devices = markup["graph_instance"]["devices"]
+
+        def get_device_type(device):
+            return device["type"]
+
+        devices_sorted = sorted(devices, key=get_device_type)
+
+        result = [
+            (device_type, list(instances))
+            for device_type, instances
+            in groupby(devices_sorted, key=get_device_type)
+        ]
+
+        return result
+
+    def _build_device_index(self, device_type_groups):
+        """Build a map: device id -> index.
+
+        The index is unique per device type."""
+
+        result = dict()
+
+        for key, group in device_type_groups:
+            entries = {
+                device['id']: index for index, device in enumerate(group)
+            }
+            result.update(entries)
+
+        return result
+
+    def _build_device_map(self, markup):
+
+        devices = markup['graph_instance']['devices']
+
+        return {device['id']: device for device in devices}
+
+    def get_pin(self, device_type, pin_name):
+        """Return pin given device and pin names."""
+
+        key = (device_type, pin_name)
         return self._pin_map.get(key)
 
+    def get_pin_index(self, device_type, pin_name, pin_dir):
+        """Return pin index.
+
+        The index is unique per device type and pin direction.
+        """
+
+        assert pin_dir in {'input', 'output'}
+
+        if pin_dir == 'input':
+            index = self._input_pin_index
+        else:
+            index = self._output_pin_index
+
+        return index[(device_type, pin_name)]
+
     def get_device_type(self, device_id):
+        """Return device type."""
+
         return self._device_type_map.get(device_id)
+
+    def get_device_index(self, device_id):
+        """Return device index (unique per device type)."""
+
+        return self._device_type_index[device_id]
+
+    def get_device(self, device_id):
+
+        return self._device_map[device_id]
 
 
 def get_state_class(device_type):
