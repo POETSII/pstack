@@ -1,6 +1,39 @@
 import jinja2
 
 
+class Schema(object):
+
+    def __init__(self, markup):
+        self._pin_map = self._build_pin_map(markup)
+        self._device_type_map = self._build_device_type_map(markup)
+
+    def _build_pin_map(self, markup):
+
+        result = dict()
+
+        graph_type = markup["graph_type"]
+
+        for device in graph_type["device_types"]:
+            for pin in device['input_pins'] + device['output_pins']:
+                key = (device['id'], pin['name'])
+                result[key] = pin
+
+        return result
+
+    def _build_device_type_map(self, markup):
+
+        device_types = markup["graph_type"]["device_types"]
+        result = {device["id"]: device for device in device_types}
+        return result
+
+    def get_pin(self, device_name, pin_name):
+        key = (device_name, pin_name)
+        return self._pin_map.get(key)
+
+    def get_device_type(self, device_id):
+        return self._device_type_map.get(device_id)
+
+
 def get_state_class(device_type):
     return "%s_state_t" % device_type
 
@@ -94,12 +127,6 @@ def lmap(func, items):
     return "\n".join(map(func, items))
 
 
-def dict_from_list(list, field):
-    """Create a dict from list using a specific field as key."""
-
-    return {item[field]: item for item in list}
-
-
 def unique(items):
     return list(set(items))
 
@@ -108,8 +135,8 @@ def pymap(func, items):
     return map(func, items)
 
 
-def generate_code(template, content):
-    """Generate code from template file and content dict."""
+def generate_code(template, graph):
+    """Generate code from template file and POETS graph."""
 
     loader = jinja2.PackageLoader(__name__, 'templates')
     env = jinja2.Environment(loader=loader)
@@ -133,7 +160,6 @@ def generate_code(template, content):
         declare_variable,
         make_argument_list,
         lmap,
-        dict_from_list,
         unique,
         pymap
     ]
@@ -141,4 +167,6 @@ def generate_code(template, content):
     for func in funcs:
         env.globals[func.func_name] = func
 
-    return env.get_template(template).render(**content)
+    env.globals["schema"] = Schema(graph)
+
+    return env.get_template(template).render(**graph)

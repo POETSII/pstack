@@ -14,8 +14,6 @@
 @ include 'handlers.cpp'
 @ include 'init.cpp'
 
-@ set device_type_map = dict_from_list(graph_type['device_types'], 'id')
-
 int main() {
 
     @ for group in graph_instance['devices'] | groupby('type')
@@ -56,7 +54,7 @@ int main() {
 
             printf("rts[%d]: 0x%x\n", i, rts);
 
-            @ set device_type_obj = device_type_map[device_type]
+            @ set device_type_obj = schema.get_device_type(device_type)
 
             @ for output_pin in device_type_obj['output_pins']
 
@@ -130,31 +128,31 @@ int main() {
     @ set device_type = device['type']
     @ set PROP_ARR = get_properties_array(device_type)
     @ set STAT_ARR = get_state_array(device_type)
-    @ set device_type_obj = device_type_map[device_type]
+    @ set device_type_obj = schema.get_device_type(device_type)
     @ set outer_loop = loop
 
     @ for output_pin in device_type_obj['output_pins']
 
-    @ set src = (device['id'], output_pin['name'])
+        @ set src = (device['id'], output_pin['name'])
 
-    @ set key = device['id'] + '-' + output_pin['name']
+        @ set key = device['id'] + '-' + output_pin['name']
 
-    // {{ src[0], src[1], output_pin['message_type'] }} -> {{ ( edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list ) }}
+        // {{ src[0], src[1], output_pin['message_type'] }} -> {{ ( edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list ) }}
 
-    if (src_ind == {{ outer_loop.index0 }} && src_por == {{ loop.index0 }}){
+        if (src_ind == {{ outer_loop.index0 }} && src_por == {{ loop.index0 }}){
 
-        @ set inbound = edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list
+            @ set inbound = edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list
 
-        @ for in_dev, in_port in inbound
-        @ set in_dev_type = graph_instance['devices'] | selectattr('id', 'equalto', in_dev) | first
-        @ set r_handler = get_receive_handler_name(in_dev_type, msg_type)
-        // do something with {{ in_dev }} and {{ in_port }}
-        // {{ in_dev_type }}
+            @ for in_dev, in_port in inbound
+            @ set in_dev_type = graph_instance['devices'] | selectattr('id', 'equalto', in_dev) | first
+            @ set r_handler = get_receive_handler_name(in_dev_type, msg_type)
+            // do something with {{ in_dev }} and {{ in_port }}
+            // {{ in_dev_type }}
+            @ endfor
+
+        }
+
         @ endfor
-
-    }
-
-    @ endfor
 
     @ endfor
 

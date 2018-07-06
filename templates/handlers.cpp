@@ -1,15 +1,20 @@
 // Handler functions
 
+
 @ for device_type in graph_type['device_types']
 
 @ set device_class = get_device_class(device_type['id'])
 @ set state_class = get_state_class(device_type['id'])
 @ set props_class = get_props_class(device_type['id'])
 
+    {% macro include_handler_defs() %}
+        {{ state_class }}* deviceState = ({{ state_class }}*) this->state;
+        {{ props_class }}* deviceProperties = ({{ props_class}}*) this->props;
+    {% endmacro %}
+
     void {{ device_class }}::receive(int pin_id, msg_t *msg) {
 
-        {{ state_class }}* deviceState = ({{ state_class }}*) state;
-        {{ props_class }}* deviceProperties = ({{ props_class}}*) props;
+        {{ include_handler_defs() }}
 
         @ for pin in device_type['input_pins']
 
@@ -31,8 +36,7 @@
 
     msg_t* {{ device_class }}::send(int pin_id) {
 
-        {{ state_class }}* deviceState = ({{ state_class }}*) state;
-        {{ props_class }}* deviceProperties = ({{ props_class}}*) props;
+        {{ include_handler_defs() }}
 
         @ for pin in device_type['output_pins']
 
@@ -54,14 +58,30 @@
 
     void {{ device_class }}::init() {
 
-        @ set pin_map = dict_from_list(device_type['input_pins'], 'name')
-        @ set init_pin = pin_map.get('__init__')
+        @ set init_pin = schema.get_pin(device_type['id'], '__init__')
 
-        {{ state_class }}* deviceState = ({{ state_class }}*) this->state;
-        {{ props_class }}* deviceProperties = ({{ props_class}}*) this->props;
+        {{ include_handler_defs() }}
 
         {{ init_pin['on_receive'] if init_pin else '' }}
 
+    }
+
+
+    int {{ device_class }}::get_rts() {
+
+        int result;
+        int* readyToSend = &result;
+
+        {{ include_handler_defs() }}
+
+        @ for out_pin in device_type['output_pins']
+            @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
+            const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
+        @ endfor
+
+        {{ device_type['ready_to_send'] }}
+
+        return result;
     }
 
 @ endfor

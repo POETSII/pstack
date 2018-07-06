@@ -1,5 +1,3 @@
-@ set device_type_map = dict_from_list(graph_type['device_types'], 'id')
-
 @ for group in graph_instance['devices'] | groupby('type')
 
 	@ set devices = group.list
@@ -14,7 +12,7 @@
 		@ set props_class = get_props_class(device_type)
 		@ set device_class = get_device_class(device_type)
 		@ set count = group.list | count
-		@ set device_type_obj = device_type_map[device_type]
+		@ set device_type_obj = schema.get_device_type(device_type)
 		@ set scalar_props = device_type_obj['properties']['scalars']
 		@ set init_msg_t = get_msg_class('__init__')
 		@ set init_handler = get_receive_handler_name(device_type, '__init__')
