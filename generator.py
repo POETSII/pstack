@@ -231,6 +231,10 @@ def pymap(func, items):
     return map(func, items)
 
 
+def mformat(fmt_str, items):
+    return [fmt_str % item for item in items]
+
+
 def generate_code(template, graph):
     """Generate code from template file and POETS graph."""
 
@@ -257,7 +261,8 @@ def generate_code(template, graph):
         make_argument_list,
         lmap,
         unique,
-        pymap
+        pymap,
+        mformat
     ]
 
     for func in funcs:

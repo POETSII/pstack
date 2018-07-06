@@ -98,6 +98,16 @@
             return {{ device['output_pins'] | count }};
         }
 
+        const char* getOutputPortName(int port_id) {
+
+            @ for pin in device['output_pins']
+
+                if (port_id == {{ loop.index0 }}) return "{{ pin['name'] }}\n";
+
+            @ endfor
+
+        }
+
         void init();
         int get_rts();
         void receive(int pin_id, msg_t *msg);

@@ -45,6 +45,7 @@ public:
     virtual void receive(int, msg_t*) = 0;
     virtual msg_t* send(int) = 0;
     virtual int getOutputPortCount() = 0;
+    virtual const char* getOutputPortName(int) = 0;
 
     dst_list_t getPortDestinations(int port_id) {
         return dsts[port_id];
