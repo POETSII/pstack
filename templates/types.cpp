@@ -2,16 +2,6 @@
 
 // Base types
 
-class state_t {
-    // Base device state type
-public:
-    virtual void print() = 0;
-};
-
-class props_t {
-    // Base device properties type
-};
-
 class msg_t {
     // Base message type
 public:
@@ -19,8 +9,6 @@ public:
 };
 
 // Convenient definition for message handler functions
-
-// typedef void (*handler_t) (state_t*, props_t*, msg_t*);
 
 // Simulation types
 
@@ -42,9 +30,8 @@ protected:
     dst_list_t* dsts; // destinations by output port
 
 public:
-    state_t *state;
-    props_t *props;
     virtual void init() = 0;
+    virtual void print() = 0;
     virtual int get_rts() = 0;
     virtual void receive(int, msg_t*) = 0;
     virtual msg_t* send(int) = 0;

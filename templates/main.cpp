@@ -15,14 +15,17 @@
 
 int main() {
 
+    std::vector<device_t*> devices;
+
     @ for group in graph_instance['devices'] | groupby('type')
 
         @ set devices = group.list
         @ set device_type = group.grouper
         @ set device_array = get_device_array(device_type)
         @ set device_init_func = get_init_function_name(device_type)
+        @ set device_class = get_device_class(device_type)
 
-        device_t* {{ device_array }} = {{ device_init_func }}();
+        {{ device_init_func }}(devices);
 
     @ endfor
 
@@ -32,52 +35,47 @@ int main() {
     @ set device_type_arrays = pymap(get_device_array, device_types)
     @ set add_edges_args = device_type_arrays | join(', ')
 
-    add_edges({{ add_edges_args }});
+    // add_edges({{ add_edges_args }});
+
+    add_edges(devices);
 
     // ---- BEGIN RTS SCAN ----
 
-    @ for group in graph_instance['devices'] | groupby('type')
+    for (int i=0; i<devices.size(); i++){
 
-        @ set devices = group.list
-        @ set device_type = group.grouper
-        @ set rts_handler = get_rts_getter_name(device_type)
-        @ set device_array = get_device_array(device_type)
+        device_t* dev = devices[i];
 
-        for (int i=0; i<{{ devices | count }}; i++){
+        int rts = (*dev).get_rts();
 
-            device_t* dev = {{ device_array }} + i;
+        printf("rts[%d]: 0x%x\n", i, rts);
 
-            int rts = {{ device_array }}[i].get_rts();
+        @ set device_type_obj = schema.get_device_type(device_type)
 
-            printf("rts[%d]: 0x%x\n", i, rts);
+        for (int j=0; j<(*dev).getOutputPortCount(); j++) {
 
-            @ set device_type_obj = schema.get_device_type(device_type)
+            if (rts & (1 << j)) {
 
-            for (int j=0; j<(*dev).getOutputPortCount(); j++) {
+                printf("  - %s\n", (*dev).getOutputPortName(j));
 
-                if (rts & (1 << j)) {
+                msg_t* outgoing = (*dev).send(j);
 
-                    printf("  - %s\n", (*dev).getOutputPortName(j));
-
-                    msg_t* outgoing = {{ device_array }}[i].send(j);
-
-                    printf("Outgoing message (filled):\n"); (*outgoing).print();
-
-                }
+                printf("Outgoing message (filled):\n"); (*outgoing).print();
 
             }
 
         }
 
-    @ endfor
+    }
+
+    // @ endfor
 
     // ---- END RTS SCAN ----
 
     // ---- BEGIN DELIVERY ----
 
-    @ set total_devices = graph_instance['devices']|count
+    // @ set total_devices = graph_instance['devices']|count
 
-    state_t* all_states[{{ total_devices }}];
+    // state_t* all_states[{{ total_devices }}];
 
     // printf("queue size = %d\n", msg_q.size());
     // deliverable dv = msg_q.front();
@@ -86,7 +84,7 @@ int main() {
     // printf("source device index = %d\n", msg->_src_device_index);
     // printf("source device port = %d\n", msg->_src_device_port);
 
-    @ set edges = graph_instance["edges"]
+    // @ set edges = graph_instance["edges"]
 
     // ---- END DELIVERY ----
 

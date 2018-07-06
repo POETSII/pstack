@@ -5,7 +5,7 @@
     @ set state_class = get_state_class(device['id'])
     @ set state = device['state']
 
-    class {{ state_class }}: public state_t {
+    class {{ state_class }} {
 
     public:
 
@@ -36,7 +36,7 @@
     @ set props_class = get_props_class(device['id'])
     @ set props = device['properties']
 
-    class {{ props_class }}: public props_t {
+    class {{ props_class }} {
 
     public:
 
@@ -69,11 +69,14 @@
 
     class {{ device_class }}: public device_t {
 
+    private:
+
+        {{ state_class }} state;
+        {{ props_class }} props;
+
     public:
 
         {{ device_class}} () {
-            state = new {{ state_class }}();
-            props = new {{ props_class }}();
 
             // Initialize array of destination lists
 
@@ -82,16 +85,12 @@
         };
 
         ~{{ device_class}}() {
-            delete state;
-            delete props;
         }
 
         void setProperties({{- make_argument_list(props['scalars']) -}}) {
 
-            {{ props_class }} *myProps = ({{ props_class }}*) this->props;
-
             @ for name in props['scalars'] | map(attribute='name')
-                myProps->{{ name }} = {{ name }};
+                props.{{ name }} = {{ name }};
             @ endfor
         }
 
@@ -110,6 +109,7 @@
         }
 
         void init();
+        void print();
         int get_rts();
         void receive(int pin_id, msg_t *msg);
         msg_t* send(int pin_id);

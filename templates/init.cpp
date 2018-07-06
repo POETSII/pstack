@@ -4,9 +4,9 @@
 	@ set device_type = group.grouper
 	@ set device_class = get_device_class(device_type)
 
-	device_t* {{ get_init_function_name(device_type) }}() {
+	void {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices) {
 
-		{{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
+		// {{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
 
 		@ set state_class = get_state_class(device_type)
 		@ set props_class = get_props_class(device_type)
@@ -31,22 +31,24 @@
 
 		for (int i=0; i<{{ devices | count }}; i++) {
 
-			devices[i].setProperties(
+			{{ device_class }} *new_device = new {{ device_class }};
+
+			(*new_device).setProperties(
 				{%- for prop in scalar_props %}
 					{{- prop['name'] -}} [i]
 					{{- ', ' if not loop.last else '' -}}
 				{%- endfor -%}
 			);
 
-			devices[i].init();
+			(*new_device).init();
 
 			printf("Device %d ({{ device_type }}): ", i);
-			{{ state_class }} *ptr = ({{ state_class }}*) devices[i].state;
-			(*ptr).print();
+
+			(*new_device).print();
+
+			devices.push_back((device_t*) new_device);
 
 		}
-
-		return (device_t*) devices;
 
 	}
 

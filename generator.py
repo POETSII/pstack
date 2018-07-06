@@ -11,9 +11,7 @@ class Schema(object):
         self._device_type_map = self._build_device_type_map(markup)
         self._input_pin_index = self._build_pin_index(markup, 'input')
         self._output_pin_index = self._build_pin_index(markup, 'output')
-        device_type_groups = self._build_device_type_groups(markup)
-
-        self._device_type_index = self._build_device_index(device_type_groups)
+        self._device_index = self._build_device_index(markup)
 
     def _build_pin_map(self, markup):
         """Build a map: (device id, pin_name) -> pin."""
@@ -52,41 +50,18 @@ class Schema(object):
 
         return result
 
-    def _build_device_type_groups(self, markup):
-        """Build list of device type groups.
+    def _build_device_index(self, markup):
+        """Build a map: device id -> index."""
 
-        Each group is a tuple (device_type, [instances]).
-        """
+        devices = markup['graph_instance']['devices']
 
-        devices = markup["graph_instance"]["devices"]
+        def get_key(device):
+            return (device['type'], device['id'])
 
-        def get_device_type(device):
-            return device["type"]
+        devices_sorted = sorted(devices, key=get_key)
 
-        devices_sorted = sorted(devices, key=get_device_type)
+        return {device['id']: index for index, device in enumerate(devices_sorted)}
 
-        result = [
-            (device_type, list(instances))
-            for device_type, instances
-            in groupby(devices_sorted, key=get_device_type)
-        ]
-
-        return result
-
-    def _build_device_index(self, device_type_groups):
-        """Build a map: device id -> index.
-
-        The index is unique per device type."""
-
-        result = dict()
-
-        for key, group in device_type_groups:
-            entries = {
-                device['id']: index for index, device in enumerate(group)
-            }
-            result.update(entries)
-
-        return result
 
     def _build_device_map(self, markup):
 
@@ -123,7 +98,7 @@ class Schema(object):
     def get_device_index(self, device_id):
         """Return device index (unique per device type)."""
 
-        return self._device_type_index[device_id]
+        return self._device_index[device_id]
 
     def get_device(self, device_id):
 
