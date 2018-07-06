@@ -102,7 +102,7 @@
 
             @ for pin in device['output_pins']
 
-                if (port_id == {{ loop.index0 }}) return "{{ pin['name'] }}\n";
+                if (port_id == {{ loop.index0 }}) return "{{ pin['name'] }}";
 
             @ endfor
 

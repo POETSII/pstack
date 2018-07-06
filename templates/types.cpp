@@ -12,6 +12,8 @@ class props_t {
 
 class msg_t {
     // Base message type
+public:
+    virtual void print() = 0;
 };
 
 // Convenient definition for message handler functions

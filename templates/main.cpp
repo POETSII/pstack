@@ -55,24 +55,19 @@ int main() {
 
             @ set device_type_obj = schema.get_device_type(device_type)
 
-            @ for output_pin in device_type_obj['output_pins']
+            for (int j=0; j<(*dev).getOutputPortCount(); j++) {
 
-                @ set msg_type = output_pin['message_type']
-                @ set msg_class = get_msg_class(msg_type)
+                if (rts & (1 << j)) {
 
-                if (rts & (1 << {{ loop.index0 }})) {
+                    printf("  - %s\n", (*dev).getOutputPortName(j));
 
-                    printf("  - %s\n", (*dev).getOutputPortName({{ loop.index0 }}));
+                    msg_t* outgoing = {{ device_array }}[i].send(j);
 
-                    msg_t* outgoing = {{ device_array }}[i].send({{ loop.index0 }});
-
-                    {{ msg_class }}* outgoing_derived = ({{ msg_class }}*) outgoing;
-
-                    printf("Outgoing message (filled):\n"); (*outgoing_derived).print();
+                    printf("Outgoing message (filled):\n"); (*outgoing).print();
 
                 }
 
-            @ endfor
+            }
 
         }
 
