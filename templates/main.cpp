@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 #include <queue>
+#include <set>
 #include <unordered_map>
+#include <string>
 
 @ include 'types.cpp'
 @ include 'globals.cpp'
@@ -35,9 +37,9 @@ int main() {
     @ set device_type_arrays = pymap(get_device_array, device_types)
     @ set add_edges_args = device_type_arrays | join(', ')
 
-    // add_edges({{ add_edges_args }});
-
     add_edges(devices);
+
+    std::set<device_t*> rts_set;
 
     // ---- BEGIN RTS SCAN ----
 
@@ -47,29 +49,33 @@ int main() {
 
         int rts = (*dev).get_rts();
 
-        printf("rts[%d]: 0x%x\n", i, rts);
+        if (rts) rts_set.insert(dev);
 
-        @ set device_type_obj = schema.get_device_type(device_type)
+    }
+
+    // ---- END RTS SCAN ----
+
+    for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr) {
+
+        device_t* dev = *itr;
+
+        int rts = (*dev).get_rts();
 
         for (int j=0; j<(*dev).getOutputPortCount(); j++) {
 
             if (rts & (1 << j)) {
 
-                printf("  - %s\n", (*dev).getOutputPortName(j));
+                printf("Device <%s> requested to send on output port <%s>\n", dev->name.c_str(), (*dev).getOutputPortName(j));
 
-                msg_t* outgoing = (*dev).send(j);
+                // msg_t* outgoing = (*dev).send(j);
 
-                printf("Outgoing message (filled):\n"); (*outgoing).print();
+                // printf("Outgoing message (filled):\n"); (*outgoing).print();
 
             }
 
         }
-
     }
 
-    // @ endfor
-
-    // ---- END RTS SCAN ----
 
     // ---- BEGIN DELIVERY ----
 

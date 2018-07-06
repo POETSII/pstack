@@ -1,6 +1,5 @@
 // Handler functions
 
-
 @ for device_type in graph_type['device_types']
 
 @ set device_class = get_device_class(device_type['id'])
@@ -29,6 +28,8 @@
             {{ msg_class }} *message = ({{ msg_class }}*) msg;
 
             {{ pin['on_receive'] }}
+
+            compute_rts();
 
             return;
 
@@ -68,13 +69,13 @@
 
         {{ init_pin['on_receive'] if init_pin else '' }}
 
+        compute_rts();
+
     }
 
+    void {{ device_class }}::compute_rts() {
 
-    int {{ device_class }}::get_rts() {
-
-        int result;
-        int* readyToSend = &result;
+        int* readyToSend = &rts;
 
         {{ include_handler_defs() }}
 
@@ -85,7 +86,10 @@
 
         {{ device_type['ready_to_send'] }}
 
-        return result;
+    }
+
+    int {{ device_class }}::get_rts() {
+        return rts;
     }
 
     void {{ device_class }}::print() {

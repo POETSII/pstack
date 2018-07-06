@@ -29,9 +29,16 @@
 
 		@ endfor
 
+		@ set device_names = devices | map(attribute="id")
+		@ set device_names_str = mformat('"%s"', device_names) | join(', ')
+
+		const std::string names[] = { {{ device_names_str }} };
+
 		for (int i=0; i<{{ devices | count }}; i++) {
 
 			{{ device_class }} *new_device = new {{ device_class }};
+
+			new_device->name = names[i];
 
 			(*new_device).setProperties(
 				{%- for prop in scalar_props %}

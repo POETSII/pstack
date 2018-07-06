@@ -26,10 +26,13 @@ typedef std::vector<destination_t> dst_list_t;
 
 class device_t {
 
+private:
+
 protected:
     dst_list_t* dsts; // destinations by output port
 
 public:
+    std::string name = "n/a";
     virtual void init() = 0;
     virtual void print() = 0;
     virtual int get_rts() = 0;

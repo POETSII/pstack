@@ -73,6 +73,7 @@
 
         {{ state_class }} state;
         {{ props_class }} props;
+        int rts;
 
     public:
 
@@ -111,6 +112,7 @@
         void init();
         void print();
         int get_rts();
+        void compute_rts();
         void receive(int pin_id, msg_t *msg);
         msg_t* send(int pin_id);
 
