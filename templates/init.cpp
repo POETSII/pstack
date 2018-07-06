@@ -40,7 +40,7 @@
 
 			devices[i].init();
 
-			printf("Device %d ({{ device_type }}):\n", i);
+			printf("Device %d ({{ device_type }}): ", i);
 			{{ state_class }} *ptr = ({{ state_class }}*) devices[i].state;
 			(*ptr).print();
 

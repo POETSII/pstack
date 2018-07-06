@@ -4,6 +4,8 @@
 
 class state_t {
     // Base device state type
+public:
+    virtual void print() = 0;
 };
 
 class props_t {

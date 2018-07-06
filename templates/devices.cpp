@@ -20,7 +20,8 @@
 
         void print() {
             @ for name in state['scalars'] | map(attribute='name')
-                printf("  - {{ name }} = %d\n", this->{{ name }});
+                @ set separator = '\\n' if loop.last else ', '
+                printf("{{ name }} = %d{{ separator }}", this->{{ name }});
             @ endfor
         }
 

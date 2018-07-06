@@ -8,9 +8,7 @@
 @ include 'globals.cpp'
 @ include 'messages.cpp'
 @ include 'devices.cpp'
-
-{{ graph_type['shared_code'] }}
-
+@ include 'shared.cpp'
 @ include 'handlers.cpp'
 @ include 'init.cpp'
 @ include 'connections.cpp'
@@ -95,60 +93,6 @@ int main() {
     // typedef std::list<state_handler_tup> mylist ;
 
     // std::unordered_map<std::string, mylist> map1;
-
-    // destination *myd[10];
-
-    // myd[0] = new destination[5];
-    // myd[1] = new destination[4];
-
-    /*
-
-    @ set incoming_index = build_index(edges|map(attribute='dst'))
-
-    {{ incoming_index|pprint }}
-
-    */
-
-    // Section A -----------
-
-    // const int src_ind = msg->_src_device_index;
-    // const int src_por = msg->_src_device_port;
-
-    const int src_ind = 0;
-    const int src_por = 0;
-
-    @ for device in graph_instance['devices']
-
-    @ set device_type = device['type']
-    @ set PROP_ARR = get_properties_array(device_type)
-    @ set STAT_ARR = get_state_array(device_type)
-    @ set device_type_obj = schema.get_device_type(device_type)
-    @ set outer_loop = loop
-
-    @ for output_pin in device_type_obj['output_pins']
-
-        @ set src = (device['id'], output_pin['name'])
-
-        @ set key = device['id'] + '-' + output_pin['name']
-
-        // {{ src[0], src[1], output_pin['message_type'] }} -> {{ ( edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list ) }}
-
-        if (src_ind == {{ outer_loop.index0 }} && src_por == {{ loop.index0 }}){
-
-            @ set inbound = edges | selectattr('src', 'equalto', src) | map(attribute='dst') | list
-
-            @ for in_dev, in_port in inbound
-            @ set in_dev_type = graph_instance['devices'] | selectattr('id', 'equalto', in_dev) | first
-            @ set r_handler = get_receive_handler_name(in_dev_type, msg_type)
-            // do something with {{ in_dev }} and {{ in_port }}
-            // {{ in_dev_type }}
-            @ endfor
-
-        }
-
-        @ endfor
-
-    @ endfor
 
     // end of Section A ---------
 
