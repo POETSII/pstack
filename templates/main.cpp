@@ -15,45 +15,9 @@
 @ include 'init.cpp'
 @ include 'connections.cpp'
 
-int main() {
+typedef std::set<device_t*> rts_set_t;
 
-    std::vector<device_t*> devices;
-
-    @ for group in graph_instance['devices'] | groupby('type')
-
-        @ set devices = group.list
-        @ set device_type = group.grouper
-        @ set device_array = get_device_array(device_type)
-        @ set device_init_func = get_init_function_name(device_type)
-        @ set device_class = get_device_class(device_type)
-
-        {{ device_init_func }}(devices);
-
-    @ endfor
-
-    // Add edges
-
-    @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
-    @ set device_type_arrays = pymap(get_device_array, device_types)
-    @ set add_edges_args = device_type_arrays | join(', ')
-
-    add_edges(devices);
-
-    std::set<device_t*> rts_set;
-
-    // ---- BEGIN RTS SCAN ----
-
-    for (int i=0; i<devices.size(); i++){
-
-        device_t* dev = devices[i];
-
-        int rts = (*dev).get_rts();
-
-        if (rts) rts_set.insert(dev);
-
-    }
-
-    // ---- END RTS SCAN ----
+void print_rts_set(rts_set_t rts_set) {
 
     for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr) {
 
@@ -75,6 +39,80 @@ int main() {
 
         }
     }
+
+}
+
+device_t* select_rts_device(rts_set_t rts_set) {
+
+    return *(rts_set.begin());
+}
+
+int select_rts_port(device_t* dev) {
+
+    int port_count = (*dev).getOutputPortCount();
+
+    int rts = (*dev).get_rts();
+
+    for (int j=0; j<port_count; j++) {
+
+        if (rts & (1 << j)) return j;
+
+    }
+
+}
+
+int main() {
+
+    std::vector<device_t*> devices;
+
+    @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
+    @ set init_funcs = pymap(get_init_function_name, device_types)
+    @ set init_calls = mformat("%s(devices);", init_funcs) | join("\n")
+
+    {{ init_calls }}
+
+    add_edges(devices);
+
+    rts_set_t rts_set;
+
+    // ---- BEGIN RTS SCAN ----
+
+    for (int i=0; i<devices.size(); i++){
+
+        device_t* dev = devices[i];
+
+        int rts = (*dev).get_rts();
+
+        if (rts) rts_set.insert(dev);
+
+    }
+
+    // ---- END RTS SCAN ----
+
+    printf("----\n");
+
+    print_rts_set(rts_set);
+
+    printf("----\n");
+
+    device_t* dev = select_rts_device(rts_set);
+
+    int port = select_rts_port(dev);
+
+    printf("Device <%s> requested to send on output port %d <%s>\n", dev->name.c_str(), port, (*dev).getOutputPortName(port));
+
+    dst_list_t *dests = (*dev).getPortDestinations(port);
+
+    printf("Destinations: %d\n", (*dests).size());
+
+    for (int i=0; i<(*dests).size(); i++) {
+        destination_t dest = (*dests).at(i);
+        device_t* dest_dev = (device_t*) (dest).device;
+        int dest_port = (dest).port;
+        printf("  port = %d\n", dest_port);
+        printf("  - node <%s> port <%s>\n", (*dest_dev).name.c_str(), (*dest_dev).getInputPortName(dest_port));
+    }
+
 
 
     // ---- BEGIN DELIVERY ----

@@ -8,7 +8,7 @@ void add_edges(std::vector<device_t*> devices) {
 	int src_pin;
 	int dst_pin;
 
-	dst_list_t dsts;
+	dst_list_t *dsts;
 
 	// ---
 
@@ -39,7 +39,7 @@ void add_edges(std::vector<device_t*> devices) {
 
 	    dsts = (*src_dev).getPortDestinations(src_pin);
 
-	    dsts.push_back(destination_t(dst_dev, dst_pin));
+	    (*dsts).push_back(destination_t(dst_dev, dst_pin));
 
 	@ endfor
 

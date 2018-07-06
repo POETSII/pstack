@@ -7,12 +7,8 @@
 @ set props_class = get_props_class(device_type['id'])
 
     {% macro include_handler_defs() %}
-        // {{ state_class }}* deviceState = ({{ state_class }}*) this->state;
-        // {{ props_class }}* deviceProperties = ({{ props_class}}*) this->props;
-
         {{ state_class }}* deviceState = &state;
         {{ props_class }}* deviceProperties = &props;
-
     {% endmacro %}
 
     void {{ device_class }}::receive(int pin_id, msg_t *msg) {
@@ -52,6 +48,8 @@
                 {{ msg_class }} *message = new {{ msg_class }}();
 
                 {{ pin['on_send'] }}
+
+                compute_rts();
 
                 return message;
 

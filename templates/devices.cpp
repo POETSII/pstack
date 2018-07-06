@@ -109,6 +109,16 @@
 
         }
 
+        const char* getInputPortName(int port_id) {
+
+            @ for pin in device['input_pins']
+
+                if (port_id == {{ loop.index0 }}) return "{{ pin['name'] }}";
+
+            @ endfor
+
+        }
+
         void init();
         void print();
         int get_rts();
