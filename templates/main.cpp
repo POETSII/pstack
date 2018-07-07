@@ -64,6 +64,7 @@ int select_rts_port(device_t* dev) {
 int main() {
 
     std::vector<device_t*> devices;
+    std::vector<delivery_t> dlist; // delivery list
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types)
@@ -107,13 +108,21 @@ int main() {
 
     for (int i=0; i<(*dests).size(); i++) {
         destination_t dest = (*dests).at(i);
-        device_t* dest_dev = (device_t*) (dest).device;
-        int dest_port = (dest).port;
-        printf("  port = %d\n", dest_port);
-        printf("  - node <%s> port <%s>\n", (*dest_dev).name.c_str(), (*dest_dev).getInputPortName(dest_port));
+        device_t* dest_dev = (device_t*) dest.device;
+        int dest_port = dest.port;
+        printf("  - node <%s> port %d <%s>\n", (*dest_dev).name.c_str(), dest_port, (*dest_dev).getInputPortName(dest_port));
+
     }
 
+    // Create message by calling send handler
 
+    msg_t* msg = (*dev).send(port);
+    printf("message:\n");
+    (*msg).print();
+
+    // Create delivery object
+
+    dlist.push_back(delivery_t(msg, *dests));
 
     // ---- BEGIN DELIVERY ----
 

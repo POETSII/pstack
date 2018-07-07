@@ -58,7 +58,12 @@ public:
 //     device_t *device;
 // };
 
-struct delivery_t {
+class delivery_t {
+public:
     msg_t *msg;
-    destination_t *dst;
+    dst_list_t dst;
+    delivery_t(msg_t* msg, dst_list_t dst) {
+        this->msg = msg;
+        this->dst = dst;
+    }
 };

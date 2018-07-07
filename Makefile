@@ -12,3 +12,6 @@ run: pretty compile
 
 compile:
 	@ g++ -fdiagnostics-color=always -o tmp/main.exe tmp/main.cpp
+
+rerun: compile
+	@ tmp/main.exe
