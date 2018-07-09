@@ -11,13 +11,19 @@ public:
 // Simulation types
 
 class destination_t {
+
 public:
+
     void *device = NULL;
     int port;
+
     destination_t(void *device, int port) {
         this->device = device;
         this->port = port;
     }
+
+    void print();
+
 };
 
 typedef std::vector<destination_t> dst_list_t;
@@ -46,6 +52,16 @@ public:
 
 };
 
+void destination_t::print() {
+
+    device_t* device = (device_t*) (this->device);
+
+    printf("  - Destination: device <%s> (input port <%s>)\n",
+        (*device).name.c_str(),
+        (*device).getInputPortName(port)
+    );
+}
+
 class delivery_t {
 
 public:
@@ -60,7 +76,7 @@ public:
 
     void print() {
 
-        printf("Deliverying the following message:\n");
+        printf("Delivery of the following message:\n");
 
         (*msg).print();
 
@@ -69,13 +85,9 @@ public:
         for (int i=0; i<dst.size(); i++) {
 
             destination_t dest = dst.at(i);
-            device_t* dest_dev = (device_t*) dest.device;
-            int dest_port = dest.port;
 
-            printf("  - node <%s> (input port <%s>)\n",
-                (*dest_dev).name.c_str(),
-                (*dest_dev).getInputPortName(dest_port)
-            );
+            dest.print();
+
         }
 
     }

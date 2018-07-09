@@ -18,28 +18,30 @@
 
 typedef std::set<device_t*> rts_set_t;
 
-void print_rts_set(rts_set_t rts_set) {
+void print_device_rts(device_t* dev) {
 
-    for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr) {
+    int rts = (*dev).get_rts();
+    int ports = (*dev).getOutputPortCount();
 
-        device_t* dev = *itr;
+    for (int j=0; j<ports; j++) {
 
-        int rts = (*dev).get_rts();
+        if (rts & (1 << j)) {
 
-        for (int j=0; j<(*dev).getOutputPortCount(); j++) {
-
-            if (rts & (1 << j)) {
-
-                printf("Device <%s> requested to send on output port <%s>\n", dev->name.c_str(), (*dev).getOutputPortName(j));
-
-                // msg_t* outgoing = (*dev).send(j);
-
-                // printf("Outgoing message (filled):\n"); (*outgoing).print();
-
-            }
+            printf("Device <%s> requested to send on output port <%s>\n",
+                dev->name.c_str(),
+                (*dev).getOutputPortName(j)
+            );
 
         }
+
     }
+
+}
+
+void print_rts_set(rts_set_t rts_set) {
+
+    for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr)
+        print_device_rts(*itr);
 
 }
 
@@ -47,6 +49,7 @@ device_t* select_rts_device(rts_set_t rts_set) {
 
     return *(rts_set.begin());
 }
+
 
 int select_rts_port(device_t* dev) {
 
@@ -111,18 +114,39 @@ int main() {
 
     // Create delivery object
 
-    delivery_t dv = delivery_t(msg, *dests);
+    delivery_t new_dv = delivery_t(msg, *dests);
 
-    dv.print();
+    new_dv.print();
 
-    dlist.push_back(dv);
-
-    // ---- END DELIVERY LIST UPDATE ----
+    dlist.push_back(new_dv);
 
     printf("Delivery list size: %d item(s)\n", dlist.size());
 
+    // ---- END DELIVERY LIST UPDATE ----
+
     // ---- BEGIN DELIVERY ----
 
+    printf("Making the delivery:\n");
+
+    delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
+
+    dv.print();
+
+    printf("Chosen destination:\n");
+
+    destination_t dst = dv.dst.at(0);  // Always choose first destination, for now (TODO)
+
+    dst.print();
+
+    printf("Calling receive handler ...\n");
+
+    device_t* dst_dev = (device_t*) dst.device;
+
+    (*dst_dev).receive(dst.port, dv.msg);
+
+    printf("Device <%s>: ", dst_dev->name.c_str());
+
+    (*dst_dev).print();
 
     // ---- END DELIVERY ----
 
