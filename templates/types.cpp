@@ -1,5 +1,3 @@
-#include<vector>
-
 // Base types
 
 class msg_t {
@@ -48,22 +46,37 @@ public:
 
 };
 
-// struct input_pin_t {
-//     handler_t *handler;
-//     device_t *device;
-// };
-
-// struct output_pin_t {
-//     input_pin_t *destinations;
-//     device_t *device;
-// };
-
 class delivery_t {
+
 public:
+
     msg_t *msg;
     dst_list_t dst;
+
     delivery_t(msg_t* msg, dst_list_t dst) {
         this->msg = msg;
         this->dst = dst;
+    }
+
+    void print() {
+
+        printf("Deliverying the following message:\n");
+
+        (*msg).print();
+
+        printf("To the following nodes:\n");
+
+        for (int i=0; i<dst.size(); i++) {
+
+            destination_t dest = dst.at(i);
+            device_t* dest_dev = (device_t*) dest.device;
+            int dest_port = dest.port;
+
+            printf("  - node <%s> (input port <%s>)\n",
+                (*dest_dev).name.c_str(),
+                (*dest_dev).getInputPortName(dest_port)
+            );
+        }
+
     }
 };

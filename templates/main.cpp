@@ -1,10 +1,11 @@
 // vim: set ft=cpp:
 
-#include <stdio.h>
-#include <queue>
 #include <set>
-#include <unordered_map>
+#include <queue>
+#include <vector>
 #include <string>
+#include <stdio.h>
+#include <unordered_map>
 
 @ include 'types.cpp'
 @ include 'globals.cpp'
@@ -74,9 +75,11 @@ int main() {
 
     add_edges(devices);
 
-    rts_set_t rts_set;
+    printf("----\n");
 
     // ---- BEGIN RTS SCAN ----
+
+    rts_set_t rts_set;
 
     for (int i=0; i<devices.size(); i++){
 
@@ -88,74 +91,40 @@ int main() {
 
     }
 
-    // ---- END RTS SCAN ----
-
-    printf("----\n");
-
     print_rts_set(rts_set);
 
     printf("----\n");
+
+    // ---- END RTS SCAN ----
+
+    // ---- BEGIN DELIVERY LIST UPDATE ----
 
     device_t* dev = select_rts_device(rts_set);
 
     int port = select_rts_port(dev);
 
-    printf("Device <%s> requested to send on output port %d <%s>\n", dev->name.c_str(), port, (*dev).getOutputPortName(port));
-
     dst_list_t *dests = (*dev).getPortDestinations(port);
-
-    printf("Destinations: %d\n", (*dests).size());
-
-    for (int i=0; i<(*dests).size(); i++) {
-        destination_t dest = (*dests).at(i);
-        device_t* dest_dev = (device_t*) dest.device;
-        int dest_port = dest.port;
-        printf("  - node <%s> port %d <%s>\n", (*dest_dev).name.c_str(), dest_port, (*dest_dev).getInputPortName(dest_port));
-
-    }
 
     // Create message by calling send handler
 
     msg_t* msg = (*dev).send(port);
-    printf("message:\n");
-    (*msg).print();
 
     // Create delivery object
 
-    dlist.push_back(delivery_t(msg, *dests));
+    delivery_t dv = delivery_t(msg, *dests);
+
+    dv.print();
+
+    dlist.push_back(dv);
+
+    // ---- END DELIVERY LIST UPDATE ----
+
+    printf("Delivery list size: %d item(s)\n", dlist.size());
 
     // ---- BEGIN DELIVERY ----
 
-    // @ set total_devices = graph_instance['devices']|count
-
-    // state_t* all_states[{{ total_devices }}];
-
-    // printf("queue size = %d\n", msg_q.size());
-    // deliverable dv = msg_q.front();
-    // msg_t* msg = dv.msg;
-
-    // printf("source device index = %d\n", msg->_src_device_index);
-    // printf("source device port = %d\n", msg->_src_device_port);
-
-    // @ set edges = graph_instance["edges"]
 
     // ---- END DELIVERY ----
 
-    // typedef std::list<state_handler_tup> mylist ;
-
-    // std::unordered_map<std::string, mylist> map1;
-
-    // end of Section A ---------
-
-    // queue <state> q;
-    // state *s1 = states;
-    // s1->x = 5;
-    // q.push(*s1);
-    // state t = q.front();
-    // printf("queue size = %d\n", q.size());
-    // q.pop();
-    // printf("queue size = %d\n", q.size());
-    // printf("hello %d\n", t.x);
-
-
-    return 0; }
+    return 0;
+}
