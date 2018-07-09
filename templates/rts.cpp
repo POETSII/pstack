@@ -27,14 +27,20 @@ void print_device_rts(device_t* dev) {
 
 void print_rts_set(rts_set_t rts_set) {
 
-    printf("Content of rts_set:\n");
+    printf("Content of rts_set:");
 
     for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr)
-        print_device_rts(*itr);
+        printf(" <%s>", (*itr)->name.c_str());
+        // print_device_rts(*itr);
+
+    printf("\n");
+
 
 }
 
 device_t* select_rts_device(rts_set_t rts_set) {
+
+    if (rts_set.empty()) return NULL;
 
     return *(rts_set.begin());
 }

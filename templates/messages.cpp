@@ -22,6 +22,10 @@
                 printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
             @ endfor
         }
+
+        const char* getName() {
+            return "{{ message['id'] }}";
+        }
     };
 
 @ endfor

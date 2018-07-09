@@ -4,6 +4,7 @@ class msg_t {
     // Base message type
 public:
     virtual void print() = 0;
+    virtual const char* getName() = 0;
 };
 
 // Convenient definition for message handler functions
@@ -74,9 +75,25 @@ public:
         this->dst = dst;
     }
 
+    void print_destinations() {
+
+        for (int i=0; i<dst.size(); i++) {
+
+            destination_t dest = dst.at(i);
+
+            device_t* dev = (device_t*) dest.device;
+
+            printf("<%s> ", dev->name.c_str());
+
+        }
+
+        printf("\n");
+
+    }
+
     void print() {
 
-        printf("Delivery of the following message:\n");
+        printf("Delivery of the following <%s> message:\n", (*msg).getName());
 
         (*msg).print();
 

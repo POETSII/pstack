@@ -52,69 +52,131 @@ int main() {
 
     // ---- END RTS SCAN ----
 
-    // ---- BEGIN DELIVERY LIST UPDATE ----
+    for (int i=0; i<3; i++) {
 
-    device_t* dev = select_rts_device(rts_set);
+        printf("Epoch %d: ####################\n", i);
 
-    int port = select_rts_port(dev);
+        printf("----\n");
 
-    dst_list_t *dests = (*dev).getPortDestinations(port);
+        // ---- BEGIN DELIVERY LIST UPDATE ----
 
-    // Create message by calling send handler
+        device_t* dev = select_rts_device(rts_set);
 
-    printf("Calling send handler of device <%s> ...\n", dev->name.c_str());
+        if (dev == NULL) {
 
-    msg_t* msg = (*dev).send(port);
+            printf("Empty rts set");
 
-    // Checking if sender still wants to send (and remove it from rts_set if
-    // not)
+        } else {
 
-    int new_rts = (*dev).get_rts();
+            int port = select_rts_port(dev);
 
-    if (new_rts == 0) {
-        rts_set.erase(dev);
-        printf("Device <%s> removed from rts_set\n", dev->name.c_str());
-    }
+            dst_list_t *dests = (*dev).getPortDestinations(port);
 
-    // Create delivery object
+            // Create message by calling send handler
 
-    delivery_t new_dv = delivery_t(msg, *dests);
+            printf("Calling send handler of device <%s> ...\n", dev->name.c_str());
 
-    new_dv.print();
+            msg_t* msg = (*dev).send(port);
 
-    dlist.push_back(new_dv);
+            // Checking if sender still wants to send (and remove it from
+            // rts_set if not)
 
-    // ---- END DELIVERY LIST UPDATE ----
+            int new_rts = (*dev).get_rts();
 
-    // ---- BEGIN DELIVERY ----
+            if (new_rts == 0) {
+                rts_set.erase(dev);
+                printf("Device <%s> removed from rts_set\n", dev->name.c_str());
+            }
 
-    printf("Making the delivery:\n");
+            // Create delivery object
 
-    delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
+            delivery_t new_dv = delivery_t(msg, *dests);
 
-    printf("Chosen destination:\n");
+            printf("Created new delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
 
-    destination_t dst = dv.dst.at(0);  // Always choose first destination, for now (TODO)
+            // new_dv.print();
 
-    dst.print();
+            dlist.push_back(new_dv);
 
-    printf("Calling receive handler ...\n");
+        }
 
-    device_t* dst_dev = (device_t*) dst.device;
+        // ---- END DELIVERY LIST UPDATE ----
 
-    (*dst_dev).receive(dst.port, dv.msg);
+        // ---- BEGIN DELIVERY ----
 
-    printf("Device <%s>: ", dst_dev->name.c_str());
+        int pending_deliveries = dlist.size();
 
-    (*dst_dev).print();
+        if (pending_deliveries > 0) {
 
-    int dst_dev_rts = (*dst_dev).get_rts();
+            printf("Pending deliveries: %d\n", pending_deliveries);
 
-    if (dst_dev_rts) {
-        rts_set.insert(dst_dev);
-        printf("Device <%s> asserted rts and was added to rts_set\n", dst_dev->name.c_str());
+            printf("Making the delivery:\n");
 
-        print_rts_set(rts_set);
+            delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
+
+            // (*dv.msg).print();
+
+            printf("Chosen destination:\n");
+
+            destination_t dst = dv.dst.at(dv.dst.size()-1);  // Always choose last destination, for now (TODO)
+
+            dst.print();
+
+            printf("Calling receive handler ...\n");
+
+            device_t* dst_dev = (device_t*) dst.device;
+
+            (*dst_dev).receive(dst.port, dv.msg);
+
+            printf("Device <%s>: ", dst_dev->name.c_str());
+
+            (*dst_dev).print();
+
+            int dst_dev_rts = (*dst_dev).get_rts();
+
+            if (dst_dev_rts) {
+                rts_set.insert(dst_dev);
+                printf("Device <%s> asserted rts and was added to rts_set\n", dst_dev->name.c_str());
+
+                print_rts_set(rts_set);
+            }
+
+            printf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
+
+            dv.dst.pop_back();
+
+
+            if (dv.dst.size() == 0) {
+
+                printf("Delivery is complete, removing from dlist ...\n");
+
+                // Remove by swapping with last element then doing pop_back()
+
+                delivery_t last_delivery = dlist.at(dlist.size() - 1);
+
+                dlist[0] = last_delivery;
+
+                dlist.pop_back();
+
+            } else {
+
+                printf("Remaining destinations in this delivery: ");
+
+                dv.print_destinations();
+
+                dlist[0] = dv; // put modified delivery object in dlist
+
+            }
+
+
+            // dv.print();
+
+        } else {
+
+            printf("No pending deliveries\n");
+
+        }
+
     }
 
     // ---- END DELIVERY ----
