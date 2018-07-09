@@ -67,10 +67,12 @@ class delivery_t {
 
 public:
 
+    device_t *origin;
     msg_t *msg;
     dst_list_t dst;
 
-    delivery_t(msg_t* msg, dst_list_t dst) {
+    delivery_t(msg_t* msg, dst_list_t dst, device_t *origin) {
+        this->origin = origin;
         this->msg = msg;
         this->dst = dst;
     }

@@ -26,11 +26,13 @@ int main() {
     @ set init_funcs = pymap(get_init_function_name, device_types)
     @ set init_calls = mformat("%s(devices);", init_funcs) | join("\n")
 
+    printf("Initialization:\n---------------\n");
+
     {{ init_calls }}
 
     add_edges(devices);
 
-    printf("----\n");
+    printf("\n");
 
     // ---- BEGIN RTS SCAN ----
 
@@ -48,15 +50,13 @@ int main() {
 
     print_rts_set(rts_set);
 
-    printf("----\n");
+    printf("\n");
 
     // ---- END RTS SCAN ----
 
     for (int i=0; i<3; i++) {
 
-        printf("Epoch %d: ####################\n", i);
-
-        printf("----\n");
+        printf("Epoch %d:\n--------\n", i+1);
 
         // ---- BEGIN DELIVERY LIST UPDATE ----
 
@@ -90,7 +90,7 @@ int main() {
 
             // Create delivery object
 
-            delivery_t new_dv = delivery_t(msg, *dests);
+            delivery_t new_dv = delivery_t(msg, *dests, dev);
 
             printf("Created new delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
 
@@ -110,21 +110,23 @@ int main() {
 
             printf("Pending deliveries: %d\n", pending_deliveries);
 
-            printf("Making the delivery:\n");
+            // printf("Making the delivery:\n");
 
             delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
 
             // (*dv.msg).print();
 
-            printf("Chosen destination:\n");
+            // printf("Chosen destination:\n");
 
             destination_t dst = dv.dst.at(dv.dst.size()-1);  // Always choose last destination, for now (TODO)
 
-            dst.print();
+            // dst.print();
 
-            printf("Calling receive handler ...\n");
+            // printf("Calling receive handler ...\n");
 
             device_t* dst_dev = (device_t*) dst.device;
+
+            printf("Delivering <%s> message from <%s> to <%s>\n", (*dv.msg).getName(), dv.origin->name.c_str(), dst_dev->name.c_str());
 
             (*dst_dev).receive(dst.port, dv.msg);
 
@@ -135,16 +137,15 @@ int main() {
             int dst_dev_rts = (*dst_dev).get_rts();
 
             if (dst_dev_rts) {
+
                 rts_set.insert(dst_dev);
-                printf("Device <%s> asserted rts and was added to rts_set\n", dst_dev->name.c_str());
 
                 print_rts_set(rts_set);
             }
 
-            printf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
+            // printf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
 
             dv.dst.pop_back();
-
 
             if (dv.dst.size() == 0) {
 
@@ -176,6 +177,8 @@ int main() {
             printf("No pending deliveries\n");
 
         }
+
+        printf("\n");
 
     }
 
