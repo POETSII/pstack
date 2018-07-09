@@ -4,5 +4,6 @@
 	"Calling receive handler ...": "bold green",
 	"Epoch .*": "bold",
 	"Initialization.*": "bold",
-	"Delivering .*": "bold green"
+	"Delivering .*": "bold green",
+	"App: .*": "bold cyan"
 }

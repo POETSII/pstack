@@ -54,7 +54,7 @@ int main() {
 
     // ---- END RTS SCAN ----
 
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<150; i++) {
 
         printf("Epoch %d:\n--------\n", i+1);
 
@@ -64,7 +64,7 @@ int main() {
 
         if (dev == NULL) {
 
-            printf("Empty rts set");
+            printf("Empty rts set\n");
 
         } else {
 
@@ -169,12 +169,19 @@ int main() {
 
             }
 
-
             // dv.print();
 
         } else {
 
             printf("No pending deliveries\n");
+
+        }
+
+        if (dev == NULL and pending_deliveries == 0) {
+
+            printf("End of simulation\n");
+
+            return 0;
 
         }
 

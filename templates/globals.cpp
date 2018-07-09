@@ -1,9 +1,17 @@
 // Global functions
 
-void handler_log(int level, const char *msg, ...) {
-    // do nothing
+#include <stdarg.h>
+
+void handler_log(int level, const char *fmt, ...) {
+    printf("App: ");
+    va_list va;
+    va_start (va, fmt);
+    vprintf (fmt, va);
+    va_end (va);
+    printf("\n");
 }
 
 void handler_exit(int exitCode) {
-    // do nothing
+
+	printf("App: handler_exit(%d) called\n", exitCode);
 }
