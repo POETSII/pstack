@@ -1,0 +1,7 @@
+{
+	".*delivery.*": "blue bold",
+	"Content of rts_set: .*": "bold red",
+	"Calling receive handler ...": "bold green",
+	"Calling send handler of device .*": "bold magenta",
+	"Epoch .*": "bold"
+}
