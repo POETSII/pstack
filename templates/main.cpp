@@ -23,6 +23,11 @@ void print_device_rts(device_t* dev) {
     int rts = (*dev).get_rts();
     int ports = (*dev).getOutputPortCount();
 
+    if (rts == 0) {
+        printf("Device <%s> no longer requests to send\n", dev->name.c_str());
+        return;
+    }
+
     for (int j=0; j<ports; j++) {
 
         if (rts & (1 << j)) {
@@ -39,6 +44,8 @@ void print_device_rts(device_t* dev) {
 }
 
 void print_rts_set(rts_set_t rts_set) {
+
+    printf("Content of rts_set:\n");
 
     for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr)
         print_device_rts(*itr);
@@ -110,7 +117,19 @@ int main() {
 
     // Create message by calling send handler
 
+    printf("Calling send handler of device <%s> ...\n", dev->name.c_str());
+
     msg_t* msg = (*dev).send(port);
+
+    // Checking if sender still wants to send (and remove it from rts_set if
+    // not)
+
+    int new_rts = (*dev).get_rts();
+
+    if (new_rts == 0) {
+        rts_set.erase(dev);
+        printf("Device <%s> removed from rts_set\n", dev->name.c_str());
+    }
 
     // Create delivery object
 
@@ -120,8 +139,6 @@ int main() {
 
     dlist.push_back(new_dv);
 
-    printf("Delivery list size: %d item(s)\n", dlist.size());
-
     // ---- END DELIVERY LIST UPDATE ----
 
     // ---- BEGIN DELIVERY ----
@@ -129,8 +146,6 @@ int main() {
     printf("Making the delivery:\n");
 
     delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
-
-    dv.print();
 
     printf("Chosen destination:\n");
 
@@ -147,6 +162,15 @@ int main() {
     printf("Device <%s>: ", dst_dev->name.c_str());
 
     (*dst_dev).print();
+
+    int dst_dev_rts = (*dst_dev).get_rts();
+
+    if (dst_dev_rts) {
+        rts_set.insert(dst_dev);
+        printf("Device <%s> asserted rts and was added to rts_set\n", dst_dev->name.c_str());
+
+        print_rts_set(rts_set);
+    }
 
     // ---- END DELIVERY ----
 
