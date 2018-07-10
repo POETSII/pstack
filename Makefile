@@ -1,17 +1,15 @@
-pretty:
-	@ python psim.py > tmp/temp.cpp 2>&1
-	@ astyle -n -F -xe tmp/temp.cpp >/dev/null
-	@ cat -s tmp/temp.cpp > tmp/main.cpp
-	@ rm tmp/temp.cpp
+POETS_XML="tmp/output.xml"
+GEN_SRC_FILE="tmp/main.cpp"
+GEN_OBJ_FILE="tmp/main.exe"
+
+sim:
+	@ python psim.py --output $(GEN_SRC_FILE) $(POETS_XML)
+
+pretty: gen
+	@ astyle -n -F -xe $(GEN_SRC_FILE) >/dev/null
 
 gen:
-	@ python psim.py > tmp/main.cpp
-
-run: pretty compile
-	@ tmp/main.exe
+	@ python psim.py --norun --output $(GEN_SRC_FILE) $(POETS_XML)
 
 compile:
-	@ g++ -fdiagnostics-color=always -o tmp/main.exe tmp/main.cpp
-
-rerun: compile
-	@ tmp/main.exe
+	@ g++ -fdiagnostics-color=always -o $(GEN_OBJ_FILE) $(GEN_SRC_FILE)
