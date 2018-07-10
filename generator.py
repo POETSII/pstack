@@ -12,6 +12,7 @@ class Schema(object):
         self._input_pin_index = self._build_pin_index(markup, 'input')
         self._output_pin_index = self._build_pin_index(markup, 'output')
         self._device_index = self._build_device_index(markup)
+        self._edge_table = self._build_edge_table(markup)
 
     def _build_pin_map(self, markup):
         """Build a map: (device id, pin_name) -> pin."""
@@ -103,6 +104,32 @@ class Schema(object):
     def get_device(self, device_id):
 
         return self._device_map[device_id]
+
+    def _build_edge_table(self, markup):
+
+        def get_table_entry(edge):
+
+            src_device, src_pin_name = edge['src']
+            dst_device, dst_pin_name = edge['dst']
+
+            src_device_index = self.get_device_index(src_device)
+            dst_device_index = self.get_device_index(dst_device)
+
+            src_device_type = self.get_device(src_device)['type']
+            dst_device_type = self.get_device(dst_device)['type']
+
+            src_pin = self.get_pin_index(src_device_type, src_pin_name, 'output')
+            dst_pin = self.get_pin_index(dst_device_type, dst_pin_name, 'input')
+
+            return (src_device_index, dst_device_index, src_pin, dst_pin)
+
+        edges = markup["graph_instance"]["edges"]
+
+        return map(get_table_entry, edges)
+
+    def get_edge_table(self):
+
+        return self._edge_table
 
 
 def get_state_class(device_type):

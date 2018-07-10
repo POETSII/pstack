@@ -1,47 +1,29 @@
 void add_edges(std::vector<device_t*> devices) {
 
-	// Connections:
+	@ set connections = schema.get_edge_table()
+	@ set ncons = connections | count
 
-	device_t* src_dev;
-	device_t* dst_dev;
+	int edges[{{ ncons }}][4] = {
 
-	int src_pin;
-	int dst_pin;
+		@ for row in connections
+			{ {{- row | join(', ') -}} } {{ ',' if not loop.last else '' }}
+		@ endfor
 
-	dst_list_t *dsts;
+	};
 
-	// ---
+	for (int i=0; i<{{ ncons }}; i++) {
 
-	@ for edge in graph_instance['edges']
+		device_t* src_dev = devices[edges[i][0]];
+		device_t* dst_dev = devices[edges[i][1]];
 
-	    // {{ edge }}
+		int src_pin = edges[i][2];
+		int dst_pin = edges[i][3];
 
-	    @ set src_device = edge['src'][0]
-	    @ set dst_device = edge['dst'][0]
+		dst_list_t *dsts = (*src_dev).getPortDestinations(src_pin);
 
-	    @ set src_pin_name = edge['src'][1]
-	    @ set dst_pin_name = edge['dst'][1]
+		(*dsts).push_back(destination_t(dst_dev, dst_pin));
+	}
 
-	    @ set src_device_index = schema.get_device_index(src_device)
-	    @ set dst_device_index = schema.get_device_index(dst_device)
-
-	    @ set src_device_type = schema.get_device(src_device)['type']
-	    @ set dst_device_type = schema.get_device(dst_device)['type']
-
-	    @ set src_pin = schema.get_pin_index(src_device_type, src_pin_name, 'output')
-	    @ set dst_pin = schema.get_pin_index(dst_device_type, dst_pin_name, 'input')
-
-	    src_dev = devices[{{ src_device_index }}];
-	    dst_dev = devices[{{ dst_device_index }}];
-
-	    src_pin = {{ src_pin }};
-	    dst_pin = {{ dst_pin }};
-
-	    dsts = (*src_dev).getPortDestinations(src_pin);
-
-	    (*dsts).push_back(destination_t(dst_dev, dst_pin));
-
-	@ endfor
+	return;
 
 }
-
