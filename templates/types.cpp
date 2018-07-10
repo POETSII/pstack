@@ -7,8 +7,6 @@ public:
     virtual const char* getName() = 0;
 };
 
-// Convenient definition for message handler functions
-
 // Simulation types
 
 class destination_t {

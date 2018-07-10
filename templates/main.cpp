@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
-#include <unordered_map>
 
 @ include 'types.cpp'
 @ include 'globals.cpp'
