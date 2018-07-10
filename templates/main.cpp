@@ -14,7 +14,7 @@
 @ include 'shared.cpp'
 @ include 'handlers.cpp'
 @ include 'init.cpp'
-@ include 'connections.cpp'
+@ include 'edges.cpp'
 @ include 'rts.cpp'
 
 int main() {
