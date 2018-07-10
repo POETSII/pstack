@@ -1,11 +1,21 @@
-import json
+#!/usr/bin/env python
+
 import re
+import json
+import docopt
 
 import xml.etree.ElementTree as ET
 
 namespaces = {
     "poets": "https://poets-project.org/schemas/virtual-graph-schema-v2"
 }
+
+usage="""POETS Markup Parser v0.1
+
+Usage:
+  parser.py <app.xml>
+
+"""
 
 
 def load_xml(xml_file):
@@ -195,3 +205,13 @@ def parse_state(root):
     } for array in get_children(root, "Array")]
 
     return {"scalars": scalars, "arrays": arrays}
+
+
+def main():
+    args = docopt.docopt(usage, version="v0.1")
+    markup = read_poets_xml(args["<app.xml>"])
+    print json.dumps(markup, indent=4)
+
+
+if __name__ == '__main__':
+    main()
