@@ -1,2 +1,2 @@
-alias mg="make gen"
-alias mr="make run"
+alias mg="make pretty"
+alias mr="make sim |& pen"
