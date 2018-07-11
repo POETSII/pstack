@@ -29,7 +29,7 @@ def compile_gpp(source_file, output):
     exit_code = os.system(cmd)
 
     if exit_code is not 0:
-        raise Exception("Compilation failed (%s)" % temp_code_file)
+        raise Exception("Compilation failed (%s)" % source_file)
 
 
 def main():
