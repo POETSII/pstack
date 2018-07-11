@@ -58,6 +58,7 @@ def read_poets_xml(file):
 def parse_graph_type(graph_type):
     """Parse a <GraphType> element."""
 
+    properties = get_child(graph_type, "Properties")
     shared_code = get_child(graph_type, "SharedCode")
     device_types = get_child(graph_type, "DeviceTypes")
     message_types = get_child(graph_type, "MessageTypes")
@@ -68,7 +69,8 @@ def parse_graph_type(graph_type):
         "doc": get_text(graph_type_doc),
         "shared_code": get_text(shared_code),
         "device_types": map(parse_device_type, device_types),
-        "message_types": map(parse_message_type, message_types)
+        "message_types": map(parse_message_type, message_types),
+        "properties": parse_state(properties)
     }
 
 
@@ -185,6 +187,7 @@ def parse_state(root):
     - <State> of <DeviceType>
     - <Message> of <MessageType>
     - <Properties> of <DeviceType>
+    - <Properties> of <GraphType>
 
     """
 
@@ -195,6 +198,7 @@ def parse_state(root):
         "name": scalar.attrib['name'],
         "type": scalar.attrib['type'],
         "doc": get_text(get_child(scalar, "Documentation")),
+        "default": scalar.attrib.get('default'),
     } for scalar in get_children(root, "Scalar")]
 
     arrays = [{
