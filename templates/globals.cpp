@@ -15,3 +15,9 @@ void handler_exit(int exitCode) {
 
 	printf("App: handler_exit(%d) called\n", exitCode);
 }
+
+// graphProperties object
+
+@ set graph_type_class = get_graph_type_props_class(graph_type['id'])
+
+{{ graph_type_class }} *graphProperties;

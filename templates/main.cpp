@@ -5,11 +5,12 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
+#include <assert.h>
 
 @ include 'types.cpp'
-@ include 'globals.cpp'
 @ include 'messages.cpp'
 @ include 'devices.cpp'
+@ include 'globals.cpp'
 @ include 'shared.cpp'
 @ include 'handlers.cpp'
 @ include 'init.cpp'
@@ -20,6 +21,19 @@ int main() {
 
     std::vector<device_t*> devices;
     std::vector<delivery_t> dlist; // delivery list
+
+    @ set graph_type_class = get_graph_type_props_class(graph_type['id'])
+
+    {{ graph_type_class }} graphProps;
+
+    graphProperties = &graphProps;
+
+    @ set props = graph_type['properties']
+
+    @ for scalar in props['scalars']
+        graphProperties->{{ scalar['name'] }} = {{ scalar.get('default') or '0' }};
+    @ endfor
+
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types)

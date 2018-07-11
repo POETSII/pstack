@@ -148,8 +148,16 @@ def get_device_class(device_type):
     return "%s_device_t" % device_type
 
 
+def get_graph_type_props_class(graph_type_id):
+    return "%s_properties_t" % graph_type_id
+
+
 def get_rts_flag_variable(output_pin):
     return "RTS_FLAG_%s" % (output_pin)
+
+
+def get_rts_flag_obsolete_variable(device_type, output_pin):
+    return "RTS_FLAG_%s_%s" % (device_type, output_pin)
 
 
 def get_receive_handler_name(device_type, message_type):
@@ -251,11 +259,13 @@ def generate_code(template, graph):
         get_msg_class,
         get_device_class,
         get_rts_flag_variable,
+        get_rts_flag_obsolete_variable,
         get_receive_handler_name,
         get_send_handler_name,
         get_rts_getter_name,
         get_state_array,
         get_properties_array,
+        get_graph_type_props_class,
         build_index,
         get_init_function_name,
         get_device_array,

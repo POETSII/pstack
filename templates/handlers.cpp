@@ -11,9 +11,19 @@
         {{ props_class }}* deviceProperties = &props;
     {% endmacro %}
 
+    {% macro include_rts_constants() %}
+        @ for out_pin in device_type['output_pins']
+            @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
+            @ set RTS_FLAG_OBSOLETE = get_rts_flag_obsolete_variable(device_type['id'], out_pin['name'])
+            const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
+            const int {{ RTS_FLAG_OBSOLETE }} = 1 << {{ loop.index0 }};
+        @ endfor
+    {% endmacro %}
+
     void {{ device_class }}::receive(int pin_id, msg_t *msg) {
 
         {{ include_handler_defs() }}
+        {{ include_rts_constants() }}
 
         @ for pin in device_type['input_pins']
 
@@ -38,6 +48,7 @@
     msg_t* {{ device_class }}::send(int pin_id) {
 
         {{ include_handler_defs() }}
+        {{ include_rts_constants() }}
 
         @ for pin in device_type['output_pins']
 
@@ -52,7 +63,6 @@
                 compute_rts();
 
                 return message;
-
             }
 
         @ endfor
@@ -64,6 +74,7 @@
         @ set init_pin = schema.get_pin(device_type['id'], '__init__')
 
         {{ include_handler_defs() }}
+        {{ include_rts_constants() }}
 
         {{ init_pin['on_receive'] if init_pin else '' }}
 
@@ -76,12 +87,7 @@
         int* readyToSend = &rts;
 
         {{ include_handler_defs() }}
-
-        @ for out_pin in device_type['output_pins']
-            @ set RTS_FLAG = get_rts_flag_variable(out_pin['name'])
-            const int {{ RTS_FLAG }} = 1 << {{ loop.index0 }};
-        @ endfor
-
+        {{ include_rts_constants() }}
         {{ device_type['ready_to_send'] }}
 
     }
