@@ -25,7 +25,7 @@ def write_file(file, content):
 def compile_gpp(source_file, output):
     """Compile c++ source file."""
 
-    cmd = "g++ -o %s %s" % (output, source_file)
+    cmd = "g++ -fdiagnostics-color=always -o %s %s" % (output, source_file)
     exit_code = os.system(cmd)
 
     if exit_code is not 0:
