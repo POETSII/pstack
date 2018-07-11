@@ -14,7 +14,7 @@
 
         {{ state_class }} (){
             @ for scalar in state['scalars']
-                this->{{ scalar['name'] }} = 0;
+                this->{{ scalar['name'] }} = {{ scalar['default'] or "0" }};
             @ endfor
         }
 
