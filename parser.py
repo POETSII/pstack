@@ -204,7 +204,7 @@ def parse_state(root):
     arrays = [{
         "name": array.attrib['name'],
         "type": array.attrib['type'],
-        "doc": get_text(get_child(scalar, "Documentation")),
+        "doc": get_text(get_child(array, "Documentation")),
         "length": int(array.attrib['length'])
     } for array in get_children(root, "Array")]
 
