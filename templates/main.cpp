@@ -6,6 +6,7 @@
 #include <string>
 #include <stdio.h>
 #include <assert.h>
+#include <sys/poll.h>
 
 @ include 'types.cpp'
 @ include 'messages.cpp'
@@ -16,6 +17,7 @@
 @ include 'init.cpp'
 @ include 'edges.cpp'
 @ include 'rts.cpp'
+@ include "debug.cpp"
 
 int main() {
 
@@ -34,6 +36,7 @@ int main() {
         graphProperties->{{ scalar['name'] }} = {{ scalar.get('default') or '0' }};
     @ endfor
 
+    printf("Hello\n"); while (!poll()); read_message();  return 0;
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types)

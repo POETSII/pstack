@@ -2,8 +2,11 @@ import os
 import json
 import docopt
 
+from struct import pack
 from parser import read_poets_xml
+from pexpect import spawn
 from generator import generate_code
+
 
 usage="""POETS Markup Simulation (PSIM) v0.1
 
@@ -32,6 +35,23 @@ def compile_gpp(source_file, output):
         raise Exception("Compilation failed (%s)" % source_file)
 
 
+def run_simulator(obj_file):
+
+    child = spawn(obj_file, echo=False)
+
+    msg = pack("<IIII", 100, 1, 1, 5)
+    sent = child.send(msg + '\n')
+
+    while True:
+
+        response = child.readline()
+
+        if response:
+            print response.strip()
+        else:
+            return
+
+
 def main():
 
     args = docopt.docopt(usage, version="v0.1")
@@ -51,7 +71,8 @@ def main():
 
     compile_gpp(temp_code_file, temp_obj_file)
 
-    os.system(temp_obj_file)
+    # os.system(temp_obj_file)
+    run_simulator(temp_obj_file)
 
 
 if __name__ == '__main__':
