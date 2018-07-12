@@ -39,10 +39,15 @@ int main() {
     printf("Hello\n"); while (!poll()); read_message();  return 0;
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
-    @ set init_funcs = pymap(get_init_function_name, device_types)
+    @ set init_funcs = pymap(get_init_function_name, device_types | sort)
     @ set init_calls = mformat("%s(devices);", init_funcs) | join("\n")
 
     printf("Initialization:\n---------------\n");
+
+    // Device initialization call must be in the correct order (sorted by
+    // device type). This is because elsewhere in the code it is assumed that
+    // objects in the vector `devices` correspond to devices in the XML file
+    // sorted by key (type, id).
 
     {{ init_calls }}
 
