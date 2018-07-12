@@ -38,7 +38,14 @@ def get_child(parent, child_name):
 
 def get_text(element):
     """Return inner text of an XML element."""
-    return element.text.strip() if element is not None else None
+
+    if element is None:
+        return None
+
+    if element.text is None:
+        return None
+
+    return element.text.strip()
 
 
 def read_poets_xml(file):
@@ -152,7 +159,7 @@ def parse_device_type(root):
         {
             "name": pin.attrib["name"],
             "message_type": pin.attrib["messageTypeId"],
-            "on_receive": get_child(pin, "OnReceive").text.strip()
+            "on_receive": get_text(get_child(pin, "OnReceive"))
         }
         for pin in get_children(root, "InputPin")
     ]
@@ -161,7 +168,7 @@ def parse_device_type(root):
         {
             "name": pin.attrib["name"],
             "message_type": pin.attrib["messageTypeId"],
-            "on_send": get_child(pin, "OnSend").text.strip()
+            "on_send": get_text(get_child(pin, "OnSend"))
         }
         for pin in get_children(root, "OutputPin")
     ]
@@ -170,7 +177,7 @@ def parse_device_type(root):
         "id": root.attrib["id"],
         "state": parse_state(state),
         "properties": parse_state(props),
-        "ready_to_send": get_child(root, "ReadyToSend").text.strip(),
+        "ready_to_send": get_text(get_child(root, "ReadyToSend")),
         "input_pins": input_pins,
         "output_pins": output_pins
     }
