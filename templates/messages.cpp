@@ -26,6 +26,44 @@
         const char* getName() {
             return "{{ message['id'] }}";
         }
+
+
+        void serialize(char *buf) {
+
+            int index = 0;
+
+            @ for scalar in fields['scalars']
+
+                *(({{ scalar['type'] }}*) (buf + index)) = this->{{ scalar['name'] }};
+
+                index += sizeof({{ scalar['type'] }});
+
+            @ endfor
+
+        }
+
+        int getByteCount() {
+
+            @ set types = fields['scalars'] | map(attribute='type')
+            @ set terms = mformat("sizeof(%s)", types) or ["0"]
+            return {{ terms | join(' + ') }};
+
+        }
+
+        void deserialize(char *buf) {
+
+            int index = 0;
+
+            @ for scalar in fields['scalars']
+
+                this->{{ scalar['name'] }} = *(({{ scalar['type'] }}*) (buf + index));
+
+                index += sizeof({{ scalar['type'] }});
+
+            @ endfor
+
+        }
+
     };
 
 @ endfor

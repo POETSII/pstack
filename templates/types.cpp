@@ -5,6 +5,9 @@ class msg_t {
 public:
     virtual void print() = 0;
     virtual const char* getName() = 0;
+    virtual void serialize(char *buf) = 0;
+    virtual void deserialize(char *buf) = 0;
+    virtual int getByteCount() = 0;
 };
 
 // Simulation types
