@@ -228,7 +228,7 @@ def build_index(items):
 
 
 def lmap(func, items):
-    """Return results of mapping funciton to items as a multi-line string."""
+    """Return results of mapping function to items as a multi-line string."""
 
     return "\n".join(map(func, items))
 
