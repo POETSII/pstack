@@ -20,9 +20,11 @@
 
         void print() {
             @ for name in state['scalars'] | map(attribute='name')
-                @ set separator = '\\n' if loop.last else ', '
+                @ set separator = '' if loop.last else ', '
                 printf("{{ name }} = %d{{ separator }}", this->{{ name }});
             @ endfor
+
+            printf("\n");
         }
 
     };
@@ -76,6 +78,7 @@
             // Initialize array of destination lists
 
             this->dsts = new dst_list_t[{{ device['output_pins'] | count }}];
+            this->rts = 0;
 
         };
 

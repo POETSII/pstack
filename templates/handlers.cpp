@@ -33,7 +33,7 @@
 
             {{ msg_class }} *message = ({{ msg_class }}*) msg;
 
-            {{ pin['on_receive'] }}
+            {{ pin['on_receive'] or "// no handler code" }}
 
             compute_rts();
 
@@ -58,7 +58,7 @@
 
                 {{ msg_class }} *message = new {{ msg_class }}();
 
-                {{ pin['on_send'] }}
+                {{ pin['on_send'] or "// no handler code" }}
 
                 compute_rts();
 
@@ -88,7 +88,7 @@
 
         {{ include_handler_defs() }}
         {{ include_rts_constants() }}
-        {{ device_type['ready_to_send'] }}
+        {{ device_type['ready_to_send'] or "// no handler code" }}
 
     }
 
