@@ -18,7 +18,7 @@ void read_message() {
 
     printf("Finished reading messsage.\n");
 
-    ack_msg_t msg;
+    ping_msg_t msg;
 
     msg.deserialize(buff);
 
@@ -26,27 +26,24 @@ void read_message() {
 
 }
 
-void test_serialization() {
+void write_message() {
 
-    ack_msg_t msg;
-    ack_msg_t reply;
+    char buff[80];
+
+    ping_msg_t msg;
 
     msg.src = 2;
     msg.dst = 3;
-    msg.discovered = 4;
-    msg.callback = 5;
 
-    char buf[24];
+    msg.serialize(buff);
 
-    msg.serialize(buf);
+    printf("msg: ");
 
     int bytes = msg.getByteCount();
 
     for (int i=0; i<bytes; i++)
-        printf("buf[%2d] = 0x%x\n", i, buf[i]);
+        printf("%c", buff[i]);
 
-    reply.deserialize(buf);
+    printf("\n");
 
-    reply.print();
 }
-

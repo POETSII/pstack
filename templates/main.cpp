@@ -36,7 +36,7 @@ int main() {
         graphProperties->{{ scalar['name'] }} = {{ scalar.get('default') or '0' }};
     @ endfor
 
-    printf("Hello\n"); while (!poll()); read_message();  return 0;
+    printf("Hello\n"); while (!poll()); read_message();  write_message(); return 0;
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
@@ -198,7 +198,7 @@ int main() {
 
         }
 
-        if (dev == NULL and pending_deliveries == 0) {
+        if (dev == NULL && pending_deliveries == 0 && false) {
 
             printf("End of simulation\n");
 

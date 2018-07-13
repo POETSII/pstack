@@ -245,8 +245,10 @@ def mformat(fmt_str, items):
     return [fmt_str % item for item in items]
 
 
-def generate_code(template, graph):
-    """Generate code from template file and POETS graph."""
+def generate_code(markup):
+    """Generate code from template file and POETS markup."""
+
+    template = 'main.cpp'
 
     loader = jinja2.PackageLoader(__name__, 'templates')
     env = jinja2.Environment(loader=loader)
@@ -280,6 +282,6 @@ def generate_code(template, graph):
     for func in funcs:
         env.globals[func.func_name] = func
 
-    env.globals["schema"] = Schema(graph)
+    env.globals["schema"] = Schema(markup)
 
-    return env.get_template(template).render(**graph)
+    return env.get_template(template).render(**markup)
