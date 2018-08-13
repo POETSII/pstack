@@ -58,7 +58,7 @@ void destination_t::print() {
 
     device_t* device = (device_t*) (this->device);
 
-    printf("  - Destination: device <%s> (input port <%s>)\n",
+    cprintf("  - Destination: device <%s> (input port <%s>)\n",
         (*device).name.c_str(),
         (*device).getInputPortName(port)
     );
@@ -86,21 +86,21 @@ public:
 
             device_t* dev = (device_t*) dest.device;
 
-            printf("<%s> ", dev->name.c_str());
+            cprintf("<%s> ", dev->name.c_str());
 
         }
 
-        printf("\n");
+        cprintf("\n");
 
     }
 
     void print() {
 
-        printf("Delivery of the following <%s> message:\n", (*msg).getName());
+        cprintf("Delivery of the following <%s> message:\n", (*msg).getName());
 
         (*msg).print();
 
-        printf("To the following nodes:\n");
+        cprintf("To the following nodes:\n");
 
         for (int i=0; i<dst.size(); i++) {
 

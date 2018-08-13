@@ -21,10 +21,10 @@
         void print() {
             @ for name in state['scalars'] | map(attribute='name')
                 @ set separator = '' if loop.last else ', '
-                printf("{{ name }} = %d{{ separator }}", this->{{ name }});
+                cprintf("{{ name }} = %d{{ separator }}", this->{{ name }});
             @ endfor
 
-            printf("\n");
+            cprintf("\n");
         }
 
     };

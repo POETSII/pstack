@@ -1,4 +1,4 @@
-POETS_XML="tmp/externals.xml"
+POETS_XML="tmp/output.xml"
 GEN_SRC_FILE="tmp/main.cpp"
 GEN_OBJ_FILE="tmp/main.exe"
 

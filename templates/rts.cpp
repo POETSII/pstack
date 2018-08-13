@@ -6,7 +6,7 @@ void print_device_rts(device_t* dev) {
     int ports = (*dev).getOutputPortCount();
 
     if (rts == 0) {
-        printf("Device <%s> no longer requests to send\n", dev->name.c_str());
+        cprintf("Device <%s> no longer requests to send\n", dev->name.c_str());
         return;
     }
 
@@ -14,7 +14,7 @@ void print_device_rts(device_t* dev) {
 
         if (rts & (1 << j)) {
 
-            printf("Device <%s> requested to send on output port <%s>\n",
+            cprintf("Device <%s> requested to send on output port <%s>\n",
                 dev->name.c_str(),
                 (*dev).getOutputPortName(j)
             );
@@ -27,13 +27,13 @@ void print_device_rts(device_t* dev) {
 
 void print_rts_set(rts_set_t rts_set) {
 
-    printf("Content of rts_set:");
+    cprintf("Content of rts_set:");
 
     for (auto itr = rts_set.begin(); itr != rts_set.end(); ++itr)
-        printf(" <%s>", (*itr)->name.c_str());
+        cprintf(" <%s>", (*itr)->name.c_str());
         // print_device_rts(*itr);
 
-    printf("\n");
+    cprintf("\n");
 
 
 }

@@ -19,7 +19,7 @@
 
         void print() {
             @ for scalar in fields['scalars']
-                printf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
+                cprintf("  - {{ scalar['name']}} = %d\n", this->{{ scalar['name']}});
             @ endfor
         }
 

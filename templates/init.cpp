@@ -49,7 +49,7 @@
 
 			(*new_device).init();
 
-			printf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
+			cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
 
 			(*new_device).print();
 

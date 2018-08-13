@@ -1,5 +1,13 @@
 // vim: set ft=cpp:
 
+// #define PRINTF 1
+
+#ifdef PRINTF
+    #define cprintf(...) printf(__VA_ARGS__)
+#else
+    #define cprintf(...) (__VA_ARGS__);
+#endif
+
 #include <set>
 #include <queue>
 #include <vector>
@@ -17,7 +25,6 @@
 @ include 'init.cpp'
 @ include 'edges.cpp'
 @ include 'rts.cpp'
-@ include "debug.cpp"
 
 int main() {
 
@@ -36,13 +43,13 @@ int main() {
         graphProperties->{{ scalar['name'] }} = {{ scalar.get('default') or '0' }};
     @ endfor
 
-    printf("Hello\n"); while (!poll()); read_message();  write_message(); return 0;
+    // cprintf("Hello\n"); while (!poll()); read_message();  write_message(); return 0;
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
     @ set init_calls = mformat("%s(devices);", init_funcs) | join("\n")
 
-    printf("Initialization:\n---------------\n");
+    cprintf("Initialization:\n---------------\n");
 
     // Device initialization call must be in the correct order (sorted by
     // device type). This is because elsewhere in the code it is assumed that
@@ -53,7 +60,7 @@ int main() {
 
     add_edges(devices);
 
-    printf("\n");
+    cprintf("\n");
 
     // ---- BEGIN RTS SCAN ----
 
@@ -71,13 +78,13 @@ int main() {
 
     print_rts_set(rts_set);
 
-    printf("\n");
+    cprintf("\n");
 
     // ---- END RTS SCAN ----
 
-    for (int i=0; i<150; i++) {
+    for (int i=0; 1; i++) {
 
-        printf("Epoch %d:\n--------\n", i+1);
+        cprintf("Epoch %d:\n--------\n", i+1);
 
         // ---- BEGIN DELIVERY LIST UPDATE ----
 
@@ -85,7 +92,7 @@ int main() {
 
         if (dev == NULL) {
 
-            printf("Empty rts set\n");
+            cprintf("Empty rts set\n");
 
         } else {
 
@@ -95,7 +102,7 @@ int main() {
 
             // Create message by calling send handler
 
-            printf("Calling send handler of device <%s> ...\n", dev->name.c_str());
+            cprintf("Calling send handler of device <%s> ...\n", dev->name.c_str());
 
             msg_t* msg = (*dev).send(port);
 
@@ -106,14 +113,14 @@ int main() {
 
             if (new_rts == 0) {
                 rts_set.erase(dev);
-                printf("Device <%s> removed from rts_set\n", dev->name.c_str());
+                cprintf("Device <%s> removed from rts_set\n", dev->name.c_str());
             }
 
             // Create delivery object
 
             delivery_t new_dv = delivery_t(msg, *dests, dev);
 
-            printf("Created new delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
+            cprintf("Created new delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
 
             // new_dv.print();
 
@@ -129,29 +136,29 @@ int main() {
 
         if (pending_deliveries > 0) {
 
-            printf("Pending deliveries: %d\n", pending_deliveries);
+            cprintf("Pending deliveries: %d\n", pending_deliveries);
 
-            // printf("Making the delivery:\n");
+            // cprintf("Making the delivery:\n");
 
             delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
 
             // (*dv.msg).print();
 
-            // printf("Chosen destination:\n");
+            // cprintf("Chosen destination:\n");
 
             destination_t dst = dv.dst.at(dv.dst.size()-1);  // Always choose last destination, for now (TODO)
 
             // dst.print();
 
-            // printf("Calling receive handler ...\n");
+            // cprintf("Calling receive handler ...\n");
 
             device_t* dst_dev = (device_t*) dst.device;
 
-            printf("Delivering <%s> message from <%s> to <%s>\n", (*dv.msg).getName(), dv.origin->name.c_str(), dst_dev->name.c_str());
+            cprintf("Delivering <%s> message from <%s> to <%s>\n", (*dv.msg).getName(), dv.origin->name.c_str(), dst_dev->name.c_str());
 
             (*dst_dev).receive(dst.port, dv.msg);
 
-            printf("Device <%s>: ", dst_dev->name.c_str());
+            cprintf("Device <%s>: ", dst_dev->name.c_str());
 
             (*dst_dev).print();
 
@@ -164,13 +171,13 @@ int main() {
                 print_rts_set(rts_set);
             }
 
-            // printf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
+            // cprintf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
 
             dv.dst.pop_back();
 
             if (dv.dst.size() == 0) {
 
-                printf("Delivery is complete, removing from dlist ...\n");
+                cprintf("Delivery is complete, removing from dlist ...\n");
 
                 // Remove by swapping with last element then doing pop_back()
 
@@ -182,7 +189,7 @@ int main() {
 
             } else {
 
-                printf("Remaining destinations in this delivery: ");
+                cprintf("Remaining destinations in this delivery: ");
 
                 dv.print_destinations();
 
@@ -194,11 +201,11 @@ int main() {
 
         } else {
 
-            printf("No pending deliveries\n");
+            cprintf("No pending deliveries\n");
 
         }
 
-        if (dev == NULL && pending_deliveries == 0 && false) {
+        if (dev == NULL && pending_deliveries == 0) {
 
             printf("End of simulation\n");
 
@@ -206,7 +213,7 @@ int main() {
 
         }
 
-        printf("\n");
+        cprintf("\n");
 
     }
 

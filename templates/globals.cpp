@@ -3,17 +3,17 @@
 #include <stdarg.h>
 
 void handler_log(int level, const char *fmt, ...) {
-    printf("App: ");
+    cprintf("App: ");
     va_list va;
     va_start (va, fmt);
-    vprintf (fmt, va);
+    cprintf (fmt, va);
     va_end (va);
-    printf("\n");
+    cprintf("\n");
 }
 
 void handler_exit(int exitCode) {
 
-	printf("App: handler_exit(%d) called\n", exitCode);
+	cprintf("App: handler_exit(%d) called\n", exitCode);
 }
 
 // graphProperties object
