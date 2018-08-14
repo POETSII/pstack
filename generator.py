@@ -132,12 +132,12 @@ class Schema(object):
         return self._edge_table
 
 
-def get_state_class(device_type):
-    return "%s_state_t" % device_type
+def get_state_class(graph_type, device_type):
+    return "%s_%s_state_t" % (graph_type, device_type)
 
 
-def get_props_class(device_type):
-    return "%s_props_t" % device_type
+def get_props_class(graph_type, device_type):
+    return "%s_%s_properties_t" % (graph_type, device_type)
 
 
 def get_msg_class(message_type):

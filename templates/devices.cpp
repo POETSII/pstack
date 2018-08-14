@@ -2,7 +2,7 @@
 
 @ for device in graph_type['device_types']
 
-    @ set state_class = get_state_class(device['id'])
+    @ set state_class = get_state_class(graph_type["id"], device['id'])
     @ set state = device['state']
 
     class {{ state_class }} {
@@ -35,7 +35,7 @@
 
 @ for device in graph_type['device_types']
 
-    @ set props_class = get_props_class(device['id'])
+    @ set props_class = get_props_class(graph_type["id"], device['id'])
     @ set props = device['properties']
 
     class {{ props_class }} {
@@ -59,8 +59,8 @@
 @ for device in graph_type['device_types']
 
     @ set device_class = get_device_class(device['id'])
-    @ set state_class = get_state_class(device['id'])
-    @ set props_class = get_props_class(device['id'])
+    @ set state_class = get_state_class(graph_type["id"], device['id'])
+    @ set props_class = get_props_class(graph_type["id"], device['id'])
     @ set props = device['properties']
 
     class {{ device_class }}: public device_t {

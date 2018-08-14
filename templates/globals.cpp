@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 void handler_log(int level, const char *fmt, ...) {
+
     printf("App: ");
     va_list va;
     va_start (va, fmt);

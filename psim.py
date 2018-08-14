@@ -5,7 +5,7 @@ from generator import generate_code
 from simulator import simulate
 
 
-usage="""POETS Markup Simulation (PSIM) v0.1
+usage="""POETS Markup Simulator (PSIM) v0.1
 
 Usage:
   psim.py <app.xml>
@@ -14,11 +14,9 @@ Usage:
 
 
 def main():
-
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
     code = generate_code(markup)
-
     simulate(code)
 
 

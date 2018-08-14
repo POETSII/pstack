@@ -8,8 +8,8 @@
 
 		// {{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
 
-		@ set state_class = get_state_class(device_type)
-		@ set props_class = get_props_class(device_type)
+		@ set state_class = get_state_class(graph_type["id"], device_type)
+		@ set props_class = get_props_class(graph_type["id"], device_type)
 		@ set device_class = get_device_class(device_type)
 		@ set count = group.list | count
 		@ set device_type_obj = schema.get_device_type(device_type)

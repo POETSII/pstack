@@ -3,8 +3,8 @@
 @ for device_type in graph_type['device_types']
 
 @ set device_class = get_device_class(device_type['id'])
-@ set state_class = get_state_class(device_type['id'])
-@ set props_class = get_props_class(device_type['id'])
+@ set state_class = get_state_class(graph_type["id"], device_type['id'])
+@ set props_class = get_props_class(graph_type["id"], device_type['id'])
 
     {% macro include_handler_defs() %}
         {{ state_class }}* deviceState = &state;
