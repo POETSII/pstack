@@ -1,1 +1,4 @@
 beautifulsoup4
+docopt
+jinja2
+pexpect
