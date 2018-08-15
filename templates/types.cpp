@@ -1,3 +1,14 @@
+// cprintf (conditional printf):
+
+// This is a simple macro that either wraps printf (when --debug is supplied)
+// or does nothing.
+
+#if {{ '1' if options['debug'] else '0' }}
+    #define cprintf(...) printf(__VA_ARGS__)
+#else
+    #define cprintf(...) (__VA_ARGS__);
+#endif
+
 // Base types
 
 class msg_t {

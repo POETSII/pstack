@@ -7,5 +7,6 @@
 	"Delivering .*": "bold green",
 	"(App \\[.+\\]).*": "bold cyan",
 	"handler\\_exit\\(0\\) called": "bold green",
+	"End of simulation": "bold green",
 	"handler\\_exit\\(1\\) called": "bold red"
 }

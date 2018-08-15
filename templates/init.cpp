@@ -47,6 +47,8 @@
 				{%- endfor -%}
 			);
 
+			active_device = new_device;
+
 			(*new_device).init();
 
 			cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());

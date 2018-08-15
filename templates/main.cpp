@@ -7,8 +7,8 @@
 #include <sys/poll.h>
 #include <stdarg.h>
 
-@ include 'globals.cpp'
 @ include 'types.cpp'
+@ include 'globals.cpp'
 @ include 'messages.cpp'
 @ include 'devices.cpp'
 @ include 'graph.cpp'
@@ -82,6 +82,8 @@ int main() {
 
         device_t* dev = select_rts_device(rts_set);
 
+        active_device = dev;
+
         if (dev == NULL) {
 
             cprintf("Empty rts set\n");
@@ -145,6 +147,8 @@ int main() {
             // cprintf("Calling receive handler ...\n");
 
             device_t* dst_dev = (device_t*) dst.device;
+
+            active_device = dst_dev;
 
             cprintf("Delivering <%s> message from <%s> to <%s>\n", (*dv.msg).getName(), dv.origin->name.c_str(), dst_dev->name.c_str());
 
