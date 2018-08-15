@@ -4,7 +4,7 @@ int abort_flag = 0;  // used to exit simulation loop
 
 void handler_log(int level, const char *fmt, ...) {
 
-    if (level > 1)
+    if (level > {{ options['level'] }})
         return;
 
     printf("App [%d]: ", level);
