@@ -1,25 +1,16 @@
 // vim: set ft=cpp:
 
-// #define PRINTF 1
-
-#ifdef PRINTF
-    #define cprintf(...) printf(__VA_ARGS__)
-#else
-    #define cprintf(...) (__VA_ARGS__);
-#endif
-
 #include <set>
-#include <queue>
 #include <vector>
 #include <string>
 #include <stdio.h>
-#include <assert.h>
 #include <sys/poll.h>
+#include <stdarg.h>
 
+@ include 'globals.cpp'
 @ include 'types.cpp'
 @ include 'messages.cpp'
 @ include 'devices.cpp'
-@ include 'globals.cpp'
 @ include 'shared.cpp'
 @ include 'handlers.cpp'
 @ include 'init.cpp'
@@ -82,7 +73,7 @@ int main() {
 
     // ---- END RTS SCAN ----
 
-    for (int i=0; 1; i++) {
+    for (int i=0; abort_flag == 0; i++) {
 
         cprintf("Epoch %d:\n--------\n", i+1);
 

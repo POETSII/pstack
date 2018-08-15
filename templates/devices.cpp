@@ -146,3 +146,5 @@ public:
     };
 
 };
+
+{{ graph_type_class }} *graphProperties;

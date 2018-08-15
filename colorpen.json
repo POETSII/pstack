@@ -5,5 +5,7 @@
 	"Epoch .*": "bold",
 	"Initialization.*": "bold",
 	"Delivering .*": "bold green",
-	"App: .*": "bold cyan"
+	"(App \\[.+\\]).*": "bold cyan",
+	"handler\\_exit\\(0\\) called": "bold green",
+	"handler\\_exit\\(1\\) called": "bold red"
 }

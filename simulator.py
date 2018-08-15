@@ -1,4 +1,5 @@
 import os
+import sys
 
 from struct import pack
 from struct import unpack
@@ -29,7 +30,7 @@ def compile_gpp(code):
 def simulate(code):
 
     engine_file = compile_gpp(code)
-    engine = spawn(engine_file, echo=False)
+    engine = spawn(engine_file, echo=False, timeout=None)
 
     msg = pack("<IIII", 100, 1, 1, 5)
     sent = engine.send(msg + '\n')
@@ -42,6 +43,7 @@ def simulate(code):
             return
 
         print response.strip()
+        sys.stdout.flush()
 
         if response.startswith("msg: "):
             msg_bytes = response[5:]

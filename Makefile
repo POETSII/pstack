@@ -5,6 +5,9 @@ GEN_OBJ_FILE="tmp/main.exe"
 sim:
 	@ python psim.py $(POETS_XML)
 
+debug:
+	@ python psim.py --debug $(POETS_XML)
+
 pretty: gen
 	@ astyle -n -F -xe $(GEN_SRC_FILE) >/dev/null
 

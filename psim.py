@@ -8,7 +8,10 @@ from simulator import simulate
 usage="""POETS Markup Simulator (PSIM) v0.1
 
 Usage:
-  psim.py <app.xml>
+  psim.py [options] <app.xml>
+
+Options:
+  --debug, -d  Print debug information.
 
 """
 
@@ -16,7 +19,8 @@ Usage:
 def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
-    code = generate_code(markup)
+    options = {"debug": args["--debug"]}
+    code = generate_code(markup, options)
     simulate(code)
 
 

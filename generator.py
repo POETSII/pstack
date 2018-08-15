@@ -245,7 +245,7 @@ def mformat(fmt_str, items):
     return [fmt_str % item for item in items]
 
 
-def generate_code(markup):
+def generate_code(markup, options):
     """Generate code from template file and POETS markup."""
 
     template = 'main.cpp'
@@ -283,5 +283,6 @@ def generate_code(markup):
         env.globals[func.func_name] = func
 
     env.globals["schema"] = Schema(markup)
+    env.globals["options"] = options
 
     return env.get_template(template).render(**markup)

@@ -1,10 +1,13 @@
 // Global functions
 
-#include <stdarg.h>
+int abort_flag = 0;  // used to exit simulation loop
 
 void handler_log(int level, const char *fmt, ...) {
 
-    printf("App: ");
+    if (level > 1)
+        return;
+
+    printf("App [%d]: ", level);
     va_list va;
     va_start (va, fmt);
     vprintf (fmt, va);
@@ -14,11 +17,17 @@ void handler_log(int level, const char *fmt, ...) {
 
 void handler_exit(int exitCode) {
 
-	printf("App: handler_exit(%d) called\n", exitCode);
+    printf("App [X]: handler_exit(%d) called\n", exitCode);
+    abort_flag = 1;
 }
 
-// graphProperties object
+// cprintf (conditional printf):
 
-@ set graph_type_class = get_graph_type_props_class(graph_type['id'])
+// This is a simple macro that either wraps printf (when --debug is supplied)
+// or does nothing.
 
-{{ graph_type_class }} *graphProperties;
+#if {{ '1' if options['debug'] else '0' }}
+    #define cprintf(...) printf(__VA_ARGS__)
+#else
+    #define cprintf(...) (__VA_ARGS__);
+#endif
