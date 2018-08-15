@@ -11,6 +11,7 @@
 @ include 'types.cpp'
 @ include 'messages.cpp'
 @ include 'devices.cpp'
+@ include 'graph.cpp'
 @ include 'shared.cpp'
 @ include 'handlers.cpp'
 @ include 'init.cpp'
