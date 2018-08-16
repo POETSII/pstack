@@ -140,8 +140,8 @@ def get_props_class(graph_type, device_type):
     return "%s_%s_properties_t" % (graph_type, device_type)
 
 
-def get_msg_class(message_type):
-    return "%s_msg_t" % message_type
+def get_msg_class(graph_type, message_type):
+    return "%s_%s_message_t" % (graph_type, message_type)
 
 
 def get_device_class(device_type):

@@ -2,7 +2,7 @@
 
 @ for message in graph_type['message_types']
 
-    @ set msg_class = get_msg_class(message['id'])
+    @ set msg_class = get_msg_class(graph_type["id"], message['id'])
     @ set fields = message['fields']
 
     class {{ msg_class }}: public msg_t {

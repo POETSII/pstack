@@ -14,7 +14,7 @@
 		@ set count = group.list | count
 		@ set device_type_obj = schema.get_device_type(device_type)
 		@ set scalar_props = device_type_obj['properties']['scalars']
-		@ set init_msg_t = get_msg_class('__init__')
+		@ set init_msg_t = get_msg_class(graph_type["id"], '__init__')
 		@ set init_handler = get_receive_handler_name(device_type, '__init__')
 
 		@ for prop in scalar_props

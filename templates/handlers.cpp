@@ -29,7 +29,7 @@
 
         if (pin_id == {{ loop.index0 }}) {
 
-            @ set msg_class = get_msg_class(pin['message_type'])
+            @ set msg_class = get_msg_class(graph_type["id"], pin['message_type'])
 
             {{ msg_class }} *message = ({{ msg_class }}*) msg;
 
@@ -54,7 +54,7 @@
 
             if (pin_id == {{ loop.index0 }}) {
 
-                @ set msg_class = get_msg_class(pin['message_type'])
+                @ set msg_class = get_msg_class(graph_type["id"], pin['message_type'])
 
                 {{ msg_class }} *message = new {{ msg_class }}();
 
