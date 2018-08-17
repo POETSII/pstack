@@ -13,5 +13,6 @@ Usage:
 Options:
   -d --debug      Print simulator debug information.
   -l --level=<n>  Specify log messages verbosity [default: 1].
+  -s --states     Print device states at end of simulation.
 
 ```

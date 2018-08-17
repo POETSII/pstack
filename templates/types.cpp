@@ -1,13 +1,18 @@
-// cprintf (conditional printf):
+// cprintf (conditional printf): simple function that either passes arguments
+// or does nothing, depending on the flag `print_debug`.
 
-// This is a simple macro that either wraps printf (when --debug is supplied)
-// or does nothing.
+int print_debug = {{ '1' if options['debug'] else '0' }};
 
-#if {{ '1' if options['debug'] else '0' }}
-    #define cprintf(...) printf(__VA_ARGS__)
-#else
-    #define cprintf(...) (__VA_ARGS__);
-#endif
+void cprintf(const char *fmt, ...) {
+
+    if (!print_debug)
+        return;
+
+    va_list va;
+    va_start (va, fmt);
+    vprintf (fmt, va);
+    va_end (va);
+}
 
 // Base types
 
@@ -90,36 +95,21 @@ public:
     }
 
     void print_destinations() {
-
         for (int i=0; i<dst.size(); i++) {
-
             destination_t dest = dst.at(i);
-
             device_t* dev = (device_t*) dest.device;
-
             cprintf("<%s> ", dev->name.c_str());
-
         }
-
         cprintf("\n");
-
     }
 
     void print() {
-
         cprintf("Delivery of the following <%s> message:\n", (*msg).getName());
-
         (*msg).print();
-
         cprintf("To the following nodes:\n");
-
         for (int i=0; i<dst.size(); i++) {
-
             destination_t dest = dst.at(i);
-
             dest.print();
-
         }
-
     }
 };

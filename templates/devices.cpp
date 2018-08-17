@@ -22,9 +22,10 @@
         }
 
         void print() {
+
             @ for name in state['scalars'] | map(attribute='name')
                 @ set separator = '' if loop.last else ', '
-                cprintf("{{ name }} = %d{{ separator }}", this->{{ name }});
+                cprintf("{{ name }} = %4d{{ separator }}", this->{{ name }});
             @ endfor
             cprintf("\n");
         }
@@ -65,8 +66,7 @@
             this->rts = 0;
         };
 
-        ~{{ device_class}}() {
-        }
+        ~{{ device_class}}() {}
 
         void setProperties({{- make_argument_list(props['scalars']) -}}) {
             @ for name in props['scalars'] | map(attribute='name')

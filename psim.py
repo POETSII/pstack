@@ -13,6 +13,7 @@ Usage:
 Options:
   -d --debug      Print simulator debug information.
   -l --level=<n>  Specify log messages verbosity [default: 1].
+  -s --states     Print device states at end of simulation.
 
 """
 
@@ -20,10 +21,9 @@ Options:
 def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
-    options = {
-        "debug": args["--debug"],
-        "level": int(args["--level"])
-    }
+    options = {"debug": args["--debug"],
+               "states": args["--states"],
+               "level": int(args["--level"])}
     code = generate_code(markup, options)
     simulate(code)
 

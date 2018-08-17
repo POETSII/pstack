@@ -215,5 +215,17 @@ int main() {
 
     // ---- END DELIVERY ----
 
+    @ if options["states"]
+
+    print_debug = 1;
+
+    for (int i=0; i<devices.size(); i++){
+        device_t* dev = devices[i];
+        printf("%-4d [%s]: ", i, dev->name.c_str());
+        (*dev).print();
+    }
+
+    @ endif
+
     return 0;
 }
