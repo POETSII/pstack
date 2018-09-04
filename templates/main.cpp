@@ -205,7 +205,7 @@ int main() {
 
             printf("End of simulation\n");
 
-            return 0;
+            break;
 
         }
 
