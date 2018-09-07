@@ -11,9 +11,10 @@ Usage:
   psim.py [options] <app.xml>
 
 Options:
-  -d --debug      Print simulator debug information.
-  -l --level=<n>  Specify log messages verbosity [default: 1].
-  -s --states     Print device states at end of simulation.
+  -d --debug       Print simulator debug information.
+  -l --level=<n>   Specify log messages verbosity [default: 1].
+  -s --states      Print device states at end of simulation.
+  -t --temp=<dir>  Specify simulation file directory [default: /tmp].
 
 """
 
@@ -25,7 +26,7 @@ def main():
                "states": args["--states"],
                "level": int(args["--level"])}
     code = generate_code(markup, options)
-    simulate(code)
+    simulate(code, temp_dir=args["--temp"])
 
 
 if __name__ == '__main__':

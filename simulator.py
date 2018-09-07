@@ -12,10 +12,15 @@ def write_file(file, content):
         fid.write(content)
 
 
-def compile_gpp(code):
+def compile_gpp(code, temp_dir):
     """Compile C++ source file."""
 
-    source_file, output_file = "tmp/psim.cpp", "tmp/psim.exe"
+    if not os.path.isdir(temp_dir):
+         os.makedirs(temp_dir)
+
+    source_file = os.path.join(temp_dir, 'psim.cpp')
+    output_file = os.path.join(temp_dir, 'psim.exe')
+
     cmd = "g++ -fdiagnostics-color=always -o %s %s" % (output_file, source_file)
 
     write_file(source_file, code)
@@ -27,9 +32,9 @@ def compile_gpp(code):
     return output_file
 
 
-def simulate(code):
+def simulate(code, temp_dir):
 
-    engine_file = compile_gpp(code)
+    engine_file = compile_gpp(code, temp_dir)
     engine = spawn(engine_file, echo=False, timeout=None)
 
     msg = pack("<IIII", 100, 1, 1, 5)
