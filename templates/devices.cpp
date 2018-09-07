@@ -25,7 +25,7 @@
 
             @ for name in state['scalars'] | map(attribute='name')
                 @ set separator = '' if loop.last else ', '
-                cprintf("{{ name }} = %4d{{ separator }}", this->{{ name }});
+                cprintf("{{ name }} = %d{{ separator }}", this->{{ name }});
             @ endfor
             cprintf("\n");
         }

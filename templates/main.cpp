@@ -74,7 +74,9 @@ int main() {
 
     // ---- END RTS SCAN ----
 
-    for (int i=0; abort_flag == 0; i++) {
+    int i;
+
+    for (i=0; abort_flag == 0; i++) {
 
         cprintf("Epoch %d:\n--------\n", i+1);
 
@@ -213,19 +215,17 @@ int main() {
 
     }
 
-    // ---- END DELIVERY ----
+    printf("Metric [Delivered messages]: %d\n", i);
 
-    @ if options["states"]
+    // ---- END DELIVERY ----
 
     print_debug = 1;
 
-    for (int i=0; i<devices.size(); i++){
+    for (int i=0; i<devices.size(); i++) {
         device_t* dev = devices[i];
-        printf("%-4d [%s]: ", i, dev->name.c_str());
+        printf("State [%s]: ", dev->name.c_str());
         (*dev).print();
     }
-
-    @ endif
 
     return 0;
 }

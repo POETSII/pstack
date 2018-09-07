@@ -1,3 +1,4 @@
+import json
 import docopt
 
 from parser import read_poets_xml
@@ -13,8 +14,9 @@ Usage:
 Options:
   -d --debug       Print simulator debug information.
   -l --level=<n>   Specify log messages verbosity [default: 1].
-  -s --states      Print device states at end of simulation.
+  -r --result      Print simulation results as JSON object.
   -t --temp=<dir>  Specify simulation file directory [default: /tmp].
+  -q --quiet       Suppress all outputs.
 
 """
 
@@ -23,10 +25,11 @@ def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
     options = {"debug": args["--debug"],
-               "states": args["--states"],
                "level": int(args["--level"])}
     code = generate_code(markup, options)
-    simulate(code, temp_dir=args["--temp"])
+    result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
+    if args["--result"]:
+        print(json.dumps(result))
 
 
 if __name__ == '__main__':
