@@ -12,3 +12,15 @@ def check_log_order(results):
     """Check order of log messages."""
     device_names = [log_entry[0] for log_entry in results["log"]]
     return device_names == ["device0", "device1"] * 10
+
+
+def check_states(results):
+    """Check final device states."""
+
+    if results["states"]["device0"] != {"counter": 10}:
+        return False
+
+    if results["states"]["device1"] != {"counter": 10}:
+        return False
+
+    return True
