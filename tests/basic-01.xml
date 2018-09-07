@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<Graphs xmlns="https://poets-project.org/schemas/virtual-graph-schema-v2">
+    <GraphType id="test">
+        <Documentation>PSIM Test</Documentation>
+        <MetaData>&quot;native_dimension&quot;:2</MetaData>
+        <Properties/>
+
+        <SharedCode>
+            <![CDATA[
+            ]]>
+
+        </SharedCode>
+
+        <MessageTypes>
+
+            <MessageType id="__init__">
+                <Documentation>Initialize state</Documentation>
+            </MessageType>
+
+            <MessageType id="message">
+                <Documentation>Test Message</Documentation>
+                <Message>
+                    <Scalar type="uint32_t" name="value">
+                        <Documentation>Test Value</Documentation>
+                    </Scalar>
+                </Message>
+            </MessageType>
+
+        </MessageTypes>
+
+        <DeviceTypes>
+            <!-- Generated Block -->
+            <DeviceType id="device">
+                <Properties>
+                    <Scalar name="id" type="uint32_t"></Scalar>
+                </Properties>
+                <State>
+                    <Scalar name="counter" type="uint32_t"></Scalar>
+                </State>
+
+                <ReadyToSend>
+                    <![CDATA[
+                    rts = (deviceProperties->id == 0 && deviceState->counter < 10) ? 1 : 0;
+                    ]]>
+                </ReadyToSend>
+
+                <InputPin messageTypeId="__init__" name="__init__">
+                    <OnReceive>
+                        <![CDATA[
+                        deviceState->counter = 0;
+                        ]]>
+                    </OnReceive>
+                </InputPin>
+
+                <InputPin messageTypeId="message" name="input">
+                    <OnReceive>
+                        <![CDATA[
+                        deviceState->counter++;
+                        handler_log(1, "Received message %d", deviceState->counter);
+                        ]]>
+                    </OnReceive>
+                </InputPin>
+
+                <OutputPin messageTypeId="message" name="output">
+                    <OnSend>
+                        <![CDATA[
+                        deviceState->counter++;
+                        handler_log(1, "Sending message %d", deviceState->counter);
+                        message->value = deviceState->counter;
+                        ]]>
+                    </OnSend>
+                </OutputPin>
+
+            </DeviceType>
+
+        </DeviceTypes>
+    </GraphType>
+    <GraphInstance id="graph1" graphTypeId="test">
+      <DeviceInstances>
+          <DevI id="device0" type="device"><P>"id": 0</P></DevI>
+          <DevI id="device1" type="device"><P>"id": 1</P></DevI>
+      </DeviceInstances>
+      <EdgeInstances>
+        <EdgeI path="device1:input-device0:output"/>
+    </EdgeInstances>
+</GraphInstance>
+</Graphs>
