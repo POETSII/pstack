@@ -45,6 +45,10 @@ def get_checker_doc(checker):
     return doc[:-1] if doc[-1]=='.' else doc
 
 
+def get_checker_doc_len(checker):
+    return len(get_checker_doc(checker))
+
+
 def main():
 
     xml_files = [
@@ -58,7 +62,7 @@ def main():
         name, _ = os.path.splitext(xml_file)
         py_file = "%s.py" % name
 
-        cfuncs = load_functions(py_file)
+        cfuncs = sorted(load_functions(py_file), key=get_checker_doc_len)
 
         pass_str = colored("PASS", "green", attrs=["bold"])
         fail_str = colored("FAIL", "red", attrs=["bold"])
