@@ -11,8 +11,9 @@ Usage:
   psim.py [options] <app.xml>
 
 Options:
-  -d --debug      Print simulator debug information.
-  -l --level=<n>  Specify log messages verbosity [default: 1].
-  -s --states     Print device states at end of simulation.
-
+  -d --debug       Print debug information.
+  -l --level=<n>   Specify log messages verbosity [default: 1].
+  -t --temp=<dir>  Specify simulation file directory [default: /tmp].
+  -r --result      Print simulation result as JSON object.
+  -q --quiet       Suppress all outputs (except --result).
 ```

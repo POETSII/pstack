@@ -10,6 +10,10 @@ device_t* active_device;
 
 void handler_log(int level, const char *fmt, ...) {
 
+    @ if options.get('quiet')
+        return;
+    @ endif
+
     if (level > {{ options['level'] }})
         return;
 

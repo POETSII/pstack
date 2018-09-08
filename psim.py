@@ -12,11 +12,11 @@ Usage:
   psim.py [options] <app.xml>
 
 Options:
-  -d --debug       Print simulator debug information.
+  -d --debug       Print debug information.
   -l --level=<n>   Specify log messages verbosity [default: 1].
-  -r --result      Print simulation results as JSON object.
   -t --temp=<dir>  Specify simulation file directory [default: /tmp].
-  -q --quiet       Suppress all outputs.
+  -r --result      Print simulation result as JSON object.
+  -q --quiet       Suppress all outputs (except --result).
 
 """
 
@@ -25,9 +25,10 @@ def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
     options = {"debug": args["--debug"],
-               "level": int(args["--level"])}
+               "level": int(args["--level"]),
+               "quiet": args["--quiet"]}
     code = generate_code(markup, options)
-    result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
+    result = simulate(code, temp_dir=args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 
