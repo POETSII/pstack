@@ -24,11 +24,9 @@ Options:
 def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
-    options = {"debug": args["--debug"],
-               "level": int(args["--level"]),
-               "quiet": args["--quiet"]}
+    options = {"debug": args["--debug"], "level": int(args["--level"])}
     code = generate_code(markup, options)
-    result = simulate(code, temp_dir=args["--temp"])
+    result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 

@@ -47,7 +47,7 @@ def print_line(line):
     sys.stdout.flush()
 
 
-def simulate(code, temp_dir="/tmp"):
+def simulate(code, quiet=False, temp_dir="/tmp"):
 
     engine_file = compile_gpp(code, temp_dir)
     engine = spawn(engine_file, echo=False, timeout=None)
@@ -96,7 +96,9 @@ def simulate(code, temp_dir="/tmp"):
         if not line:
             break
 
-        print_line(line.strip())
+        if not quiet:
+            print_line(line.strip())
+
         parse_line(line.strip())
 
     return {"log": log, "states": states, "metrics": metrics}

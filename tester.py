@@ -12,7 +12,7 @@ def _psim(xml_file):
     markup = read_poets_xml(xml_file)
     options = {"debug": False, "states": False, "level": 1}
     code = generate_code(markup, options)
-    results = simulate(code, quiet=True, temp_dir="/tmp")
+    results = simulate(code, quiet=True)
     return results
 
 
@@ -63,7 +63,7 @@ def main():
         pass_str = colored("PASS", "green", attrs=["bold"])
         fail_str = colored("FAIL", "red", attrs=["bold"])
 
-        print("Running %s ... " % colored(xml_file, attrs=["bold"]))
+        print("Simulating %s ... " % colored(xml_file, attrs=["bold"]))
         simulation_result = _psim(xml_file)
 
         for checker in cfuncs:
