@@ -206,7 +206,7 @@ int main() {
         if (dev == NULL && pending_deliveries == 0) {
 
             printf("End of simulation\n");
-
+            printf("Metric [Exit code]: 0\n");
             break;
 
         }

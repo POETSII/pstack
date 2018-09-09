@@ -24,5 +24,7 @@ void handler_log(int level, const char *fmt, ...) {
 void handler_exit(int exitCode) {
 
     printf("App [%s, X]: handler_exit(%d) called\n", active_device->name.c_str(), exitCode);
+    printf("Metric [Exit code]: %d\n", exitCode);
+
     abort_flag = 1;
 }

@@ -24,3 +24,9 @@ def check_states(results):
         return False
 
     return True
+
+
+def check_exit_code(results):
+    """Check exit code is zero."""
+
+    return results["metrics"]["Exit code"] == 0
