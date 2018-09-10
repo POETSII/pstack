@@ -42,7 +42,7 @@ def get_checker_doc(checker):
     doc = checker.func_doc
     if not doc:
         return "(unnamed test)"
-    return doc[:-1] if doc[-1]=='.' else doc
+    return doc[:-1] if doc[-1] == '.' else doc
 
 
 def get_checker_doc_len(checker):
@@ -52,8 +52,7 @@ def get_checker_doc_len(checker):
 def main():
 
     xml_files = [
-        os.path.join("tests", file) for file
-        in os.listdir("tests")
+        os.path.join("tests", file) for file in os.listdir("tests")
         if file.lower().endswith(".xml")
     ]
 
