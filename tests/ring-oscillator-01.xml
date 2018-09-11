@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<Graphs xmlns="https://poets-project.org/schemas/virtual-graph-schema-v2">
+    <GraphType id="ro">
+        <Documentation>Ring Oscillator</Documentation>
+        <MetaData>&quot;native_dimension&quot;:2</MetaData>
+        <Properties/>
+
+        <SharedCode>
+            <![CDATA[
+            #define SOFTWARE_BUFF_SIZE 1024
+            // (Queue) send functions
+
+// Note: buffer pointers point to the next available slot
+
+struct toggle_msg {
+	uint32_t src;
+	uint32_t dst;
+};
+
+void send_toggle(ro_node_state_t *deviceState, toggle_msg *msg) {
+
+	uint32_t ind = (deviceState->toggle_buffer_ptr)++;
+
+	if (ind >= SOFTWARE_BUFF_SIZE ) {
+		handler_log(1, "Error, outgoing toggle message buffer is full");
+		handler_exit(1);
+	}
+
+	deviceState->toggle_buffer_dst[ind] = msg->dst;
+
+}
+            
+            ]]>
+
+        </SharedCode>
+
+        <MessageTypes>
+
+            <MessageType id="__init__">
+                <Documentation>Initialize state</Documentation>
+            </MessageType>
+
+            <MessageType id="toggle">
+                <Documentation>Toggle next node</Documentation>
+                <Message>
+                    <Scalar type="uint32_t" name="src">
+                        <Documentation>Source node id</Documentation>
+                    </Scalar>
+                    <Scalar type="uint32_t" name="dst">
+                        <Documentation>Destination node id</Documentation>
+                    </Scalar>
+                </Message>
+            </MessageType>
+        </MessageTypes>
+
+        <DeviceTypes>
+            <!-- Generated Block -->
+            <DeviceType id="node">
+                <Properties>
+                    <Scalar name="id" type="uint32_t"></Scalar>
+                    <Scalar name="outdegree" type="uint32_t"></Scalar>
+                </Properties>
+
+                <State>
+
+                    <!-- Device state fields: -->
+                    <Scalar name="state" type="uint32_t"></Scalar>
+                    <Scalar name="counter" type="uint32_t"></Scalar>
+                    <!-- Software buffer for (outgoing) toggle messages: -->
+
+                    <Array name="toggle_buffer_dst" type="uint32_t" length="1024"></Array>
+                    <Scalar name="toggle_buffer_ptr" type="uint32_t"></Scalar>
+                </State>
+
+                <ReadyToSend>
+                    <![CDATA[
+
+                    
+bool pending_toggle_messages = deviceState->toggle_buffer_ptr > 0;
+
+*readyToSend =
+	(pending_toggle_messages ? RTS_FLAG_toggle_out : 0);
+
+                    ]]>
+                </ReadyToSend>
+
+                <InputPin messageTypeId="__init__" name="__init__">
+                    <OnReceive>
+                        <![CDATA[
+
+                        bool is_root = deviceProperties->id == 0;
+
+deviceState->state = is_root ? 1 : 0;
+deviceState->counter = 0;
+
+if (is_root) {
+
+	handler_log(1, "counter = %d", ++(deviceState->counter));
+
+	// send initial message
+	toggle_msg outgoing;
+	outgoing.dst = 0xFFFFFFFF; // broadcast
+	send_toggle(deviceState, &outgoing);
+}
+
+                        ]]>
+                    </OnReceive>
+                </InputPin>
+
+                <InputPin messageTypeId="toggle" name="toggle_in">
+                    <OnReceive>
+                        <![CDATA[
+
+                        bool finished = deviceState->counter >= 10;
+
+if (finished) {
+
+	handler_exit(0);
+
+} else {
+
+	handler_log(1, "counter = %d", ++(deviceState->counter));
+
+	// toggle state:
+	deviceState->state = 1 - deviceState->state;
+
+	// send message to next node:
+	toggle_msg outgoing;
+	outgoing.dst = 0xFFFFFFFF; // broadcast
+	send_toggle(deviceState, &outgoing);
+
+}
+
+                        ]]>
+                    </OnReceive>
+                </InputPin>
+
+                <OutputPin messageTypeId="toggle" name="toggle_out">
+                    <OnSend>
+                        <![CDATA[
+
+                        if (deviceState->toggle_buffer_ptr == 0) {
+	// If this is executed, it is most likely due to an error in ready_to_send
+	handler_log(1, "Error, attempted to send while buffer is empty");
+	handler_exit(1);
+}
+
+uint32_t ind = --(deviceState->toggle_buffer_ptr);
+
+message->src = deviceProperties->id;
+message->dst = deviceState->toggle_buffer_dst[ind];
+
+                        ]]>
+                    </OnSend>
+                </OutputPin>
+
+            </DeviceType>
+
+        </DeviceTypes>
+    </GraphType>
+    <GraphInstance id="graph1" graphTypeId="ro">
+      <DeviceInstances>
+          <DevI id="n0" type="node">
+            <P>
+                "id": 0,
+                "outdegree": 1
+
+             </P>
+        </DevI>
+          <DevI id="n1" type="node">
+            <P>
+                "id": 1,
+                "outdegree": 1
+
+             </P>
+        </DevI>
+          <DevI id="n2" type="node">
+            <P>
+                "id": 2,
+                "outdegree": 1
+
+             </P>
+        </DevI>
+          <DevI id="n3" type="node">
+            <P>
+                "id": 3,
+                "outdegree": 1
+
+             </P>
+        </DevI>
+    </DeviceInstances>
+    <EdgeInstances>
+        <EdgeI path="n1:toggle_in-n0:toggle_out"/>
+        <EdgeI path="n2:toggle_in-n1:toggle_out"/>
+        <EdgeI path="n3:toggle_in-n2:toggle_out"/>
+        <EdgeI path="n0:toggle_in-n3:toggle_out"/>
+    </EdgeInstances>
+</GraphInstance>
+</Graphs>
