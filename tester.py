@@ -71,8 +71,11 @@ def main():
 
         for checker in cfuncs:
             put("  - %s ... " % get_checker_doc(checker))
-            test_result = checker(simulation_result)
-            print pass_str if test_result else fail_str
+            try:
+                checker(simulation_result)
+                print pass_str
+            except AssertionError:
+                print fail_str
 
 
 if __name__ == '__main__':
