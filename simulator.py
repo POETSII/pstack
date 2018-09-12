@@ -52,8 +52,8 @@ def simulate(code, quiet=False, temp_dir="/tmp"):
     engine_file = compile_gpp(code, temp_dir)
     engine = spawn(engine_file, echo=False, timeout=None)
 
-    msg = pack("<IIII", 100, 1, 1, 5)
-    sent = engine.send(msg + '\n')
+    # msg = pack("<IIII", 100, 1, 1, 5)
+    # sent = engine.send(msg + '\n')
 
     log = []
     states = {}
@@ -102,3 +102,10 @@ def simulate(code, quiet=False, temp_dir="/tmp"):
         parse_line(line.strip())
 
     return {"log": log, "states": states, "metrics": metrics}
+
+
+def simulate_raw(code, temp_dir="/tmp"):
+
+    import subprocess
+    engine_file = compile_gpp(code, temp_dir)
+    subprocess.call([engine_file])

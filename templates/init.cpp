@@ -4,7 +4,7 @@
 	@ set device_type = group.grouper
 	@ set device_class = get_device_class(device_type)
 
-	void {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices) {
+	void {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices, uint32_t simulation_region) {
 
 		// {{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
 
@@ -31,8 +31,10 @@
 
 		@ set device_names = devices | map(attribute="id")
 		@ set device_names_str = mformat('"%s"', device_names) | join(', ')
+		@ set device_regions = get_device_regions(devices, regions)
 
 		const std::string names[] = { {{ device_names_str }} };
+		const uint32_t regions[] = { {{ device_regions | join(', ') }} };
 
 		for (int i=0; i<{{ devices | count }}; i++) {
 
@@ -47,13 +49,18 @@
 				{%- endfor -%}
 			);
 
+			new_device->region = regions[i];
+
 			active_device = new_device;
 
-			(*new_device).init();
-
-			cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
-
-			(*new_device).print();
+			if (regions[i] == simulation_region) {
+				(*new_device).init();
+				cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
+				(*new_device).print();
+			} else {
+				// This device is in an external region so we don't initialize
+				// its state.
+			}
 
 			devices.push_back((device_t*) new_device);
 

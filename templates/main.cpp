@@ -17,6 +17,7 @@
 @ include 'init.cpp'
 @ include 'edges.cpp'
 @ include 'rts.cpp'
+@ include 'externals.cpp'
 
 int main() {
 
@@ -39,9 +40,15 @@ int main() {
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
-    @ set init_calls = mformat("%s(devices);", init_funcs) | join("\n")
+    @ set init_calls = mformat("%s(devices, simulation_region);", init_funcs) | join("\n")
+    @ set device_regions = get_device_regions(graph_instance['devices'], regions)
+    @ set region_list = device_regions | unique | list
+    @ set exist_other_regions = region_list != [options.get('region', 0)]
 
     cprintf("Initialization:\n---------------\n");
+
+    const uint32_t simulation_region = {{ options.get("region", 0) }};
+    const bool exist_other_regions = {{ 'true' if exist_other_regions else 'false' }};
 
     // Device initialization call must be in the correct order (sorted by
     // device type). This is because elsewhere in the code it is assumed that
@@ -61,6 +68,9 @@ int main() {
     for (int i=0; i<devices.size(); i++){
 
         device_t* dev = devices[i];
+
+        if (dev->region != simulation_region)
+            continue;  // skip devices in external regions
 
         int rts = (*dev).get_rts();
 
@@ -84,9 +94,11 @@ int main() {
 
         device_t* dev = select_rts_device(rts_set);
 
+        bool is_rts_set_empty = dev == NULL;
+
         active_device = dev;
 
-        if (dev == NULL) {
+        if (is_rts_set_empty) {
 
             cprintf("Empty rts set\n");
 
@@ -154,19 +166,35 @@ int main() {
 
             cprintf("Delivering <%s> message from <%s> to <%s>\n", (*dv.msg).getName(), dv.origin->name.c_str(), dst_dev->name.c_str());
 
-            (*dst_dev).receive(dst.port, dv.msg);
+            if (dst_dev->region == simulation_region) {
 
-            cprintf("Device <%s>: ", dst_dev->name.c_str());
+                // Destination device is in simulation region.
 
-            (*dst_dev).print();
+                // Call receive handler then scan device for rts change.
 
-            int dst_dev_rts = (*dst_dev).get_rts();
+                (*dst_dev).receive(dst.port, dv.msg);
 
-            if (dst_dev_rts) {
+                cprintf("Device <%s>: ", dst_dev->name.c_str());
 
-                rts_set.insert(dst_dev);
+                (*dst_dev).print();
 
-                print_rts_set(rts_set);
+                int dst_dev_rts = (*dst_dev).get_rts();
+
+                if (dst_dev_rts) {
+
+                    rts_set.insert(dst_dev);
+
+                    print_rts_set(rts_set);
+                }
+
+            } else {
+
+                // Destination device is outside simulation region.
+
+                cprintf("Device <%s>: ", dst_dev->name.c_str());
+
+                cprintf("is in external region (%d).\n", dst_dev->region);
+
             }
 
             // cprintf("Removing device <%s> from delivery object destinations ...\n", dst_dev->name.c_str());
@@ -201,10 +229,14 @@ int main() {
 
             cprintf("No pending deliveries\n");
 
-            if (dev == NULL) {
-                printf("End of simulation\n");
-                printf("Metric [Exit code]: 0\n");
-                break;
+            if (is_rts_set_empty) {
+                if (exist_other_regions) {
+                    receive_externals(devices, dlist);
+                } else {
+                    printf("End of simulation\n");
+                    printf("Metric [Exit code]: 0\n");
+                    break;
+                }
             }
 
         }

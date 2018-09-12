@@ -64,6 +64,12 @@
 
         }
 
+        void read_debug() {
+            @ for scalar in fields['scalars']
+                scanf("%d", &(this->{{ scalar['name']}}));
+            @ endfor
+        }
+
     };
 
 @ endfor

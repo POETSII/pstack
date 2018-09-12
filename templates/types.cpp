@@ -23,6 +23,7 @@ public:
     virtual const char* getName() = 0;
     virtual void serialize(char *buf) = 0;
     virtual void deserialize(char *buf) = 0;
+    virtual void read_debug() = 0;
     virtual int getByteCount() = 0;
 };
 
@@ -55,6 +56,7 @@ protected:
 
 public:
     std::string name = "n/a";
+    uint32_t region = 0;
     virtual void init() = 0;
     virtual void print() = 0;
     virtual int get_rts() = 0;
