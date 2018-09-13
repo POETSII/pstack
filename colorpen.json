@@ -1,5 +1,7 @@
 {
-	".*delivery.*": "blue bold",
+	".*local delivery.*": "blue bold",
+	".*Created remote delivery.*": "blue bold reverse",
+	".*Received remote delivery.*": "green bold reverse",
 	"Content of rts_set: .*": "bold red",
 	"Calling receive handler ...": "bold green",
 	"Epoch .*": "bold",
@@ -11,5 +13,6 @@
 	"handler\\_exit\\(1\\) called": "bold red",
 	"Visit": "magenta",
 	"Map": "green",
-	"Reduce": "red"
+	"Reduce": "red",
+	"error": "red reverse"
 }
