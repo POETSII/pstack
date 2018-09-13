@@ -6,8 +6,6 @@
 
 	void {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices, uint32_t simulation_region) {
 
-		// {{ device_class }} *devices = new {{ device_class }}[{{ devices | count}}];
-
 		@ set state_class = get_state_class(graph_type["id"], device_type)
 		@ set props_class = get_props_class(graph_type["id"], device_type)
 		@ set device_class = get_device_class(device_type)
@@ -26,12 +24,12 @@
 
 		@ set device_names = devices | map(attribute="id") | list
 		@ set device_names_str = mformat('"%s"', device_names) | join(', ')
-		@ set device_indices = pymap(schema.get_device_index, device_names)
 		@ set device_regions = schema.get_device_regions(devices)
+		@ set scalar_prop_names = scalar_props | map(attribute='name') | list
+		@ set scalar_prop_names_ith = mformat('%s[i]', scalar_prop_names)
 
 		const std::string names[] = { {{ device_names_str }} };
 		const uint32_t regions[] = { {{ device_regions | join(', ') }} };
-		const uint32_t indices[] = { {{ device_indices | join(', ') }} };
 
 		for (int i=0; i<{{ devices | count }}; i++) {
 
@@ -40,24 +38,20 @@
 			new_device->name = names[i];
 
 			(*new_device).setProperties(
-				{%- for prop in scalar_props %}
-					{{- prop['name'] -}} [i]
-					{{- ', ' if not loop.last else '' -}}
-				{%- endfor -%}
+				{{- scalar_prop_names_ith | join(', ') -}}
 			);
 
-			new_device->index = indices[i];
+			new_device->index = devices.size();
 			new_device->region = regions[i];
 
 			active_device = new_device;
+
+			// Only initialize devices within simulation region ...
 
 			if (regions[i] == simulation_region) {
 				(*new_device).init();
 				cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
 				(*new_device).print();
-			} else {
-				// This device is in an external region so we don't initialize
-				// its state.
 			}
 
 			devices.push_back((device_t*) new_device);
