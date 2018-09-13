@@ -20,14 +20,6 @@ def get_device_class(device_type):
     return "%s_device_t" % device_type
 
 
-def get_device_regions(devices, regions):
-    """Return list of regions corresponding to devices.
-
-    Assumes a default region of 0.
-    """
-    return [regions.get(dev["id"], 0) for dev in devices]
-
-
 def get_graph_type_props_class(graph_type_id):
     return "%s_properties_t" % graph_type_id
 
@@ -125,7 +117,7 @@ def mformat(fmt_str, items):
     return [fmt_str % item for item in items]
 
 
-def generate_code(markup, options, regions={}):
+def generate_code(markup, options, region_map={}):
     """Generate code from template file and POETS markup."""
 
     template = 'main.cpp'
@@ -156,15 +148,13 @@ def generate_code(markup, options, regions={}):
         lmap,
         unique,
         pymap,
-        mformat,
-        get_device_regions
+        mformat
     ]
 
     for func in funcs:
         env.globals[func.func_name] = func
 
-    env.globals["schema"] = Schema(markup)
+    env.globals["schema"] = Schema(markup, region_map)
     env.globals["options"] = options
-    env.globals["regions"] = regions
 
     return env.get_template(template).render(**markup)

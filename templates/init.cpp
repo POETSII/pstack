@@ -31,7 +31,7 @@
 
 		@ set device_names = devices | map(attribute="id")
 		@ set device_names_str = mformat('"%s"', device_names) | join(', ')
-		@ set device_regions = get_device_regions(devices, regions)
+		@ set device_regions = schema.get_device_regions(devices)
 
 		const std::string names[] = { {{ device_names_str }} };
 		const uint32_t regions[] = { {{ device_regions | join(', ') }} };

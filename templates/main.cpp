@@ -41,9 +41,8 @@ int main() {
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
     @ set init_calls = mformat("%s(devices, simulation_region);", init_funcs) | join("\n")
-    @ set device_regions = get_device_regions(graph_instance['devices'], regions)
-    @ set region_list = device_regions | unique | list
-    @ set exist_other_regions = region_list != [options.get('region', 0)]
+
+    @ set exist_other_regions = schema.get_region_count() > 1
 
     cprintf("Initialization:\n---------------\n");
 

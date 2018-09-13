@@ -60,8 +60,9 @@ def _build_device_map(markup):
 
 class Schema(object):
 
-    def __init__(self, markup):
+    def __init__(self, markup, region_map):
         self._markup = markup
+        self._region_map = region_map
         self._pin_map = _build_pin_map(markup)
         self._device_map = _build_device_map(markup)
         self._device_index = _build_device_index(markup)
@@ -122,3 +123,13 @@ class Schema(object):
         edges = self._markup["graph_instance"]["edges"]
 
         return map(get_table_entry, edges)
+
+    def get_region_count(self):
+        return len({region for region in self._region_map.values()})
+
+    def get_device_regions(self, devices):
+        """Return list of regions corresponding to list of devices.
+
+        Assumes a default region of 0.
+        """
+        return [self._region_map.get(dev["id"], 0) for dev in devices]
