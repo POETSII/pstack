@@ -63,6 +63,7 @@
         {{ device_class}} () {
             // Initialize array of destination lists
             this->dsts = new dst_list_t[{{ device['output_pins'] | count }}];
+            this->regs = new reg_set_t[{{ device['output_pins'] | count }}];
             this->rts = 0;
         };
 

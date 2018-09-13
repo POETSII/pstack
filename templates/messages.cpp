@@ -12,6 +12,7 @@
         {{ lmap(declare_variable, fields['scalars']) }}
 
         {{ msg_class }} (){
+            this->index = {{ loop.index0 }};
             @ for scalar in fields['scalars']
                 this->{{ scalar['name'] }} = 0;
             @ endfor
@@ -67,6 +68,12 @@
         void read_debug() {
             @ for scalar in fields['scalars']
                 scanf("%d", &(this->{{ scalar['name']}}));
+            @ endfor
+        }
+
+        void print_debug() {
+            @ for scalar in fields['scalars']
+                cprintf(", %d", this->{{ scalar['name']}});
             @ endfor
         }
 

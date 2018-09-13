@@ -1,9 +1,9 @@
-void add_edges(std::vector<device_t*> devices) {
+void add_edges(std::vector<device_t*> devices, uint32_t simulation_region) {
 
 	@ set connections = schema.get_edge_table()
 	@ set ncons = connections | count
 
-	int edges[{{ ncons }}][4] = {
+	int edges[{{ ncons }}][5] = {
 
 		@ for row in connections
 			{ {{- row | join(', ') -}} } {{ ',' if not loop.last else '' }}
@@ -18,6 +18,16 @@ void add_edges(std::vector<device_t*> devices) {
 
 		int src_pin = edges[i][2];
 		int dst_pin = edges[i][3];
+
+		uint dst_dev_region = edges[i][4];
+
+		reg_set_t *regs = (*src_dev).getPortOutputRegions(src_pin);
+
+		if (dst_dev_region != simulation_region)
+			(*regs).insert(dst_dev_region); // add external region
+
+		if (dst_dev_region != simulation_region)
+			continue; // don't add external devices as local destinations
 
 		dst_list_t *dsts = (*src_dev).getPortDestinations(src_pin);
 

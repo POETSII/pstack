@@ -18,23 +18,20 @@
 		@ set init_handler = get_receive_handler_name(device_type, '__init__')
 
 		@ for prop in scalar_props
-
 			@ set property_values = devices | map(attribute='properties') | map(attribute=prop['name']) | list
-
 			{{ prop['type'] }} {{ prop['name'] }} [{{ count }}] = {
-
 				{{- property_values | join(', ') -}}
-
 			};
-
 		@ endfor
 
-		@ set device_names = devices | map(attribute="id")
+		@ set device_names = devices | map(attribute="id") | list
 		@ set device_names_str = mformat('"%s"', device_names) | join(', ')
+		@ set device_indices = pymap(schema.get_device_index, device_names)
 		@ set device_regions = schema.get_device_regions(devices)
 
 		const std::string names[] = { {{ device_names_str }} };
 		const uint32_t regions[] = { {{ device_regions | join(', ') }} };
+		const uint32_t indices[] = { {{ device_indices | join(', ') }} };
 
 		for (int i=0; i<{{ devices | count }}; i++) {
 
@@ -49,6 +46,7 @@
 				{%- endfor -%}
 			);
 
+			new_device->index = indices[i];
 			new_device->region = regions[i];
 
 			active_device = new_device;

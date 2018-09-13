@@ -2,6 +2,7 @@
 
 #include <set>
 #include <vector>
+#include <set>
 #include <string>
 #include <stdio.h>
 #include <sys/poll.h>
@@ -42,12 +43,10 @@ int main() {
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
     @ set init_calls = mformat("%s(devices, simulation_region);", init_funcs) | join("\n")
 
-    @ set exist_other_regions = schema.get_region_count() > 1
-
     cprintf("Initialization:\n---------------\n");
 
     const uint32_t simulation_region = {{ options.get("region", 0) }};
-    const bool exist_other_regions = {{ 'true' if exist_other_regions else 'false' }};
+    const bool exist_other_regions = {{ 'true' if schema.get_region_count() > 1 else 'false' }};
 
     // Device initialization call must be in the correct order (sorted by
     // device type). This is because elsewhere in the code it is assumed that
@@ -56,7 +55,7 @@ int main() {
 
     {{ init_calls }}
 
-    add_edges(devices);
+    add_edges(devices, simulation_region);
 
     cprintf("\n");
 
@@ -106,6 +105,7 @@ int main() {
             int port = select_rts_port(dev);
 
             dst_list_t *dests = (*dev).getPortDestinations(port);
+            reg_set_t *regs = (*dev).getPortOutputRegions(port);
 
             // Create message by calling send handler
 
@@ -125,13 +125,24 @@ int main() {
 
             // Create delivery object
 
-            delivery_t new_dv = delivery_t(msg, *dests, dev);
+            if ((*dests).size() > 0) {
 
-            cprintf("Created new delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
+                delivery_t new_dv = delivery_t(msg, *dests, dev);
 
-            // new_dv.print();
+                cprintf("Created local delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
 
-            dlist.push_back(new_dv);
+                // new_dv.print();
+
+                dlist.push_back(new_dv);
+
+            }
+
+            if ((*regs).size() > 0) {
+
+                cprintf("Created remote delivery to %d external regions.\n", (*regs).size());
+
+                send_externals(dev->index, port, msg, regs);
+            }
 
         }
 
@@ -190,9 +201,9 @@ int main() {
 
                 // Destination device is outside simulation region.
 
-                cprintf("Device <%s>: ", dst_dev->name.c_str());
+                cprintf("error\n");
 
-                cprintf("is in external region (%d).\n", dst_dev->region);
+                // send_externals(dst, dv);
 
             }
 

@@ -118,7 +118,9 @@ class Schema(object):
             src_pin = self.get_pin_index(src_device_type, src_pin_name, 'output')
             dst_pin = self.get_pin_index(dst_device_type, dst_pin_name, 'input')
 
-            return (src_device_index, dst_device_index, src_pin, dst_pin)
+            dst_dev_region = self._region_map.get(dst_device, 0)
+
+            return (src_device_index, dst_device_index, src_pin, dst_pin, dst_dev_region)
 
         edges = self._markup["graph_instance"]["edges"]
 

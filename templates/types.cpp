@@ -19,11 +19,13 @@ void cprintf(const char *fmt, ...) {
 class msg_t {
     // Base message type
 public:
+    uint32_t index = 0;
     virtual void print() = 0;
     virtual const char* getName() = 0;
     virtual void serialize(char *buf) = 0;
     virtual void deserialize(char *buf) = 0;
     virtual void read_debug() = 0;
+    virtual void print_debug() = 0;
     virtual int getByteCount() = 0;
 };
 
@@ -46,16 +48,17 @@ public:
 };
 
 typedef std::vector<destination_t> dst_list_t;
+typedef std::set<int> reg_set_t;
 
 class device_t {
 
-private:
-
 protected:
-    dst_list_t* dsts; // destinations by output port
+    dst_list_t* dsts; // destination devices by output port
+    reg_set_t* regs; // destination regions by output port
 
 public:
     std::string name = "n/a";
+    uint32_t index = 0;
     uint32_t region = 0;
     virtual void init() = 0;
     virtual void print() = 0;
@@ -68,6 +71,10 @@ public:
 
     dst_list_t* getPortDestinations(int port_id) {
         return dsts + port_id;
+    }
+
+    reg_set_t* getPortOutputRegions(int port_id) {
+        return regs + port_id;
     }
 
 };
