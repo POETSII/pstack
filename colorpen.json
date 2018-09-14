@@ -14,5 +14,6 @@
 	"Visit": "magenta",
 	"Map": "green",
 	"Reduce": "red",
-	"error": "red reverse"
+	"error": "red reverse",
+	".*terminate signal.*": "red reverse"
 }
