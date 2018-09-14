@@ -1,6 +1,6 @@
 @ for group in graph_instance['devices'] | groupby('type')
 
-	@ set devices = group.list
+	@ set devices = group.list | sort(attribute='id')
 	@ set device_type = group.grouper
 	@ set device_class = get_device_class(device_type)
 
