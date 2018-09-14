@@ -110,6 +110,21 @@ int main() {
 
             int port = select_rts_port(dev);
 
+            if (port == -1) {
+
+                // Could not determine output port, either because (1) rts is
+                // no longer asserted, (2) rts value is incorrect.
+
+                int current_rts = (*dev).get_rts();
+
+                if (current_rts == 0)
+                    printf("Error, RTS of device <%s> was de-asserted before calling send handler.\n", dev->name.c_str());
+                else
+                    printf("Error, RTS handler of device <%s> returned invalid value (%d)\n", dev->name.c_str(), current_rts);
+
+                return 1;
+            }
+
             dst_list_t *dests = (*dev).getPortDestinations(port);
             reg_set_t *regs = (*dev).getPortOutputRegions(port);
 

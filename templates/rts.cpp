@@ -52,10 +52,13 @@ int select_rts_port(device_t* dev) {
 
     int rts = (*dev).get_rts();
 
-    for (int j=0; j<port_count; j++) {
+    // loop through the bits of rts to find requested output port
 
+    for (int j=0; j<port_count; j++)
         if (rts & (1 << j)) return j;
 
-    }
+    // rts is not zero but no (valid) output port was determined, return -1 as
+    // a special code for error
 
+    return -1;
 }
