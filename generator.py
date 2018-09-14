@@ -154,7 +154,14 @@ def generate_code(markup, options, region=0, region_map={}):
     for func in funcs:
         env.globals[func.func_name] = func
 
-    env.globals["schema"] = Schema(markup, region, region_map)
+    schema = Schema(markup, region, region_map)
+    regions = schema.get_regions()
+
+    if region not in regions:
+        raise Exception("Unrecognized region %d (regions = %s)" % (region, regions))
+
+    env.globals["schema"] = schema
     env.globals["options"] = options
+
 
     return env.get_template(template).render(**markup)
