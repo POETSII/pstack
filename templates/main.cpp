@@ -252,7 +252,6 @@ int main() {
                         break;
                 } else {
                     printf("End of simulation\n");
-                    printf("Metric [Exit code]: 0\n");
                     break;
                 }
             }
