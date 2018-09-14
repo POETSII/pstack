@@ -60,7 +60,8 @@ def _build_device_map(markup):
 
 class Schema(object):
 
-    def __init__(self, markup, region_map):
+    def __init__(self, markup, region, region_map):
+        self.region = region
         self._markup = markup
         self._region_map = region_map
         self._pin_map = _build_pin_map(markup)
@@ -126,8 +127,20 @@ class Schema(object):
 
         return map(get_table_entry, edges)
 
-    def get_region_count(self):
-        return len({region for region in self._region_map.values()})
+    def is_multi_region(self):
+        return self._region_map != {}
+
+    def get_regions(self):
+        """Return list of simulation regions.
+
+        Regions are the (unique) values in _region_map, plus 0 (the default
+        region) if there are any devices with no matching entries in
+        _region_map.
+        """
+
+        devices = self._markup['graph_instance']['devices']
+        all_regions = [self._region_map.get(dev["id"], 0) for dev in devices]
+        return list(set(all_regions))
 
     def get_device_regions(self, devices):
         """Return list of regions corresponding to list of devices.

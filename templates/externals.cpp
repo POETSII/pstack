@@ -1,5 +1,8 @@
 int receive_externals(std::vector<device_t*> &devices, std::vector<delivery_t> &dlist) {
 
+	// Receive message from remote region and add it to dlist.
+	// Return 0 if successful, 1 if shutdown signal was received.
+
 	cprintf("Waiting for external messages ...\n");
 
 	char input[256];
@@ -11,6 +14,10 @@ int receive_externals(std::vector<device_t*> &devices, std::vector<delivery_t> &
 	cprintf("Enter (device_id, port, msg_type_id, fields ...):\n");
 
 	scanf("%d", &device_id);
+
+	if (device_id == -1) // special code for shutdown
+		return 1;
+
 	scanf("%d", &port);
 	scanf("%d", &msg_type_id);
 
@@ -68,3 +75,21 @@ int send_externals(uint32_t device_id, uint32_t port, msg_t* msg, reg_set_t* reg
 
 }
 
+void shutdown_externals(reg_set_t all_regions, uint32_t simulation_region) {
+
+	cprintf("Shutting down external regions\n");
+
+	cprintf("  - Regions: ");
+
+	for (reg_set_t::iterator it = all_regions.begin(); it != all_regions.end(); ++it) {
+
+		int region = *it;
+
+		if (region != simulation_region)
+			cprintf("%d", region);
+	}
+
+	cprintf("\n");
+    cprintf("  - Send: -1\n");
+
+}

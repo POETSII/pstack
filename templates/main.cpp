@@ -45,8 +45,14 @@ int main() {
 
     cprintf("Initialization:\n---------------\n");
 
-    const uint32_t simulation_region = {{ options.get("region", 0) }};
-    const bool exist_other_regions = {{ 'true' if schema.get_region_count() > 1 else 'false' }};
+    const uint32_t simulation_region = {{ schema.region }};
+    const bool exist_other_regions = {{ 'true' if schema.is_multi_region() else 'false' }};
+
+    reg_set_t all_regions;
+
+    @ for region in schema.get_regions()
+        all_regions.insert({{ region }});
+    @ endfor
 
     // Device initialization call must be in the correct order (sorted by
     // device type). This is because elsewhere in the code it is assumed that
@@ -241,7 +247,9 @@ int main() {
 
             if (is_rts_set_empty) {
                 if (exist_other_regions) {
-                    receive_externals(devices, dlist);
+                    int terminate = receive_externals(devices, dlist);
+                    if (terminate)
+                        break;
                 } else {
                     printf("End of simulation\n");
                     printf("Metric [Exit code]: 0\n");
@@ -255,7 +263,11 @@ int main() {
 
     }
 
+    if (abort_flag && exist_other_regions)
+        shutdown_externals(all_regions, simulation_region);
+
     printf("Metric [Delivered messages]: %d\n", i);
+    printf("Metric [Exit code]: %d\n", exit_code);
 
     // ---- END DELIVERY ----
 

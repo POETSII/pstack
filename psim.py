@@ -26,10 +26,11 @@ def main():
     args = docopt.docopt(usage, version="v0.1")
     markup = read_poets_xml(args["<app.xml>"])
     options = {"debug": args["--debug"], "level": int(args["--level"])}
-    options["region"] = 0
-    region_map = {"n0": 0, "n1": 0, "n2": 1, "n3": 1}
-    code = generate_code(markup, options, region_map=region_map)
 
+    region = 1
+    region_map = {"nx": 1}
+    # region_map = {}
+    code = generate_code(markup, options, region=region, region_map=region_map)
     simulate_raw(code, temp_dir=args["--temp"])
     return
 
