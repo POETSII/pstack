@@ -76,6 +76,7 @@ def main():
                 print pass_str
             except AssertionError:
                 print fail_str
+                sys.exit(1)
 
 
 if __name__ == '__main__':
