@@ -134,8 +134,8 @@ int main() {
 
             msg_t* msg = (*dev).send(port);
 
-            // Checking if sender still wants to send (and remove it from
-            // rts_set if not)
+            // Check if sender still wants to send (and remove it from rts_set
+            // if not)
 
             int new_rts = (*dev).get_rts();
 
@@ -151,8 +151,6 @@ int main() {
                 delivery_t new_dv = delivery_t(msg, *dests, dev);
 
                 cprintf("Created local delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
-
-                // new_dv.print();
 
                 dlist.push_back(new_dv);
 
@@ -177,19 +175,9 @@ int main() {
 
             cprintf("Pending deliveries: %d\n", pending_deliveries);
 
-            // cprintf("Making the delivery:\n");
-
             delivery_t dv = dlist.at(0);  // Always choose first delivery, for now (TODO)
 
-            // (*dv.msg).print();
-
-            // cprintf("Chosen destination:\n");
-
             destination_t dst = dv.dst.at(dv.dst.size()-1);  // Always choose last destination, for now (TODO)
-
-            // dst.print();
-
-            // cprintf("Calling receive handler ...\n");
 
             device_t* dst_dev = (device_t*) dst.device;
 
@@ -254,18 +242,29 @@ int main() {
 
             }
 
-            // dv.print();
-
         } else {
 
             cprintf("No pending deliveries\n");
 
             if (is_rts_set_empty) {
+
+                // There no pending deliveries and no devices wishing to send.
+
+                // At this point, wait for external messages (if there are
+                // external regions) or end the simulation otherwise.
+
                 if (exist_other_regions) {
-                    int terminate = receive_externals(devices, dlist);
-                    if (terminate)
-                        break;
+
+                    // Wait for external messages (and terminate the
+                    // simulation if shutdown signal is received).
+
+                    int shutdown = receive_externals(devices, dlist);
+                    if (shutdown) break;
+
                 } else {
+
+                    // Nothing else to do, end the simulation.
+
                     printf("End of simulation\n");
                     break;
                 }
@@ -277,13 +276,16 @@ int main() {
 
     }
 
+    // If the simulation was aborted and is part of a distributed simulation
+    // then send a shutdown signal to other parts.
+
     if (abort_flag && exist_other_regions)
         shutdown_externals(all_regions, simulation_region);
 
+    // Print simulation metrics and device states.
+
     printf("Metric [Delivered messages]: %d\n", i);
     printf("Metric [Exit code]: %d\n", exit_code);
-
-    // ---- END DELIVERY ----
 
     print_debug = 1;
 
