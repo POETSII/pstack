@@ -128,7 +128,7 @@ class Schema(object):
         return map(get_table_entry, edges)
 
     def is_multi_region(self):
-        return self._region_map != {}
+        return len(self.get_regions()) > 1
 
     def get_regions(self):
         """Return list of simulation regions.
