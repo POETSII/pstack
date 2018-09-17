@@ -75,19 +75,14 @@ int send_externals(uint32_t device_id, uint32_t port, msg_t* msg, reg_set_t* reg
 
 }
 
-void shutdown_externals(reg_set_t all_regions, uint32_t simulation_region) {
+void shutdown_externals(reg_set_t other_regions) {
 
 	cprintf("Shutting down external regions\n");
 
 	cprintf("  - Regions: ");
 
-	for (reg_set_t::iterator it = all_regions.begin(); it != all_regions.end(); ++it) {
-
-		int region = *it;
-
-		if (region != simulation_region)
-			cprintf("%d", region);
-	}
+	for (reg_set_t::iterator it = other_regions.begin(); it != other_regions.end(); ++it)
+		cprintf("%d", *it);
 
 	cprintf("\n");
     cprintf("  - Send: -1\n");

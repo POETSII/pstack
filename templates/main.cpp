@@ -37,8 +37,6 @@ int main() {
         graphProperties->{{ scalar['name'] }} = {{ scalar.get('default') or '0' }};
     @ endfor
 
-    // cprintf("Hello\n"); while (!poll()); read_message();  write_message(); return 0;
-
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
     @ set init_calls = mformat("%s(devices, simulation_region);", init_funcs) | join("\n")
@@ -46,13 +44,14 @@ int main() {
     cprintf("Initialization:\n---------------\n");
 
     const uint32_t simulation_region = {{ schema.region }};
-    const bool exist_other_regions = {{ 'true' if schema.is_multi_region() else 'false' }};
 
-    reg_set_t all_regions;
+    reg_set_t other_regions;
 
-    @ for region in schema.get_regions()
-        all_regions.insert({{ region }});
+    @ for region in schema.get_regions(exclude=schema.region)
+        other_regions.insert({{ region }});
     @ endfor
+
+    const bool exist_other_regions = !other_regions.empty();
 
     // Device initialization call must be in the correct order (sorted by
     // device type). This is because elsewhere in the code it is assumed that
@@ -277,10 +276,10 @@ int main() {
     }
 
     // If the simulation was aborted and is part of a distributed simulation
-    // then send a shutdown signal to other parts.
+    // then send shutdown signal to other parts.
 
     if (abort_flag && exist_other_regions)
-        shutdown_externals(all_regions, simulation_region);
+        shutdown_externals(other_regions);
 
     // Print simulation metrics and device states.
 
