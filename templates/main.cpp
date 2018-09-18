@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <sys/poll.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 @ include 'types.cpp'
 @ include 'globals.cpp'
@@ -20,7 +21,7 @@
 @ include 'rts.cpp'
 @ include 'externals.cpp'
 
-int main() {
+int main(int argc, char *argv[]) {
 
     std::vector<device_t*> devices;
     std::vector<delivery_t> dlist; // delivery list
@@ -39,16 +40,17 @@ int main() {
 
     @ set device_types = unique(graph_instance['devices'] | map(attribute='type'))
     @ set init_funcs = pymap(get_init_function_name, device_types | sort)
-    @ set init_calls = mformat("%s(devices, simulation_region);", init_funcs) | join("\n")
+    @ set init_calls = mformat("local_devices += %s(devices, simulation_region);", init_funcs) | join("\n")
 
     cprintf("Initialization:\n---------------\n");
 
-    const uint32_t simulation_region = {{ schema.region }};
+    const uint32_t simulation_region = (argc > 1) ? std::stoi(argv[1]) : {{ schema.region }};
 
     reg_set_t other_regions;
 
-    @ for region in schema.get_regions(exclude=schema.region)
-        other_regions.insert({{ region }});
+    @ for region in schema.get_regions()
+        if (simulation_region != {{ region }})
+            other_regions.insert({{ region }});
     @ endfor
 
     const bool exist_other_regions = !other_regions.empty();
@@ -58,7 +60,14 @@ int main() {
     // objects in the vector `devices` correspond to devices in the XML file
     // sorted by key (type, id).
 
+    int local_devices = 0;
+
     {{ init_calls }}
+
+    if (local_devices == 0) {
+        printf("There are no local devices in region %d\n", simulation_region);
+        return 1;
+    }
 
     add_edges(devices, simulation_region);
 

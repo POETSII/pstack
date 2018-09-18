@@ -4,7 +4,7 @@
 	@ set device_type = group.grouper
 	@ set device_class = get_device_class(device_type)
 
-	void {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices, uint32_t simulation_region) {
+	int {{ get_init_function_name(device_type) }}(std::vector<device_t*> &devices, uint32_t simulation_region) {
 
 		@ set state_class = get_state_class(graph_type["id"], device_type)
 		@ set props_class = get_props_class(graph_type["id"], device_type)
@@ -31,6 +31,8 @@
 		const std::string names[] = { {{ device_names_str }} };
 		const uint32_t regions[] = { {{ device_regions | join(', ') }} };
 
+		int local_devices = 0;
+
 		for (int i=0; i<{{ devices | count }}; i++) {
 
 			{{ device_class }} *new_device = new {{ device_class }};
@@ -50,6 +52,7 @@
 
 			if (regions[i] == simulation_region) {
 				(*new_device).init();
+				local_devices++;
 				cprintf("Device <%s> ({{ device_type }}): ", new_device->name.c_str());
 				(*new_device).print();
 			}
@@ -57,6 +60,8 @@
 			devices.push_back((device_t*) new_device);
 
 		}
+
+		return local_devices;
 
 	}
 
