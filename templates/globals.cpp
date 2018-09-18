@@ -27,3 +27,18 @@ void handler_exit(int handler_exit_code) {
     exit_code = handler_exit_code;
     abort_flag = 1;
 }
+
+void printf3(const char *fmt, ...) {
+
+    // Same as printf but writes to file descriptor 3.
+
+    char buffer[255];
+    int len;
+
+    va_list va;
+    va_start(va, fmt);
+    len = vsprintf(buffer, fmt, va);
+    va_end(va);
+
+    write(3, buffer, len);
+}
