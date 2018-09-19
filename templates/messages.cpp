@@ -73,7 +73,7 @@
 
         void print_debug() {
             @ for scalar in fields['scalars']
-                cprintf(", %d", this->{{ scalar['name']}});
+                printf3(" %d", this->{{ scalar['name']}});
             @ endfor
         }
 
