@@ -1,38 +1,59 @@
+enum rtype {MSG = 0, SHUTDOWN = 1};
+
 struct remote_command_t {
-	int type;           // command type: (0) message, (1) shutdown
+	rtype type;         // command type: (0) message, (1) shutdown
+	int region;			// intended destination region
 	int device_id;      // remote device id
 	int port;           // output port of remote device
 	int nfields;        // number of field items
 	int fields[100];    // message fields
+	bool _wellformed;   // message is well-formed (computed field)
 };
+
+int comp_arr(char *a1, const char *a2, int n) {
+
+	// Compare arrays.
+
+	// Return 0 iff arrays a1 and a2 are identical up to n elements, 1
+	// otherwise.
+
+	for (int i=0; i<n; i++)
+		if (a1[i] != a2[i])
+			return 1;
+
+	return 0;
+}
 
 remote_command_t read_remote_command() {
 
 	remote_command_t rcmd;
 
-	int first;
 	int nfields;
+	char prefix[256];
 
-	cprintf("Enter (device_id, port, nfields, fields...):\n");
+	cprintf("Waiting for external commands ...\n");
 
-	scanf("%d", &first);
+	// Check if command has "send" prefix
 
-	if (first == -1) {
+	scanf("%s", prefix);
 
-		rcmd.type = 1; // shutdown command
+	if (comp_arr(prefix, "send", 4)) {
+		rcmd._wellformed = false;
+		return rcmd;
+	}
 
-	} else {
+	scanf("%d %d", &rcmd.type, &rcmd.region);
 
-		rcmd.type = 0; // message command
+	if (rcmd.type == MSG) {
 
-		rcmd.device_id = first;
-
-		scanf("%d %d", &(rcmd.port), &(rcmd.nfields));
+		scanf("%d %d %d", &(rcmd.device_id), &(rcmd.port), &(rcmd.nfields));
 
 		for (int i=0; i<rcmd.nfields; i++)
 			scanf("%d", rcmd.fields + i);
 
 	}
+
+	rcmd._wellformed = true;
 
 	return rcmd;
 
@@ -45,12 +66,17 @@ void print_remote_command(remote_command_t rcmd) {
 	printf("Remote command:\n");
 
 	printf("  - type: %d\n", rcmd.type);
-	printf("  - device_id: %d\n", rcmd.device_id);
-	printf("  - port: %d\n", rcmd.port);
-	printf("  - fields (n = %d):\n", rcmd.nfields);
+	printf("  - region: %d\n", rcmd.region);
 
-	for (int i=0; i<rcmd.nfields; i++)
-		printf("    - [%d] = %d\n", i, rcmd.fields[i]);
+	if (rcmd.type == MSG) {
+
+		printf("  - device_id: %d\n", rcmd.device_id);
+		printf("  - port: %d\n", rcmd.port);
+		printf("  - fields (n = %d):\n", rcmd.nfields);
+
+		for (int i=0; i<rcmd.nfields; i++)
+			printf("    - [%d] = %d\n", i, rcmd.fields[i]);
+	}
 
 }
 
@@ -59,7 +85,7 @@ bool is_valid_message_command(remote_command_t rcmd) {
 	const int ndevices = {{ graph_instance['devices'] | count }};
 	const int nmsgtypes = {{ graph_type['message_types'] | count }};
 
-	if (rcmd.type != 0) {
+	if (rcmd.type != MSG) {
 		printf("External command does not contain message\n");
 		return false; // not message command
 	}
@@ -73,24 +99,35 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 }
 
-int receive_externals(std::vector<device_t*> &devices, std::vector<delivery_t> &dlist) {
+int receive_externals(
+	std::vector<device_t*> &devices,
+	std::vector<delivery_t> &dlist,
+	uint32_t simulation_region) {
 
 	// Receive external command
 
 	// Return 0 if successful, 1 if shutdown signal was received or error was
 	// encountered while processing the incoming message.
 
-	cprintf("Waiting for external messages ...\n");
-
 	remote_command_t rcmd = read_remote_command();
 
-	// Perform quick checks depending on remote command type
+	print_remote_command(rcmd);
 
-	if (rcmd.type == 0 && !is_valid_message_command(rcmd))
+	// Run quick checks on command content
+
+	if (!rcmd._wellformed)
+		return 2;
+
+	if (rcmd.type == MSG && !is_valid_message_command(rcmd))
 		return 2; // return 2 if invalid message was received
 
-	if (rcmd.type == 1)
+	if (rcmd.type == SHUTDOWN)
 		return 1; // return 1 if shutdown code was received
+
+	if (rcmd.region != simulation_region) {
+		printf("Received external command intended for another region (%d)\n", rcmd.region);
+		return 2;
+	}
 
 	// Grab device with specified device_id.
 
@@ -137,7 +174,7 @@ int send_externals(uint32_t device_id, uint32_t port, msg_t* msg, reg_set_t* reg
 
 	for (; it != (*regions).end(); ++it) {
 
-		printf3("send %d %d %d %d", *it, device_id, port, msg->nscalars);
+		printf3("send %d %d %d %d %d", MSG, *it, device_id, port, msg->nscalars);
 
 		for (int i=0; i<msg->nscalars; i++)
 			printf3(" %d", fields[i]);
@@ -154,6 +191,6 @@ void shutdown_externals(reg_set_t other_regions) {
 	cprintf("Shutting down external regions\n");
 
 	for (reg_set_t::iterator it = other_regions.begin(); it != other_regions.end(); ++it)
-		printf3("send %d -1\n", *it);
+		printf3("send %d %d\n", SHUTDOWN, *it);
 
 }

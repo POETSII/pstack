@@ -16,5 +16,5 @@
 	"Reduce": "red",
 	"error": "red reverse",
 	".*terminate signal.*": "red reverse",
-	".*due to invalid.*": "red reverse"
+	".*malformed.*": "red reverse"
 }

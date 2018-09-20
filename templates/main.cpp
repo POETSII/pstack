@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
                     // Wait for external messages (and terminate the
                     // simulation if shutdown signal is received).
 
-                    int result = receive_externals(devices, dlist);
+                    int result = receive_externals(devices, dlist, simulation_region);
 
                     if (result == 1) {
                         printf("Received external shutdown command\n");
@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     if (result == 2) {
-                        printf("Ending simulation due to invalid external command\n");
+                        printf("Ending simulation due to malformed external command\n");
                         break;
                     }
 
