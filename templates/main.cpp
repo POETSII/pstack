@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 
                 cprintf("Created remote delivery to %d external regions.\n", (*regs).size());
 
-                int result = send_externals(dev->index, port, msg, regs);
+                int result = write_message_to_externals(dev->index, port, msg, regs);
 
                 if (result) {
                     printf("Encountered error while sending to external regions, aborting simulation.\n");
@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
                     // Wait for external messages (and terminate the
                     // simulation if shutdown signal is received).
 
-                    int result = receive_externals(devices, dlist, simulation_region);
+                    int result = read_message_from_externals(devices, dlist, simulation_region);
 
                     if (result == 1) {
                         printf("Received external shutdown command\n");
@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
     // then send shutdown signal to other parts.
 
     if (abort_flag && exist_other_regions)
-        shutdown_externals(other_regions);
+        shutdown_externals(&other_regions);
 
     // Print simulation metrics and device states.
 

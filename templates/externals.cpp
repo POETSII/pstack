@@ -1,13 +1,15 @@
 enum rtype {MSG = 0, SHUTDOWN = 1};
 
+#define MAX_REMOTE_MSG_FIELDS 100
+
 struct remote_command_t {
-	rtype type;         // command type: (0) message, (1) shutdown
-	int region;			// intended destination region
-	int device_id;      // remote device id
-	int port;           // output port of remote device
-	int nfields;        // number of field items
-	int fields[100];    // message fields
-	bool _wellformed;   // message is well-formed (computed field)
+	rtype type;                         // command type: (0) message, (1) shutdown
+	int region;			                // intended destination region
+	int device_id;                      // remote device id
+	int port;                           // output port of remote device
+	int nfields;                        // number of field items
+	int fields[MAX_REMOTE_MSG_FIELDS];  // message fields
+	bool _wellformed;                   // message is well-formed (computed field)
 };
 
 int comp_arr(char *a1, const char *a2, int n) {
@@ -25,6 +27,8 @@ int comp_arr(char *a1, const char *a2, int n) {
 }
 
 remote_command_t read_remote_command() {
+
+	// Read remote command from stdin.
 
 	remote_command_t rcmd;
 
@@ -82,6 +86,8 @@ void print_remote_command(remote_command_t rcmd) {
 
 bool is_valid_message_command(remote_command_t rcmd) {
 
+	// Validate (message-type) remote command.
+
 	const int ndevices = {{ graph_instance['devices'] | count }};
 	const int nmsgtypes = {{ graph_type['message_types'] | count }};
 
@@ -99,19 +105,17 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 }
 
-int receive_externals(
+int read_message_from_externals(
 	std::vector<device_t*> &devices,
 	std::vector<delivery_t> &dlist,
 	uint32_t simulation_region) {
 
-	// Receive external command
+	// Receive external command.
 
 	// Return 0 if successful, 1 if shutdown signal was received or error was
 	// encountered while processing the incoming message.
 
 	remote_command_t rcmd = read_remote_command();
-
-	print_remote_command(rcmd);
 
 	// Run quick checks on command content
 
@@ -159,38 +163,64 @@ int receive_externals(
 	return 0;
 }
 
-int send_externals(uint32_t device_id, uint32_t port, msg_t* msg, reg_set_t* regions) {
+void write_remote_command(remote_command_t rcmd, int region) {
 
-	// Send an external command (of type 'message') to 'regions'
+	printf3("send %d %d", rcmd.type, region);
 
-	int fields[100];
+	if (rcmd.type == MSG) {
 
-	int result = (*msg).to_arr(fields, 100);
+		printf3(" %d %d %d", rcmd.device_id, rcmd.port, rcmd.nfields);
 
-	if (result)
-		return result; // return (unsuccessfully) if result is not 0
+		for (int i = 0; i < rcmd.nfields; i++)
+			printf3(" %d", rcmd.fields[i]);
+
+	}
+
+	printf3("\n");
+
+}
+
+void write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
+
+	// Send remote command to multiple regions.
 
 	reg_set_t::iterator it = (*regions).begin(); // create iterator
 
 	for (; it != (*regions).end(); ++it) {
-
-		printf3("send %d %d %d %d %d", MSG, *it, device_id, port, msg->nscalars);
-
-		for (int i=0; i<msg->nscalars; i++)
-			printf3(" %d", fields[i]);
-
-		printf3("\n");
+		rcmd.region = *it;
+		write_remote_command(rcmd, *it);
 	}
-
-	return 0; // exit successfully
 
 }
 
-void shutdown_externals(reg_set_t other_regions) {
+int write_message_to_externals(
+	uint32_t device_id,
+	uint32_t port,
+	msg_t* msg,
+	reg_set_t* regions) {
+
+	remote_command_t rcmd;
+
+	rcmd.type = MSG;
+	rcmd.device_id = device_id;
+	rcmd.port = port;
+	rcmd.nfields = msg->nscalars;
+
+	int result = (*msg).to_arr(rcmd.fields, MAX_REMOTE_MSG_FIELDS);
+
+	if (result) return result; // return (unsuccessfully)
+
+	write_remote_command_multi(rcmd, regions);
+
+	return 0; // exit successfully
+}
+
+void shutdown_externals(reg_set_t* other_regions) {
+
+	remote_command_t rcmd;
+	rcmd.type = SHUTDOWN;
 
 	cprintf("Shutting down external regions\n");
 
-	for (reg_set_t::iterator it = other_regions.begin(); it != other_regions.end(); ++it)
-		printf3("send %d %d\n", SHUTDOWN, *it);
-
+	write_remote_command_multi(rcmd, other_regions);
 }
