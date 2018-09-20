@@ -105,64 +105,6 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 }
 
-int read_message_from_externals(
-	std::vector<device_t*> &devices,
-	std::vector<delivery_t> &dlist,
-	uint32_t simulation_region) {
-
-	// Receive external command.
-
-	// Return 0 if successful, 1 if shutdown signal was received or error was
-	// encountered while processing the incoming message.
-
-	remote_command_t rcmd = read_remote_command();
-
-	// Run quick checks on command content
-
-	if (!rcmd._wellformed)
-		return 2;
-
-	if (rcmd.type == MSG && !is_valid_message_command(rcmd))
-		return 2; // return 2 if invalid message was received
-
-	if (rcmd.type == SHUTDOWN)
-		return 1; // return 1 if shutdown code was received
-
-	if (rcmd.region != simulation_region) {
-		printf("Received external command intended for another region (%d)\n", rcmd.region);
-		return 2;
-	}
-
-	// Grab device with specified device_id.
-
-	device_t* dev = devices[rcmd.device_id];
-
-	// Call device `generate_output_msg` to create message from specified
-	// device output port and message fields.
-
-	msg_t* msg = (*dev).generate_output_msg(rcmd.port, rcmd.fields);
-
-	// Grab list of local destination devices.
-
-	dst_list_t *dests = (*dev).getPortDestinations(rcmd.port);
-
-	// Create delivery object.
-
-	delivery_t new_dv = delivery_t(msg, *dests, dev);
-
-	// Add to delivery list.
-
-	dlist.push_back(new_dv);
-
-	// Print log messages and exit successfully.
-
-	cprintf("Created delivery\n");
-
-	cprintf("Received remote delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
-
-	return 0;
-}
-
 void write_remote_command(remote_command_t rcmd, int region) {
 
 	printf3("send %d %d", rcmd.type, region);
@@ -191,36 +133,4 @@ void write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
 		write_remote_command(rcmd, *it);
 	}
 
-}
-
-int write_message_to_externals(
-	uint32_t device_id,
-	uint32_t port,
-	msg_t* msg,
-	reg_set_t* regions) {
-
-	remote_command_t rcmd;
-
-	rcmd.type = MSG;
-	rcmd.device_id = device_id;
-	rcmd.port = port;
-	rcmd.nfields = msg->nscalars;
-
-	int result = (*msg).to_arr(rcmd.fields, MAX_REMOTE_MSG_FIELDS);
-
-	if (result) return result; // return (unsuccessfully)
-
-	write_remote_command_multi(rcmd, regions);
-
-	return 0; // exit successfully
-}
-
-void shutdown_externals(reg_set_t* other_regions) {
-
-	remote_command_t rcmd;
-	rcmd.type = SHUTDOWN;
-
-	cprintf("Shutting down external regions\n");
-
-	write_remote_command_multi(rcmd, other_regions);
 }

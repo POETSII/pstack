@@ -168,12 +168,21 @@ int main(int argc, char *argv[]) {
 
                 cprintf("Created remote delivery to %d external regions.\n", (*regs).size());
 
-                int result = write_message_to_externals(dev->index, port, msg, regs);
+                remote_command_t rcmd;
+
+                rcmd.type = MSG;
+                rcmd.device_id = dev->index;
+                rcmd.port = port;
+                rcmd.nfields = msg->nscalars;
+
+                int result = (*msg).to_arr(rcmd.fields, MAX_REMOTE_MSG_FIELDS);
 
                 if (result) {
                     printf("Encountered error while sending to external regions, aborting simulation.\n");
                     break;
                 }
+
+                write_remote_command_multi(rcmd, regs);
             }
 
         }
@@ -268,20 +277,54 @@ int main(int argc, char *argv[]) {
 
                 if (exist_other_regions) {
 
-                    // Wait for external messages (and terminate the
-                    // simulation if shutdown signal is received).
+                    // Wait for external commands.
 
-                    int result = read_message_from_externals(devices, dlist, simulation_region);
+                    remote_command_t rcmd = read_remote_command();
 
-                    if (result == 1) {
+                    if (!rcmd._wellformed) {
+                        printf("Received malformed remote command\n");
+                        break;
+                    }
+
+                    if (rcmd.type == MSG && !is_valid_message_command(rcmd)) {
+                        printf("Received malformed remote command (of message type)\n");
+                        break;
+                    }
+
+                    if (rcmd.type == SHUTDOWN) {
                         printf("Received external shutdown command\n");
                         break;
                     }
 
-                    if (result == 2) {
-                        printf("Ending simulation due to malformed external command\n");
+                    if (rcmd.region != simulation_region) {
+                        printf("Received external command intended for another region (%d)\n", rcmd.region);
                         break;
                     }
+
+                    device_t* dev = devices[rcmd.device_id];
+
+                    // Call device `generate_output_msg` to create message from specified
+                    // device output port and message fields.
+
+                    msg_t* msg = (*dev).generate_output_msg(rcmd.port, rcmd.fields);
+
+                    // Grab list of local destination devices.
+
+                    dst_list_t *dests = (*dev).getPortDestinations(rcmd.port);
+
+                    // Create delivery object.
+
+                    delivery_t new_dv = delivery_t(msg, *dests, dev);
+
+                    // Add to delivery list.
+
+                    dlist.push_back(new_dv);
+
+                    // Print log messages and exit successfully.
+
+                    cprintf("Created delivery\n");
+
+                    cprintf("Received remote delivery (<%s> message to %d nodes) ...\n", (*msg).getName(), (*dests).size());
 
                 } else {
 
@@ -301,8 +344,15 @@ int main(int argc, char *argv[]) {
     // If the simulation was aborted and is part of a distributed simulation
     // then send shutdown signal to other parts.
 
-    if (abort_flag && exist_other_regions)
-        shutdown_externals(&other_regions);
+    if (abort_flag && exist_other_regions) {
+
+        cprintf("Shutting down external regions\n");
+
+        remote_command_t rcmd;
+        rcmd.type = SHUTDOWN;
+
+        write_remote_command_multi(rcmd, &other_regions);
+    }
 
     // Print simulation metrics and device states.
 
