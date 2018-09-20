@@ -13,9 +13,20 @@
 
         {{ msg_class }} (){
             this->index = {{ loop.index0 }};
+            this->nscalars = {{ fields['scalars'] | count }};
             @ for scalar in fields['scalars']
                 this->{{ scalar['name'] }} = 0;
             @ endfor
+        }
+
+        {{ msg_class }}(int *arr) {
+
+            int index = 0;
+
+            @ for scalar in fields['scalars']
+                this->{{ scalar['name'] }} = ({{ scalar['type'] }}) arr[index++];
+            @ endfor
+
         }
 
         void print() {
@@ -71,10 +82,25 @@
             @ endfor
         }
 
-        void print_debug() {
+        int to_arr(int *arr, int arr_length) {
+
+            // Read (scalar) fields of a message from a given array.
+
+            // The argument `nfields` must equal the class `nscalars` field,
+            // otherwise an error is returned.
+
+            if (arr_length < this->nscalars) {
+                printf("Function {{ message['id'] }}.to_arr requires array with %d elements (%d provided)\n", this->nscalars, arr_length);
+                return 1;
+            }
+
+            int index = 0;
+
             @ for scalar in fields['scalars']
-                printf3(" %d", this->{{ scalar['name']}});
+                arr[index++] = this->{{ scalar['name']}};
             @ endfor
+
+            return 0; // exit successfully
         }
 
     };

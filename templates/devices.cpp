@@ -96,6 +96,7 @@
         int get_rts();
         void compute_rts();
         void receive(int pin_id, msg_t *msg);
+        msg_t* generate_output_msg(int, int*);
         msg_t* send(int pin_id);
 
     };

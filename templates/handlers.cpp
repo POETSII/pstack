@@ -69,6 +69,22 @@
 
     }
 
+    msg_t* {{ device_class }}::generate_output_msg(int pin_id, int* fields) {
+
+        // Generate an output message using given an output port id and an
+        // array of message fields.
+
+        @ for pin in device_type['output_pins']
+
+            @ set msg_class = get_msg_class(graph_type["id"], pin['message_type'])
+
+            if (pin_id == {{ loop.index0 }})
+                return new {{ msg_class }}(fields);
+
+        @ endfor
+
+    }
+
     void {{ device_class }}::init() {
 
         @ set init_pin = schema.get_pin(device_type['id'], '__init__')

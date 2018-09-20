@@ -20,12 +20,13 @@ class msg_t {
     // Base message type
 public:
     uint32_t index = 0;
+    uint32_t nscalars = 0; // number of scalar fields
     virtual void print() = 0;
     virtual const char* getName() = 0;
     virtual void serialize(char *buf) = 0;
     virtual void deserialize(char *buf) = 0;
     virtual void read_debug() = 0;
-    virtual void print_debug() = 0;
+    virtual int to_arr(int *arr, int arr_length) = 0;
     virtual int getByteCount() = 0;
 };
 
@@ -65,6 +66,7 @@ public:
     virtual int get_rts() = 0;
     virtual void receive(int, msg_t*) = 0;
     virtual msg_t* send(int) = 0;
+    virtual msg_t* generate_output_msg(int, int*) = 0;
     virtual int getOutputPortCount() = 0;
     virtual const char* getOutputPortName(int) = 0;
     virtual const char* getInputPortName(int) = 0;
