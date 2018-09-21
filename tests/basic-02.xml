@@ -65,6 +65,8 @@
                         message->value = deviceState->counter;
                         handler_log(1, "Received message (value = %d)", message->value);
                         deviceState->rts = deviceState->counter < 10;
+                        if (deviceState->counter >= 10)
+                            handler_exit(0); // return successfully
                         ]]>
                     </OnReceive>
                 </InputPin>

@@ -57,6 +57,8 @@
                         <![CDATA[
                         deviceState->counter++;
                         handler_log(1, "Received message %d", deviceState->counter);
+                        if (deviceState->counter == 10)
+                            handler_exit(0); // exit successfully
                         ]]>
                     </OnReceive>
                 </InputPin>

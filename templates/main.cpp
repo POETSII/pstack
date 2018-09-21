@@ -194,6 +194,8 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
+                cprintf("Sent remote delivery command(s).\n");
+
             }
 
         }
