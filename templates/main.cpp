@@ -182,7 +182,13 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-                write_remote_command_multi(rcmd, regs);
+                result = write_remote_command_multi(rcmd, regs);
+
+                if (result) {
+                    printf("Encountered error while sending to external regions, aborting simulation.\n");
+                    break;
+                }
+
             }
 
         }
@@ -279,7 +285,7 @@ int main(int argc, char *argv[]) {
 
                     // Wait for external commands.
 
-                    remote_command_t rcmd = read_remote_command();
+                    remote_command_t rcmd = read_remote_command(simulation_region);
 
                     if (!rcmd._wellformed) {
                         printf("Received malformed remote command\n");
@@ -346,7 +352,10 @@ int main(int argc, char *argv[]) {
         remote_command_t rcmd;
         rcmd.type = SHUTDOWN;
 
-        write_remote_command_multi(rcmd, &other_regions);
+        int result = write_remote_command_multi(rcmd, &other_regions);
+
+        if (result)
+            printf("Encountered error while sending shutdown signal to external regions.\n");
     }
 
     // Print simulation metrics and device states.

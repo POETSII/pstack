@@ -25,25 +25,25 @@ int comp_arr(char *a1, const char *a2, int n) {
     return 0;
 }
 
-remote_command_t read_remote_command() {
+remote_command_t read_remote_command(uint32_t simulation_region) {
 
     // Read remote command from stdin.
 
     remote_command_t rcmd;
 
     int nfields;
-    char prefix[256];
+    char temp[256];
+
+    printf3("blpop %d 0\n", simulation_region);
 
     cprintf("Waiting for external commands ...\n");
 
-    // Check if command has "send" prefix
+    scanf("%s", temp); // reads "*2"
+    scanf("%s", temp); // reads "$N"
+    scanf("%s", temp); // read queue name
+    scanf("%s", temp); // read "$M"
 
-    scanf("%s", prefix);
-
-    if (comp_arr(prefix, "send", 4)) {
-        rcmd._wellformed = false;
-        return rcmd;
-    }
+    // Now read external message
 
     scanf("%d", &rcmd.type);
 
@@ -103,11 +103,13 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 }
 
-void write_remote_command(remote_command_t rcmd, int region) {
+int write_remote_command(remote_command_t rcmd, int region) {
 
-    // This function ignored 'region', for now.
+    // Push a remote command to a Redis queue.
 
-    printf3("send %d", rcmd.type);
+    // Return 0 iff successful.
+
+    printf3("rpush %d \"%d", region, rcmd.type);
 
     if (rcmd.type == MSG) {
 
@@ -118,17 +120,28 @@ void write_remote_command(remote_command_t rcmd, int region) {
 
     }
 
-    printf3("\n");
+    printf3("\"\n");
 
+    // Read Redis response
+
+    // This should be in the form ":INTEGER" where INTEGER is the current
+    // length of the pushed-to Redis queue.
+
+    char response[256];
+    scanf("%s", response);
+    return response[0] == ':' ? 0 : 1;
 }
 
-void write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
+int write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
 
     // Send remote command to multiple regions.
 
     reg_set_t::iterator it = (*regions).begin(); // create iterator
 
-    for (; it != (*regions).end(); ++it)
-        write_remote_command(rcmd, *it);
+    for (; it != (*regions).end(); ++it) {
+        int result = write_remote_command(rcmd, *it);
+        if (result) return result; // bubble up error
+    }
 
+    return 0; // return (successfully)
 }
