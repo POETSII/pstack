@@ -73,6 +73,11 @@ int main(int argc, char *argv[]) {
 
     cprintf("\n");
 
+    // Initialize external interface
+
+    if (exist_other_regions)
+        init_external(simulation_region);
+
     // ---- BEGIN RTS SCAN ----
 
     rts_set_t rts_set;
