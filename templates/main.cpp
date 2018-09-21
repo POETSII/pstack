@@ -296,11 +296,6 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    if (rcmd.region != simulation_region) {
-                        printf("Received external command intended for another region (%d)\n", rcmd.region);
-                        break;
-                    }
-
                     device_t* dev = devices[rcmd.device_id];
 
                     // Call device `generate_output_msg` to create message from specified

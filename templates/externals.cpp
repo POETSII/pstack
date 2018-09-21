@@ -4,7 +4,6 @@ enum rtype {MSG = 0, SHUTDOWN = 1};
 
 struct remote_command_t {
 	rtype type;                         // command type: (0) message, (1) shutdown
-	int region;			                // intended destination region
 	int device_id;                      // remote device id
 	int port;                           // output port of remote device
 	int nfields;                        // number of field items
@@ -46,7 +45,7 @@ remote_command_t read_remote_command() {
 		return rcmd;
 	}
 
-	scanf("%d %d", &rcmd.type, &rcmd.region);
+	scanf("%d", &rcmd.type);
 
 	if (rcmd.type == MSG) {
 
@@ -70,7 +69,6 @@ void print_remote_command(remote_command_t rcmd) {
 	printf("Remote command:\n");
 
 	printf("  - type: %d\n", rcmd.type);
-	printf("  - region: %d\n", rcmd.region);
 
 	if (rcmd.type == MSG) {
 
@@ -107,7 +105,9 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 void write_remote_command(remote_command_t rcmd, int region) {
 
-	printf3("send %d %d", rcmd.type, region);
+	// This function ignored 'region', for now.
+
+	printf3("send %d", rcmd.type);
 
 	if (rcmd.type == MSG) {
 
@@ -128,9 +128,7 @@ void write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
 
 	reg_set_t::iterator it = (*regions).begin(); // create iterator
 
-	for (; it != (*regions).end(); ++it) {
-		rcmd.region = *it;
+	for (; it != (*regions).end(); ++it)
 		write_remote_command(rcmd, *it);
-	}
 
 }
