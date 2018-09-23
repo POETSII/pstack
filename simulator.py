@@ -97,8 +97,8 @@ def run_worker(queue, index, cmd):
     queue.put((index, None))
 
 
-def simulate_multi(code, quiet, temp_dir="/tmp"):
-    """Run multi-region simulation."""
+def simulate(code, quiet, temp_dir="/tmp"):
+    """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
     nworkers = 5
