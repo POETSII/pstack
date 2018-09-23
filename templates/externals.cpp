@@ -25,22 +25,6 @@ int comp_arr(char *a1, const char *a2, int n) {
     return 0;
 }
 
-int init_external(uint32_t simulation_region) {
-
-    // Initializes the externals interface.
-
-    // This currently deletes any existing Redis queue for this simulation
-    // region (which is essentially a clear operation).
-
-    // Return 0 iff successful.
-
-    printf3("del %d\n", simulation_region);
-
-    char response[256];
-    scanf("%s", response);
-    return response[0] == ':' ? 0 : 1;
-}
-
 remote_command_t read_remote_command(uint32_t simulation_region) {
 
     // Read remote command from stdin.
