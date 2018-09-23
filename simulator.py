@@ -83,35 +83,6 @@ def create_line_parser(log, states, metrics):
     return parse_line
 
 
-def simulate(code, quiet=False, temp_dir="/tmp"):
-
-    engine_file = compile_gpp(code, temp_dir)
-    engine = spawn(engine_file, echo=False, timeout=None)
-
-    # msg = pack("<IIII", 100, 1, 1, 5)
-    # sent = engine.send(msg + '\n')
-
-    log = []
-    states = {}
-    metrics = {}
-
-    parse_line = create_line_parser(log, states, metrics)
-
-    while True:
-
-        line = engine.readline()
-
-        if not line:
-            break
-
-        if not quiet:
-            print_line(line.strip())
-
-        parse_line(line.strip())
-
-    return {"log": log, "states": states, "metrics": metrics}
-
-
 def run_worker(queue, index, cmd):
     """Run simulation worker."""
 
