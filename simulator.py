@@ -2,10 +2,11 @@ import os
 import re
 import sys
 
+from Queue import Queue
 from struct import pack
 from struct import unpack
 from pexpect import spawn
-
+from threading import Thread
 
 def write_file(file, content):
     """Write string to file."""
@@ -47,17 +48,7 @@ def print_line(line):
     sys.stdout.flush()
 
 
-def simulate(code, quiet=False, temp_dir="/tmp"):
-
-    engine_file = compile_gpp(code, temp_dir)
-    engine = spawn(engine_file, echo=False, timeout=None)
-
-    # msg = pack("<IIII", 100, 1, 1, 5)
-    # sent = engine.send(msg + '\n')
-
-    log = []
-    states = {}
-    metrics = {}
+def create_line_parser(log, states, metrics):
 
     def parse_field_str(field_str):
         fields = {}
@@ -89,6 +80,23 @@ def simulate(code, quiet=False, temp_dir="/tmp"):
             for item in pat.findall(line):
                 line_parser(*item)
 
+    return parse_line
+
+
+def simulate(code, quiet=False, temp_dir="/tmp"):
+
+    engine_file = compile_gpp(code, temp_dir)
+    engine = spawn(engine_file, echo=False, timeout=None)
+
+    # msg = pack("<IIII", 100, 1, 1, 5)
+    # sent = engine.send(msg + '\n')
+
+    log = []
+    states = {}
+    metrics = {}
+
+    parse_line = create_line_parser(log, states, metrics)
+
     while True:
 
         line = engine.readline()
@@ -104,8 +112,66 @@ def simulate(code, quiet=False, temp_dir="/tmp"):
     return {"log": log, "states": states, "metrics": metrics}
 
 
-def simulate_raw(code, temp_dir="/tmp"):
+def run_worker(queue, index, cmd):
 
-    import subprocess
+    engine = spawn(cmd, echo=False, timeout=None)
+
+    log = []
+    states = {}
+    metrics = {}
+
+    parse_line = create_line_parser(log, states, metrics)
+
+    while True:
+
+        line = engine.readline()
+
+        queue.put((index, line.strip()))
+
+        if not line:
+            break
+
+        parse_line(line.strip())
+
+    queue.put(None)
+
+    result = {"log": log, "states": states, "metrics": metrics}
+    return result
+
+
+def simulate_multi(code, quiet, temp_dir="/tmp"):
+
     engine_file = compile_gpp(code, temp_dir)
-    subprocess.call([engine_file])
+    nworkers = 10
+
+    cmd_sing = "./%s %d"
+    cmd_dist = 'socat exec:"./%s %d",fdout=3 tcp:localhost:6379'
+    cmd = cmd_dist if nworkers>1 else cmd_sing
+
+    queue = Queue()
+
+    def create_worker(index):
+        args = (queue, index, cmd % (engine_file, index))
+        return Thread(target=run_worker, args=args)
+
+    workers = map(create_worker, range(nworkers))
+
+    for worker in workers:
+        worker.setDaemon(True)
+        worker.start()
+
+    counter = 0
+
+    while True:
+
+        item = queue.get()
+        queue.task_done()
+
+        if type(item) is tuple:
+            if not quiet:
+                print "%s -> %s" % item
+            continue
+
+        counter += 1
+        if counter >= nworkers:
+            break

@@ -5,7 +5,7 @@ from files import read_json
 from parser import read_poets_xml
 from generator import generate_code
 from simulator import simulate
-from simulator import simulate_raw
+from simulator import simulate_multi
 
 
 usage="""POETS Simulator (PSIM) v0.1
@@ -32,7 +32,8 @@ def main():
     options = {"debug": args["--debug"], "level": int(args["--level"])}
     region_map = read_json(args["--map"]) if args["--map"] else {}
     code = generate_code(markup, options, region=region, region_map=region_map)
-    simulate_raw(code, temp_dir=args["--temp"])
+
+    simulate_multi(code, quiet=args["--quiet"], temp_dir=args["--temp"])
     return
 
     result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
