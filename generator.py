@@ -117,7 +117,7 @@ def mformat(fmt_str, items):
     return [fmt_str % item for item in items]
 
 
-def generate_code(markup, options, region=0, region_map={}):
+def generate_code(markup, options, region_map={}):
     """Generate code from template file and POETS markup."""
 
     template = 'main.cpp'
@@ -154,14 +154,10 @@ def generate_code(markup, options, region=0, region_map={}):
     for func in funcs:
         env.globals[func.func_name] = func
 
-    schema = Schema(markup, region, region_map)
+    schema = Schema(markup, region_map)
     regions = schema.get_regions()
-
-    if region not in regions:
-        raise Exception("Unrecognized region %d (regions = %s)" % (region, regions))
 
     env.globals["schema"] = schema
     env.globals["options"] = options
-
 
     return env.get_template(template).render(**markup)

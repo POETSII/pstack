@@ -60,8 +60,7 @@ def _build_device_map(markup):
 
 class Schema(object):
 
-    def __init__(self, markup, region, region_map):
-        self.region = region
+    def __init__(self, markup, region_map):
         self._markup = markup
         self._region_map = region_map
         self._pin_map = _build_pin_map(markup)

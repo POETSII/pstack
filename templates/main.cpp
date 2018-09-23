@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
     cprintf("Initialization:\n---------------\n");
 
-    const uint32_t simulation_region = (argc > 1) ? std::stoi(argv[1]) : {{ schema.region }};
+    const uint32_t simulation_region = (argc > 1) ? std::stoi(argv[1]) : 0;
 
     reg_set_t other_regions;
 
