@@ -126,19 +126,17 @@ class Schema(object):
 
         return map(get_table_entry, edges)
 
-    def get_regions(self, exclude=None):
+    def get_regions(self):
         """Return list of simulation regions.
 
         Regions are the (unique) values in _region_map, plus 0 (the default
         region) if there are any devices with no matching entries in
         _region_map.
-
-        An 'exclude' region may be optionally excluded from the returned list.
         """
 
         devices = self._markup['graph_instance']['devices']
         all_regions = [self._region_map.get(dev["id"], 0) for dev in devices]
-        return list(set(all_regions) - set([exclude]))
+        return list(set(all_regions))
 
     def get_device_regions(self, devices):
         """Return list of regions corresponding to list of devices.
