@@ -103,8 +103,8 @@ def simulate(code, quiet, temp_dir="/tmp"):
     engine_file = compile_gpp(code, temp_dir)
     nworkers = 5
 
-    cmd_sing = "./%s %d"
-    cmd_dist = 'socat exec:"./%s %d",fdout=3 tcp:localhost:6379'
+    cmd_sing = "%s %d"
+    cmd_dist = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
     cmd = cmd_dist if nworkers>1 else cmd_sing
 
     queue = Queue()
