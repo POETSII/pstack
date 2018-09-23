@@ -113,36 +113,24 @@ def simulate(code, quiet=False, temp_dir="/tmp"):
 
 
 def run_worker(queue, index, cmd):
+    """Run simulation worker."""
 
     engine = spawn(cmd, echo=False, timeout=None)
 
-    log = []
-    states = {}
-    metrics = {}
-
-    parse_line = create_line_parser(log, states, metrics)
-
     while True:
-
         line = engine.readline()
-
         queue.put((index, line.strip()))
-
         if not line:
             break
 
-        parse_line(line.strip())
-
-    queue.put(None)
-
-    result = {"log": log, "states": states, "metrics": metrics}
-    return result
+    queue.put((index, None))
 
 
 def simulate_multi(code, quiet, temp_dir="/tmp"):
+    """Run multi-region simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
-    nworkers = 10
+    nworkers = 5
 
     cmd_sing = "./%s %d"
     cmd_dist = 'socat exec:"./%s %d",fdout=3 tcp:localhost:6379'
@@ -160,18 +148,29 @@ def simulate_multi(code, quiet, temp_dir="/tmp"):
         worker.setDaemon(True)
         worker.start()
 
-    counter = 0
+    log = []
+    states = {}
+    metrics = {}
+    done = {index: False for index in range(nworkers)}
+
+    parse_line = create_line_parser(log, states, metrics)
 
     while True:
 
-        item = queue.get()
+        index, payload = queue.get()
+
         queue.task_done()
 
-        if type(item) is tuple:
+        if type(payload) is str:
+            line = payload
             if not quiet:
-                print "%s -> %s" % item
+                print "%s -> %s" % (index, line)
+            parse_line(line.strip())
             continue
 
-        counter += 1
-        if counter >= nworkers:
+        done[index] = True
+
+        if all(done.values()):
             break
+
+    return {"log": log, "states": states, "metrics": metrics}

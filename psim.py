@@ -32,11 +32,7 @@ def main():
     options = {"debug": args["--debug"], "level": int(args["--level"])}
     region_map = read_json(args["--map"]) if args["--map"] else {}
     code = generate_code(markup, options, region=region, region_map=region_map)
-
-    simulate_multi(code, quiet=args["--quiet"], temp_dir=args["--temp"])
-    return
-
-    result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
+    result = simulate_multi(code, quiet=args["--quiet"], temp_dir=args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 
