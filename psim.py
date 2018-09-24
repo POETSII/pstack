@@ -28,8 +28,8 @@ def main():
     markup = read_poets_xml(args["<app.xml>"])
     options = {"debug": args["--debug"], "level": int(args["--level"])}
     region_map = read_json(args["--map"]) if args["--map"] else {}
-    code = generate_code(markup, options, region_map=region_map)
-    result = simulate(code, quiet=args["--quiet"], temp_dir=args["--temp"])
+    code, nregions = generate_code(markup, options, region_map)
+    result = simulate(code, args["--quiet"], nregions, args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 

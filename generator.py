@@ -160,4 +160,7 @@ def generate_code(markup, options, region_map={}):
     env.globals["schema"] = schema
     env.globals["options"] = options
 
-    return env.get_template(template).render(**markup)
+    code = env.get_template(template).render(**markup)
+    nregions = len(schema.get_regions())
+
+    return code, nregions

@@ -97,11 +97,10 @@ def run_worker(queue, index, cmd):
     queue.put((index, None))
 
 
-def simulate(code, quiet, temp_dir="/tmp"):
+def simulate(code, quiet, nworkers=1, temp_dir="/tmp"):
     """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
-    nworkers = 5
 
     cmd_sing = "%s %d"
     cmd_dist = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'

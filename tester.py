@@ -11,7 +11,7 @@ from termcolor import colored
 def _psim(xml_file):
     markup = read_poets_xml(xml_file)
     options = {"debug": False, "states": False, "level": 1}
-    code = generate_code(markup, options)
+    code, _ = generate_code(markup, options)
     results = simulate(code, quiet=True)
     return results
 
