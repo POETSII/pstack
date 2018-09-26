@@ -2,6 +2,10 @@
 
 ### How it Works
 
+<p align="center">
+	<img align="center" src="diagram.svg" alt="PSIM Setup">
+</p>
+
 At the top-level, `psim` is a Python tool that reads a POETS application (an
 XML file) then generates and runs one or several C++ simulation engines. Each
 engine computes the state of a subset of application devices by exchanging
@@ -28,11 +32,9 @@ connection arrangements (e.g. multi-process pipelines, unix domain sockets).
 correspondents (e.g. other simulators or actual POETS hardware) in homogeneous
 or heterogeneous arrangements.
 
-The diagram below depicts this setup. Users don't need to worry about engine
-instantiation and the use of `socat` -- this is all handled by `psim`
+The diagram at the top depicts this setup. Users don't need to worry about
+engine instantiation and the use of `socat` -- this is all handled by `psim`
 transparently to the user.
-
-![Alt text](diagram.svg)
 
 For quick and easy examples that show this setup at work see [Getting
 Started](getting-started.md).
