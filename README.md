@@ -2,7 +2,7 @@
 
 ### Overview
 
-`psim` is a distributed simulator for POETS applications that uses
+`psim` is a distributed [POETS](https://poets-project.org) simulator that uses
 [Redis](http://redis.io/) as an orchestration layer.
 
 #### Usage

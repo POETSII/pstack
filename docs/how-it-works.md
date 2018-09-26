@@ -3,9 +3,9 @@
 ### How it Works
 
 At the top-level, `psim` is a Python tool that reads a POETS application (an
-XML file) then generates and runs one or several instances of C++ simulation
-engine. Each engine computes the states of a subset of application devices by
-exchanging messages both internally and with other engines.
+XML file) then generates and runs one or several C++ simulation engines. Each
+engine computes the state of a subset of application devices by exchanging
+messages both internally and with other engines.
 
 Messages and other information are exchanged between engines using a Redis
 instance which must be setup and made accessible to `psim` on the host machine
@@ -17,8 +17,8 @@ they read information from `stdin` and write to POSIX stream 3 (since `stdout`
 and `stderr` are used for log/err outputs), which are then relayed to Redis
 using `socat`. This setup has several advantages:
 
-1. It simplifies engine implementation by avoiding socket programming, leaving
-this chore to `socat`.
+1. It simplifies engine implementation by leaving socket programming chores to
+`socat`.
 
 2. It decouples engine implementation from the choice of inter-engine
 communication channels, permitting great flexibility in alternative engine
