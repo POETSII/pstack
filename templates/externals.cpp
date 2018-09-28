@@ -45,7 +45,9 @@ remote_command_t read_remote_command(uint32_t simulation_region) {
 
     // Now read external message
 
-    scanf("%d", &rcmd.type);
+    int rcmd_type;
+    scanf("%d", &rcmd_type);
+    rcmd.type = (rtype) rcmd_type;
 
     if (rcmd.type == MSG) {
 
