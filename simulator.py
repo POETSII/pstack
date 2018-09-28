@@ -23,7 +23,7 @@ def compile_gpp(code, temp_dir):
     source_file = os.path.join(temp_dir, 'psim.cpp')
     output_file = os.path.join(temp_dir, 'psim.exe')
 
-    cmd = "g++ -fdiagnostics-color=always -o %s %s" % (output_file, source_file)
+    cmd = "g++ -std=c++11 -fdiagnostics-color=always -o %s %s" % (output_file, source_file)
 
     write_file(source_file, code)
     exit_code = os.system(cmd)
