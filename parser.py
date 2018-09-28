@@ -18,10 +18,10 @@ Usage:
 """
 
 
-def load_xml(xml_file):
-    """Parse an XML file."""
+def load_xml(xml):
+    """Parse an XML string."""
     try:
-        return ET.parse(xml_file).getroot()
+        return ET.ElementTree(ET.fromstring(xml)).getroot()
     except IOError:
         raise Exception("File not found: %s" % xml_file)
 
@@ -48,10 +48,10 @@ def get_text(element):
     return element.text.strip()
 
 
-def read_poets_xml(file):
+def parse_poets_xml(xml):
     """Parse POETS xml file."""
 
-    root = load_xml(file)
+    root = load_xml(xml)
 
     graph_type = get_child(root, "GraphType")
     graph_inst = get_child(root, "GraphInstance")

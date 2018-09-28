@@ -2,14 +2,16 @@ import os
 import sys
 import json
 
-from parser import read_poets_xml
+from files import read_file
+from parser import parse_poets_xml
 from generator import generate_code
 from simulator import simulate
 from termcolor import colored
 
 
 def _psim(xml_file):
-    markup = read_poets_xml(xml_file)
+    xml = read_file(xml_file)
+    markup = parse_poets_xml(xml)
     options = {"debug": False, "states": False, "level": 1}
     code, _ = generate_code(markup, options)
     results = simulate(code, quiet=True)
