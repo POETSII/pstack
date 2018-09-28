@@ -19,7 +19,7 @@ void add_edges(std::vector<device_t*> devices, uint32_t simulation_region) {
         int src_pin = edges[i][2];
         int dst_pin = edges[i][3];
 
-        uint dst_dev_region = edges[i][4];
+        uint32_t dst_dev_region = edges[i][4];
 
         reg_set_t *regs = (*src_dev).getPortOutputRegions(src_pin);
 
