@@ -3,3 +3,4 @@ docopt
 jinja2
 pexpect
 termcolor
+redis
