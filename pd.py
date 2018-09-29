@@ -59,7 +59,10 @@ def main():
     host, port = parse_connection_str(args["--redis"])
     redis_cl = redis.StrictRedis(host, port)
     print "Waiting for jobs ..."
-    wait_jobs(redis_cl)
+    try:
+        wait_jobs(redis_cl)
+    except KeyboardInterrupt:
+        print "Shutting down ..."
 
 
 if __name__ == '__main__':
