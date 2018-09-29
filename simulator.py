@@ -26,9 +26,10 @@ def compile_gpp(code, temp_dir):
     cmd = "g++ -std=c++11 -fdiagnostics-color=always -o %s %s" % (output_file, source_file)
 
     write_file(source_file, code)
-    exit_code = os.system(cmd)
+    gpp = spawn(cmd)
+    gpp.wait()
 
-    if exit_code is not 0:
+    if gpp.exitstatus != 0:
         raise Exception("Compilation failed (%s)" % source_file)
 
     return output_file
