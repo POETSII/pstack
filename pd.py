@@ -4,7 +4,7 @@ import json
 import psim
 import redis
 import docopt
-
+import datetime
 
 usage="""POETS Daemon (PD) v0.1
 
@@ -17,6 +17,12 @@ Options:
   -q --quiet         Suppress all outputs.
 
 """
+
+
+def log(msg):
+    now = datetime.datetime.utcnow()
+    dt_str = now.strftime("%y-%m-%d %H:%M")
+    print"%s - %s" % (dt_str, msg)
 
 
 def _psim(xml, region_map):
@@ -48,21 +54,28 @@ def wait_jobs(redis_cl):
     """Wait for and process jobs from Redis "jobs" queue."""
     while True:
         job = fetch_job(redis_cl)
-        print "Received job"
+        log("Received job. Running simulation ...")
         result = _psim(job["xml"], job["region_map"])
         result_str = json.dumps(result, indent=4)
         redis_cl.rpush(job["result_queue"], result_str)
+        log("Simulation complete")
+
+
+def run_interruptable(fun, exit_msg):
+    """Call function and catch keyboard interrupt."""
+    try:
+        fun()
+    except KeyboardInterrupt:
+        log(exit_msg)
 
 
 def main():
     args = docopt.docopt(usage, version="v0.1")
     host, port = parse_connection_str(args["--redis"])
     redis_cl = redis.StrictRedis(host, port)
-    print "Waiting for jobs ..."
-    try:
-        wait_jobs(redis_cl)
-    except KeyboardInterrupt:
-        print "Shutting down ..."
+    log("Starting daemon ...")
+    log("Waiting for jobs ...")
+    run_interruptable(lambda: wait_jobs(redis_cl), "Shutting down ...")
 
 
 if __name__ == '__main__':
