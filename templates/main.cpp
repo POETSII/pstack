@@ -75,6 +75,8 @@ int main(int argc, char *argv[]) {
 
     // ---- BEGIN RTS SCAN ----
 
+    int delivered_messages = 0;
+
     rts_set_t rts_set;
 
     for (int i=0; i<devices.size(); i++){
@@ -223,6 +225,8 @@ int main(int argc, char *argv[]) {
 
                 (*dst_dev).receive(dst.port, dv.msg);
 
+                delivered_messages++;
+
                 cprintf("Device <%s>: ", dst_dev->name.c_str());
 
                 (*dst_dev).print();
@@ -362,7 +366,7 @@ int main(int argc, char *argv[]) {
 
     // Print simulation metrics and device states.
 
-    printf("Metric [Delivered messages]: %d\n", i);
+    printf("Metric [Delivered messages]: %d\n", delivered_messages);
     printf("Metric [Exit code]: %d\n", exit_code);
 
     print_debug = 1;

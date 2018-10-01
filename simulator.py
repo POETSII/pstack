@@ -66,7 +66,11 @@ def create_line_parser(log, states, metrics):
         states[device_name] = parse_field_str(field_str)
 
     def parse_metric_line(metric_name, value):
-        metrics[metric_name] = int(value)
+        if metric_name == "Delivered messages":
+            old_count = metrics.get(metric_name, 0)
+            metrics[metric_name] = old_count + int(value)
+        else:
+            metrics[metric_name] = int(value)
 
     preprocessors = [
         (r"^App \[(.+), (\d+)]: (.+)", parse_app_line),
