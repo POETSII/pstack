@@ -34,7 +34,12 @@ syntactic_sugar = {
     "ls": "ls()"
 }
 
-def run_job(redis_cl, xml, region_map):
+def run(xml_file, region_map_file):
+    """Run distributed simulation."""
+    import redis
+    redis_cl = redis.StrictRedis()
+    xml = read_file(xml_file)
+    region_map = read_json(region_map_file)
     job_queue = "cli1"
     job = {"xml": xml, "region_map": region_map, "result_queue": job_queue}
     job_str = json.dumps(job)
@@ -45,17 +50,8 @@ def run_job(redis_cl, xml, region_map):
     return result
 
 
-def run(xml_file, region_map_file):
-    import redis
-    redis_cl = redis.StrictRedis()
-    xml = read_file(xml_file)
-    region_map = read_json(region_map_file)
-    result = run_job(redis_cl, xml, region_map)
-    return result
-
-
 def create_prompt(history_file):
-    """Create function that prompts user for a command."""
+    """Create a function that prompts the user for a command."""
     style = Style.from_dict(styles)
     history = FileHistory(history_file)
     session = PromptSession(style=style, history=history)
