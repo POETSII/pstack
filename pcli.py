@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+from os.path import expanduser
+
 from prompt_toolkit import HTML
 from prompt_toolkit import prompt
 from prompt_toolkit import PromptSession
@@ -13,6 +15,7 @@ from files import read_file
 from files import read_json
 
 from prompt_toolkit.styles import Style
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 banner = "POETS Client (pcli) v0.1"
@@ -48,7 +51,8 @@ def run(xml_file, region_map_file):
 def main():
     printc(banner)
     style = Style.from_dict(styles)
-    session = PromptSession(style=style)
+    history = FileHistory(expanduser("~/.pcli_history"))
+    session = PromptSession(style=style, history=history)
     ps1_html = HTML(ps1)
     auto_suggest = AutoSuggestFromHistory()
     while True:
