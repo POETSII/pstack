@@ -4,3 +4,4 @@ jinja2
 pexpect
 termcolor
 redis
+prompt_toolkit

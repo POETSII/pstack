@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import unicode_literals
+from __future__ import print_function
 
 from os.path import expanduser
 
@@ -13,6 +14,8 @@ import json
 
 from files import read_file
 from files import read_json
+
+from interpreter import PythonInterpreter
 
 from prompt_toolkit.styles import Style
 from prompt_toolkit.history import FileHistory
@@ -27,6 +30,9 @@ styles = {
 
 ps1 = '<prompt>pcli> </prompt>'
 
+syntactic_sugar = {
+    "ls": "ls()"
+}
 
 def run_job(redis_cl, xml, region_map):
     job_queue = "cli1"
@@ -48,29 +54,40 @@ def run(xml_file, region_map_file):
     return result
 
 
-def main():
-    printc(banner)
+def create_prompt(history_file):
+    """Create function that prompts user for a command."""
     style = Style.from_dict(styles)
-    history = FileHistory(expanduser("~/.pcli_history"))
+    history = FileHistory(history_file)
     session = PromptSession(style=style, history=history)
     ps1_html = HTML(ps1)
     auto_suggest = AutoSuggestFromHistory()
+    def prompt():
+        return session.prompt(ps1_html, auto_suggest=auto_suggest)
+    return prompt
+
+
+def main():
+
+    context_file = expanduser("~/.pcli_context")
+    history_file = expanduser("~/.pcli_history")
+
+    prompt = create_prompt(history_file)
+
+    functions = [run]
+    interpreter = PythonInterpreter(functions, context_file)
+
+    printc(banner)
+
     while True:
         try:
-            command = session.prompt(ps1_html, auto_suggest=auto_suggest)
+            command = prompt()
         except KeyboardInterrupt:
             continue
         except EOFError:
             break
-        args = command.split()
-        if not args:
-            continue
-        if args[0] == "sim":
-            xml_file, region_map_file = ("tests/ring-oscillator-01.xml", "tmp/map1.json")
-            result = run(xml_file, region_map_file)
-            print(json.dumps(result, indent=4))
-            continue
-        printc(HTML("<error>Unknown command</error>"), style=style)
+        command = syntactic_sugar.get(command, command)
+        result = interpreter.eval(command)
+        print(result, end="")
 
 
 if __name__ == '__main__':
