@@ -27,7 +27,8 @@ styles = {
 ps1 = '<prompt>pcli> </prompt>'
 
 syntactic_sugar = {
-    "ls": "ls()"
+    "ls": "ls()",
+    "engines": "engines()"
 }
 
 

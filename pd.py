@@ -3,6 +3,7 @@
 import json
 import psim
 import redis
+import random
 import docopt
 import datetime
 
@@ -14,6 +15,7 @@ Usage:
 Options:
   -w --workers=<n>   Specify number of POETS workers [default: 2].
   -r --redis=<host>  Specify Redis host [default: localhost:6379].
+  -n --name=<name>   Use given engine name [instead of a random name].
   -q --quiet         Suppress all outputs.
 
 """
@@ -69,11 +71,35 @@ def run_interruptable(fun, exit_msg):
         log(exit_msg)
 
 
+def register_engine(redis_cl, name, nworkers):
+    """Register engine.
+
+    Stores engine name and other information using client name as key.
+    """
+
+    if not name:
+        # Generate random name in the form "unnamed-<6 random digits>"
+        digits = "0123456789"
+        name = "unnamed-%s" % "".join(random.sample(digits, 6))
+
+    engine_information = {
+        "name": name,
+        "type": "Simulator (psim)",
+        "resources": "%d Cores" % nworkers
+    }
+
+    redis_cl.client_setname(name)
+    redis_cl.set(name, json.dumps(engine_information))
+
+    return name
+
+
 def main():
     args = docopt.docopt(usage, version="v0.1")
     host, port = parse_connection_str(args["--redis"])
     redis_cl = redis.StrictRedis(host, port)
-    log("Starting daemon ...")
+    name = register_engine(redis_cl, args["--name"], int(args["--workers"]))
+    log("Starting daemon (Engine %s)..." % name)
     log("Waiting for jobs ...")
     run_interruptable(lambda: wait_jobs(redis_cl), "Shutting down ...")
 

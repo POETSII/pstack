@@ -1,7 +1,8 @@
-beautifulsoup4
+redis
 docopt
 jinja2
 pexpect
 termcolor
-redis
+beautifulsoup4
+beautifultable
 prompt_toolkit

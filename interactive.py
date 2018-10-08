@@ -1,10 +1,13 @@
 import json
+import redis
+import beautifultable
 
 from files import read_file
 from files import read_json
 
-
 user_functions = []  # list of functions to import into interpreter
+
+redis_cl = redis.StrictRedis()  # Redis client
 
 
 def user_function(func):
@@ -15,8 +18,6 @@ def user_function(func):
 @user_function
 def run(xml_file, region_map_file):
     """Run distributed simulation."""
-    import redis
-    redis_cl = redis.StrictRedis()
     xml = read_file(xml_file)
     region_map = read_json(region_map_file)
     job_queue = "cli1"
@@ -27,6 +28,50 @@ def run(xml_file, region_map_file):
     result_str = redis_cl.blpop(job_queue)[1]
     result = json.loads(result_str)
     return result
+
+
+def _format_table(table):
+    """Style a beautifultable."""
+    table.row_separator_char = ''
+    table.intersection_char = ''
+    table.left_border_char = ''
+    table.right_border_char = ''
+    left = beautifultable.BeautifulTable.ALIGN_LEFT
+    for col_name in table.column_headers:
+        table.column_alignments[col_name] = left
+
+
+@user_function
+def engines():
+    """Print list of online POETS engines.
+
+    Engine information are stored as JSON objects under client names as keys.
+    """
+
+    engines = [
+        json.loads(redis_cl.get(client['name']))
+        for client in redis_cl.client_list()
+        if client['name']
+    ]
+
+    if not engines:
+        print "No engines are currently connected"
+        return
+
+    def create_row(engine):
+        name = engine['name'] or "unnamed"
+        type_ = engine['type'] or "undeclared"
+        reso = engine['resources'] or "undeclared"
+        return [name, type_, reso]
+
+    # Print engine information as a beautifultable
+    table = beautifultable.BeautifulTable()
+    table.column_headers = ["Engine", "Type", "Resources"]
+    rows = map(create_row, engines)
+    map(table.append_row, rows)
+    _format_table(table)
+    print(table)
+
 
 @user_function
 def pretty(obj):
