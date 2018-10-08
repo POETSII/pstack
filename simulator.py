@@ -3,15 +3,11 @@ import re
 import sys
 
 from Queue import Queue
+from files import write_file
 from struct import pack
 from struct import unpack
 from pexpect import spawn
 from threading import Thread
-
-def write_file(file, content):
-    """Write string to file."""
-    with open(file, 'w') as fid:
-        fid.write(content)
 
 
 def compile_gpp(code, temp_dir):
