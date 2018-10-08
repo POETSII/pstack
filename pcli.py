@@ -10,12 +10,8 @@ from prompt_toolkit import prompt
 from prompt_toolkit import PromptSession
 from prompt_toolkit import print_formatted_text as printc
 
-import json
-
-from files import read_file
-from files import read_json
-
 from interpreter import PythonInterpreter
+from interactive import user_functions
 
 from prompt_toolkit.styles import Style
 from prompt_toolkit.history import FileHistory
@@ -33,21 +29,6 @@ ps1 = '<prompt>pcli> </prompt>'
 syntactic_sugar = {
     "ls": "ls()"
 }
-
-def run(xml_file, region_map_file):
-    """Run distributed simulation."""
-    import redis
-    redis_cl = redis.StrictRedis()
-    xml = read_file(xml_file)
-    region_map = read_json(region_map_file)
-    job_queue = "cli1"
-    job = {"xml": xml, "region_map": region_map, "result_queue": job_queue}
-    job_str = json.dumps(job)
-    redis_cl.delete(job_queue)
-    redis_cl.rpush("jobs", job_str)
-    result_str = redis_cl.blpop(job_queue)[1]
-    result = json.loads(result_str)
-    return result
 
 
 def create_prompt(history_file):
@@ -68,10 +49,7 @@ def main():
     history_file = expanduser("~/.pcli_history")
 
     prompt = create_prompt(history_file)
-
-    functions = [run]
-    interpreter = PythonInterpreter(functions, context_file)
-
+    interpreter = PythonInterpreter(user_functions, context_file)
     printc(banner)
 
     while True:
