@@ -5,8 +5,6 @@ import random
 
 from Queue import Queue
 from files import write_file
-from struct import pack
-from struct import unpack
 from pexpect import spawn
 from datetime import datetime
 from threading import Thread
@@ -41,20 +39,6 @@ def compile_gpp(code, temp_dir):
 
     # Return path to compiled binary.
     return output_file
-
-
-def print_line(line):
-
-    if line.startswith("msg: "):
-        msg_bytes = line[5:]
-        msg = unpack("<II", msg_bytes[:8])
-        print "Got message, bytes =", list(bytearray(msg_bytes))
-        print "Decoded message = %s" % repr(msg)
-
-    else:
-        print line
-
-    sys.stdout.flush()
 
 
 def create_line_parser(log, states, metrics):
