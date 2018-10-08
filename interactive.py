@@ -27,3 +27,8 @@ def run(xml_file, region_map_file):
     result_str = redis_cl.blpop(job_queue)[1]
     result = json.loads(result_str)
     return result
+
+@user_function
+def pretty(obj):
+    """Pretty-print JSON object."""
+    print(json.dumps(obj, indent=4))
