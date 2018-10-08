@@ -1,33 +1,45 @@
 import os
 import re
 import sys
+import random
 
 from Queue import Queue
 from files import write_file
 from struct import pack
 from struct import unpack
 from pexpect import spawn
+from datetime import datetime
 from threading import Thread
 
 
 def compile_gpp(code, temp_dir):
-    """Compile C++ source file."""
+    """Compile C++ source file and return path to binary.."""
 
-    if not os.path.isdir(temp_dir):
-         os.makedirs(temp_dir)
+    datetime_str = datetime.utcnow().strftime(r"run-%Y%m%d-%H%M-")
+    random_str = "".join(random.sample("0123456789", 6))
 
-    source_file = os.path.join(temp_dir, 'psim.cpp')
-    output_file = os.path.join(temp_dir, 'psim.exe')
+    subdirs = [temp_dir, "psim", datetime_str + random_str]
+    sim_dir = os.path.join(*subdirs)
 
-    cmd = "g++ -std=c++11 -fdiagnostics-color=always -o %s %s" % (output_file, source_file)
+    source_file = os.path.join(sim_dir, 'psim.cpp')
+    output_file = os.path.join(sim_dir, 'psim.exe')
 
+    flags = "-std=c++11 -fdiagnostics-color=always"
+    gpp_cmd = "g++ %s -o %s %s" % (flags, output_file, source_file)
+
+    # Create simulation directory (plus parents, if necessary).
+    if not os.path.isdir(sim_dir):
+         os.makedirs(sim_dir)
+
+    # Write source file and compile.
     write_file(source_file, code)
-    gpp = spawn(cmd)
+    gpp = spawn(gpp_cmd)
     gpp.wait()
 
     if gpp.exitstatus != 0:
         raise Exception("Compilation failed (%s)" % source_file)
 
+    # Return path to compiled binary.
     return output_file
 
 
