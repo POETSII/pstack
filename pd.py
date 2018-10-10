@@ -13,7 +13,7 @@ Usage:
   pd.py [options]
 
 Options:
-  -w --workers=<n>   Specify number of POETS workers [default: 2].
+  -w --workers=<n>   Specify number of POETS workers [default: 1].
   -r --redis=<host>  Specify Redis host [default: localhost:6379].
   -n --name=<name>   Use given engine name [instead of a random name].
   -q --quiet         Suppress all outputs.
@@ -27,12 +27,12 @@ def log(msg):
     print "%s - %s" % (dt_str, msg)
 
 
-def _psim(xml, region_map):
+def _psim(xml, region_map, region):
     """Run PSIM simulation."""
     options = {"debug": False, "level": 0}
     markup = psim.parse_poets_xml(xml)
-    code, regions = psim.generate_code(markup, options, region_map)
-    result = psim.simulate(code, quiet=True, regions=regions)
+    code, _ = psim.generate_code(markup, options, region_map)
+    result = psim.simulate(code, quiet=True, use_socat=True, regions=[region])
     return result
 
 
@@ -56,11 +56,11 @@ def wait_jobs(redis_cl):
     """Wait for and process jobs from Redis "jobs" queue."""
     while True:
         job = fetch_job(redis_cl)
-        log("Received job. Running simulation ...")
-        result = _psim(job["xml"], job["region_map"])
+        log("Running %s (region %s) ..." % (job["name"], job["region"]))
+        result = _psim(job["xml"], job["region_map"], job["region"])
         result_str = json.dumps(result, indent=4)
         redis_cl.rpush(job["result_queue"], result_str)
-        log("Simulation complete")
+        log("Completed" )
 
 
 def run_interruptable(fun, exit_msg):
@@ -85,7 +85,7 @@ def register_engine(redis_cl, name, nworkers):
     engine_information = {
         "name": name,
         "type": "Simulator (psim)",
-        "resources": "%d Cores" % nworkers
+        "resources": "%d cores" % nworkers if nworkers>1 else "1 core"
     }
 
     redis_cl.client_setname(name)

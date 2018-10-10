@@ -14,7 +14,7 @@ def _psim(xml_file):
     markup = parse_poets_xml(xml)
     options = {"debug": False, "states": False, "level": 1}
     code, _ = generate_code(markup, options)
-    results = simulate(code, quiet=True)
+    results = simulate(code, quiet=True, use_socat=False, regions=[0])
     return results
 
 

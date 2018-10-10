@@ -94,20 +94,15 @@ def run_worker(queue, region, cmd):
     queue.put((region, None))
 
 
-def simulate(code, quiet, regions, temp_dir="/tmp"):
+def simulate(code, quiet, regions, use_socat=False, temp_dir="/tmp"):
     """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
-    multi_region_sim = len(regions) > 1
 
     # Define simulator invokation command.
-    if multi_region_sim:
-        # For distributed simulations, use socat to launch the simulator,
-        # redirecting stdin and fd3 to a Redis server.
+    if use_socat:
         cmd = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
     else:
-        # For single-region (i.e. non-distributed) simulations, run the
-        # simulator executable directly.
         cmd = "%s %d"
 
     queue = Queue()

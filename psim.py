@@ -30,7 +30,8 @@ def main():
     options = {"debug": args["--debug"], "level": int(args["--level"])}
     region_map = read_json(args["--map"]) if args["--map"] else {}
     code, regions = generate_code(markup, options, region_map)
-    result = simulate(code, args["--quiet"], regions, args["--temp"])
+    result = simulate(code, args["--quiet"], regions=regions,
+                      use_socat=len(regions)>1, temp_dir=args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 

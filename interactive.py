@@ -1,9 +1,12 @@
 import json
 import redis
+import random
 import beautifultable
 
 from files import read_file
 from files import read_json
+from parser import parse_poets_xml
+from schema import Schema
 
 user_functions = []  # list of functions to import into interpreter
 
@@ -17,8 +20,8 @@ def user_function(func):
 
 def push_json(queue, obj):
     """Push JSON object to Redis queue."""
-    obj_json = json.dumps(obj)
-    redis_cl.rpush(queue, obj_json)
+    obj_str = json.dumps(obj)
+    redis_cl.rpush(queue, obj_str)
 
 
 def pop_json(queue):
@@ -27,16 +30,58 @@ def pop_json(queue):
     return json.loads(obj_str)
 
 
+def combine_subresults(subresults):
+    """Combine the subresults of region simulations."""
+
+    def merge_dicts(dicts):
+        """Merge dictionaries into one."""
+        result = {}
+        for item in dicts:
+            result.update(item)
+        return result
+
+    def sub_dict_fields(dicts):
+        """Sum the fields of several dictionaries."""
+        result = {}
+        for item in dicts:
+            for key, val in item.iteritems():
+                result[key] = result.get(key, 0) + val
+        return result
+
+    def flatten(lists):
+        """Flatten list of lists."""
+        return sum(lists, [])
+
+    return {
+        "logs": flatten(sub["log"] for sub in subresults),
+        "states": merge_dicts(sub["states"] for sub in subresults),
+        "metrics": sub_dict_fields(sub["metrics"] for sub in subresults)
+    }
+
+
 @user_function
-def run(xml_file, region_map_file):
-    """Run distributed simulation."""
+def run(xml_file, region_map_file, name=None):
+    """Run distributed POETS process."""
+    name = name or "process-%s" % "".join(random.sample("0123456789", 6))
+    result_queue = "cli1"
     xml = read_file(xml_file)
     region_map = read_json(region_map_file)
-    result_queue = "cli1"
-    job = {"xml": xml, "region_map": region_map, "result_queue": result_queue}
+    regions = Schema(parse_poets_xml(xml), region_map).get_regions()
     redis_cl.delete(result_queue)
-    push_json("jobs", job)
-    return pop_json(result_queue)
+    # Push simulation jobs to queue
+    for region in regions:
+        job = {
+            "name": name,
+            "xml": xml,
+            "region": region,
+            "region_map": region_map,
+            "result_queue": result_queue
+        }
+        push_json("jobs", job)
+    # Collection simulation subresults
+    subresults = [pop_json(result_queue) for _ in regions]
+    # Combine into and return simulation result
+    return combine_subresults(subresults)
 
 
 def _format_table(table):
