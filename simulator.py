@@ -80,36 +80,43 @@ def create_line_parser(log, states, metrics):
     return parse_line
 
 
-def run_worker(queue, index, cmd):
+def run_worker(queue, region, cmd):
     """Run simulation worker."""
 
     engine = spawn(cmd, echo=False, timeout=None)
 
     while True:
         line = engine.readline()
-        queue.put((index, line.strip()))
+        queue.put((region, line.strip()))
         if not line:
             break
 
-    queue.put((index, None))
+    queue.put((region, None))
 
 
-def simulate(code, quiet, nworkers=1, temp_dir="/tmp"):
+def simulate(code, quiet, regions, temp_dir="/tmp"):
     """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
+    multi_region_sim = len(regions) > 1
 
-    cmd_sing = "%s %d"
-    cmd_dist = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
-    cmd = cmd_dist if nworkers>1 else cmd_sing
+    # Define simulator invokation command.
+    if multi_region_sim:
+        # For distributed simulations, use socat to launch the simulator,
+        # redirecting stdin and fd3 to a Redis server.
+        cmd = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
+    else:
+        # For single-region (i.e. non-distributed) simulations, run the
+        # simulator executable directly.
+        cmd = "%s %d"
 
     queue = Queue()
 
-    def create_worker(index):
-        args = (queue, index, cmd % (engine_file, index))
+    def create_worker(region):
+        args = (queue, region, cmd % (engine_file, region))
         return Thread(target=run_worker, args=args)
 
-    workers = map(create_worker, range(nworkers))
+    workers = map(create_worker, regions)
 
     for worker in workers:
         worker.setDaemon(True)
@@ -118,24 +125,24 @@ def simulate(code, quiet, nworkers=1, temp_dir="/tmp"):
     log = []
     states = {}
     metrics = {}
-    done = {index: False for index in range(nworkers)}
+    done = {region: False for region in regions}
 
     parse_line = create_line_parser(log, states, metrics)
 
     while True:
 
-        index, payload = queue.get()
+        region, payload = queue.get()
 
         queue.task_done()
 
         if type(payload) is str:
             line = payload
             if not quiet:
-                print "%s -> %s" % (index, line)
+                print "%s -> %s" % (region, line)
             parse_line(line.strip())
             continue
 
-        done[index] = True
+        done[region] = True
 
         if all(done.values()):
             break

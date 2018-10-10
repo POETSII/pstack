@@ -29,8 +29,8 @@ def main():
     markup = parse_poets_xml(read_file(args["<app.xml>"]))
     options = {"debug": args["--debug"], "level": int(args["--level"])}
     region_map = read_json(args["--map"]) if args["--map"] else {}
-    code, nregions = generate_code(markup, options, region_map)
-    result = simulate(code, args["--quiet"], nregions, args["--temp"])
+    code, regions = generate_code(markup, options, region_map)
+    result = simulate(code, args["--quiet"], regions, args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 
