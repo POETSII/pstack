@@ -15,19 +15,28 @@ def user_function(func):
     return func
 
 
+def push_json(queue, obj):
+    """Push JSON object to Redis queue."""
+    obj_json = json.dumps(obj)
+    redis_cl.rpush(queue, obj_json)
+
+
+def pop_json(queue):
+    """Pop JSON object from Redis queue."""
+    obj_str = redis_cl.blpop(queue)[1]
+    return json.loads(obj_str)
+
+
 @user_function
 def run(xml_file, region_map_file):
     """Run distributed simulation."""
     xml = read_file(xml_file)
     region_map = read_json(region_map_file)
-    job_queue = "cli1"
-    job = {"xml": xml, "region_map": region_map, "result_queue": job_queue}
-    job_str = json.dumps(job)
-    redis_cl.delete(job_queue)
-    redis_cl.rpush("jobs", job_str)
-    result_str = redis_cl.blpop(job_queue)[1]
-    result = json.loads(result_str)
-    return result
+    result_queue = "cli1"
+    job = {"xml": xml, "region_map": region_map, "result_queue": result_queue}
+    redis_cl.delete(result_queue)
+    push_json("jobs", job)
+    return pop_json(result_queue)
 
 
 def _format_table(table):
