@@ -40,7 +40,7 @@ def combine_subresults(subresults):
             result.update(item)
         return result
 
-    def sub_dict_fields(dicts):
+    def sum_dict_fields(dicts):
         """Sum the fields of several dictionaries."""
         result = {}
         for item in dicts:
@@ -55,7 +55,7 @@ def combine_subresults(subresults):
     return {
         "logs": flatten(sub["log"] for sub in subresults),
         "states": merge_dicts(sub["states"] for sub in subresults),
-        "metrics": sub_dict_fields(sub["metrics"] for sub in subresults)
+        "metrics": sum_dict_fields(sub["metrics"] for sub in subresults)
     }
 
 
