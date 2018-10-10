@@ -24,15 +24,15 @@ Options:
 def log(msg):
     now = datetime.datetime.utcnow()
     dt_str = now.strftime("%y-%m-%d %H:%M")
-    print"%s - %s" % (dt_str, msg)
+    print "%s - %s" % (dt_str, msg)
 
 
 def _psim(xml, region_map):
     """Run PSIM simulation."""
     options = {"debug": False, "level": 0}
     markup = psim.parse_poets_xml(xml)
-    code, nregions = psim.generate_code(markup, options, region_map)
-    result = psim.simulate(code, quiet=True, nworkers=nregions)
+    code, regions = psim.generate_code(markup, options, region_map)
+    result = psim.simulate(code, quiet=True, regions=regions)
     return result
 
 
