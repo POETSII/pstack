@@ -31,8 +31,12 @@ def log(msg):
     print "%s - %s" % (dt_str, msg)
 
 
-def _psim(xml, region_map, region):
-    """Run PSIM simulation."""
+def _psim(xml, region_map, region, **_):
+    """Run PSIM simulation.
+
+    Ignore named arguments as this function is passed **job with other fields
+    that are irrelevant to it.
+    """
     options = {"debug": False, "level": 0}
     markup = psim.parse_poets_xml(xml)
     code, _ = psim.generate_code(markup, options, region_map)
@@ -53,8 +57,8 @@ def wait_jobs(redis_cl):
     """Wait for and process jobs from Redis "jobs" queue."""
     while True:
         job = pop_json(redis_cl, "jobs")
-        log("Running %s (region %s) ..." % (job["name"], job["region"]))
-        result = _psim(job["xml"], job["region_map"], job["region"])
+        log("Running %(name)s (region %(region)s) ..." % job)
+        result = _psim(**job)
         push_json(redis_cl, job["result_queue"], result)
         log("Completed" )
 
