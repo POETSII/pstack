@@ -11,7 +11,7 @@ device_t* active_device;
 
 void handler_log(int level, const char *fmt, ...) {
 
-    if (level > {{ options['level'] }})
+    if (level > {{ options.get('level', 1) }})
         return;
 
     printf("App [%s, %d]: ", active_device->name.c_str(), level);
