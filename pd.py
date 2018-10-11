@@ -89,14 +89,6 @@ def run_worker(redis_cl, queue, index):
         queue_msg("Completed" )
 
 
-def run_interruptable(fun, exit_msg):
-    """Call function and catch keyboard interrupt."""
-    try:
-        fun()
-    except KeyboardInterrupt:
-        log(exit_msg)
-
-
 def register_engine(redis_cl, name, nworkers):
     """Register engine.
 
@@ -128,7 +120,6 @@ def main():
     log("Starting (Engine %s)..." % name)
     wait_jobs(redis_cl, nworkers)
     log("Shutting down ...")
-
 
 
 if __name__ == '__main__':
