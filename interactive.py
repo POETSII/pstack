@@ -1,4 +1,5 @@
 import json
+import redis
 import random
 import beautifultable
 
@@ -7,11 +8,11 @@ from files import read_json
 from parser import parse_poets_xml
 from schema import Schema
 
-from simple_redis import redis_cl
 from simple_redis import pop_json
 from simple_redis import push_json
 
 
+redis_cl = redis.StrictRedis()
 user_functions = []  # list of functions to import into interpreter
 
 
