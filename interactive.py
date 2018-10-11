@@ -1,5 +1,4 @@
 import json
-import redis
 import random
 import beautifultable
 
@@ -8,26 +7,17 @@ from files import read_json
 from parser import parse_poets_xml
 from schema import Schema
 
-user_functions = []  # list of functions to import into interpreter
+from simple_redis import redis_cl
+from simple_redis import pop_json
+from simple_redis import push_json
 
-redis_cl = redis.StrictRedis()  # Redis client
+
+user_functions = []  # list of functions to import into interpreter
 
 
 def user_function(func):
     user_functions.append(func)
     return func
-
-
-def push_json(queue, obj):
-    """Push JSON object to Redis queue."""
-    obj_str = json.dumps(obj)
-    redis_cl.rpush(queue, obj_str)
-
-
-def pop_json(queue):
-    """Pop JSON object from Redis queue."""
-    obj_str = redis_cl.blpop(queue)[1]
-    return json.loads(obj_str)
 
 
 def combine_subresults(subresults):
@@ -60,12 +50,12 @@ def combine_subresults(subresults):
 
 
 @user_function
-def run(xml_file, region_map_file, name=None):
+def run(xml_file, region_map_file=None, name=None):
     """Run distributed POETS process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
     result_queue = "cli1"
     xml = read_file(xml_file)
-    region_map = read_json(region_map_file)
+    region_map = read_json(region_map_file) if region_map_file else {}
     regions = Schema(parse_poets_xml(xml), region_map).get_regions()
     redis_cl.delete(result_queue)
     # Push simulation jobs to queue
@@ -77,9 +67,9 @@ def run(xml_file, region_map_file, name=None):
             "region_map": region_map,
             "result_queue": result_queue
         }
-        push_json("jobs", job)
+        push_json(redis_cl, "jobs", job)
     # Collection simulation subresults
-    subresults = [pop_json(result_queue) for _ in regions]
+    subresults = [pop_json(redis_cl, result_queue) for _ in regions]
     # Combine into and return simulation result
     return combine_subresults(subresults)
 

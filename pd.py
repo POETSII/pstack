@@ -7,6 +7,10 @@ import random
 import docopt
 import datetime
 
+from simple_redis import redis_cl
+from simple_redis import pop_json
+from simple_redis import push_json
+
 usage="""POETS Daemon (PD) v0.1
 
 Usage:
@@ -55,11 +59,10 @@ def parse_connection_str(con_str):
 def wait_jobs(redis_cl):
     """Wait for and process jobs from Redis "jobs" queue."""
     while True:
-        job = fetch_job(redis_cl)
+        job = pop_json(redis_cl, "jobs")
         log("Running %s (region %s) ..." % (job["name"], job["region"]))
         result = _psim(job["xml"], job["region_map"], job["region"])
-        result_str = json.dumps(result, indent=4)
-        redis_cl.rpush(job["result_queue"], result_str)
+        push_json(redis_cl, job["result_queue"], result)
         log("Completed" )
 
 
