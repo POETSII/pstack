@@ -40,13 +40,6 @@ def _psim(xml, region_map, region):
     return result
 
 
-def fetch_job(redis_cl):
-    """Retrieve job from Redis "jobs" queue."""
-    json_str = redis_cl.blpop("jobs")[1]
-    job = json.loads(json_str)
-    return job
-
-
 def parse_connection_str(con_str):
     """Parse connection string in the form host:port."""
     try:
