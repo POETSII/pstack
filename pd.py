@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 import json
-import psim
 import redis
 import random
 import docopt
 import datetime
 
+from psim import psim
 from simple_redis import redis_cl
 from simple_redis import pop_json
 from simple_redis import push_json
+
 
 usage="""POETS Daemon (PD) v0.1
 
@@ -31,19 +32,6 @@ def log(msg):
     print "%s - %s" % (dt_str, msg)
 
 
-def _psim(xml, region_map, region, **_):
-    """Run PSIM simulation.
-
-    Ignore named arguments as this function is passed **job with other fields
-    that are irrelevant to it.
-    """
-    options = {"debug": False, "level": 0}
-    markup = psim.parse_poets_xml(xml)
-    code, _ = psim.generate_code(markup, options, region_map)
-    result = psim.simulate(code, quiet=True, use_socat=True, regions=[region])
-    return result
-
-
 def parse_connection_str(con_str):
     """Parse connection string in the form host:port."""
     try:
@@ -58,7 +46,13 @@ def wait_jobs(redis_cl):
     while True:
         job = pop_json(redis_cl, "jobs")
         log("Running %(name)s (region %(region)s) ..." % job)
-        result = _psim(**job)
+        result = psim(
+            xml=job["xml"],
+            region_map=job["region_map"],
+            regions=[job["region"]],
+            options={"debug": False, "level": 0},
+            quiet=True,
+            force_socat=True)
         push_json(redis_cl, job["result_queue"], result)
         log("Completed" )
 
@@ -78,7 +72,6 @@ def register_engine(redis_cl, name, nworkers):
     """
 
     if not name:
-        # Generate random name in the form "unnamed-<6 random digits>"
         digits = "0123456789"
         name = "unnamed-%s" % "".join(random.sample(digits, 6))
 
