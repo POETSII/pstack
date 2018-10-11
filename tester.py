@@ -2,20 +2,9 @@ import os
 import sys
 import json
 
+from psim import psim
 from files import read_file
-from parser import parse_poets_xml
-from generator import generate_code
-from simulator import simulate
 from termcolor import colored
-
-
-def _psim(xml_file):
-    xml = read_file(xml_file)
-    markup = parse_poets_xml(xml)
-    options = {"debug": False, "states": False, "level": 1}
-    code, _ = generate_code(markup, options)
-    results = simulate(code, quiet=True, use_socat=False, regions=[0])
-    return results
 
 
 def load_functions(py_module_file):
@@ -69,7 +58,7 @@ def main():
         fail_str = colored("FAIL", "red", attrs=["bold"])
 
         print("Simulating %s ... " % colored(xml_file, attrs=["bold"]))
-        simulation_result = _psim(xml_file)
+        simulation_result = psim(read_file(xml_file), quiet=True)
 
         for checker in cfuncs:
             put("  - %s ... " % get_checker_doc(checker))

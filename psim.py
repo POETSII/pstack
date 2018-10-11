@@ -24,14 +24,39 @@ Options:
 """
 
 
+def psim(xml, region_map={}, regions=[], options={}, quiet=False,
+         temp_dir="/tmp", force_socat=False):
+    """Simulate POETS application.
+
+    Arguments:
+      - region_map  (dict) : map device_name (str) -> region (int)
+      - regions     (list) : list of regions to simulate (falsey for all)
+      - options     (dict) : additional configuration options, see below
+      - quiet       (bool) : suppress simulation output
+      - temp_dir    (str)  : temp directory for simulation file
+      - force_socat (bool) : force using socat (for single-region simulations)
+
+    Fields of 'options' dictionary:
+      - debug       (bool) : print simulator debug information
+      - level       (int)  : log message verbosity level
+
+    Returns:
+      - result      (dict) : simulation results
+    """
+    markup = parse_poets_xml(xml)
+    code, all_regs = generate_code(markup, options, region_map)
+    result = simulate(code, quiet, regions or all_regs, force_socat, temp_dir)
+    return result
+
+
 def main():
     args = docopt.docopt(usage, version="v0.1")
-    markup = parse_poets_xml(read_file(args["<app.xml>"]))
-    options = {"debug": args["--debug"], "level": int(args["--level"])}
-    region_map = read_json(args["--map"]) if args["--map"] else {}
-    code, regions = generate_code(markup, options, region_map)
-    result = simulate(code, args["--quiet"], regions=regions,
-                      use_socat=len(regions)>1, temp_dir=args["--temp"])
+    result = psim(
+        xml=read_file(args["<app.xml>"]),
+        region_map=read_json(args["--map"]) if args["--map"] else {},
+        options={"debug": args["--debug"], "level": int(args["--level"])},
+        quiet=args["--quiet"],
+        temp_dir=args["--temp"])
     if args["--result"]:
         print(json.dumps(result))
 

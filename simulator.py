@@ -94,13 +94,13 @@ def run_worker(queue, region, cmd):
     queue.put((region, None))
 
 
-def simulate(code, quiet, regions, use_socat=False, temp_dir="/tmp"):
+def simulate(code, quiet, regions, force_socat=False, temp_dir="/tmp"):
     """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
 
     # Define simulator invokation command.
-    if use_socat:
+    if len(regions)>1 or force_socat:
         cmd = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
     else:
         cmd = "%s %d"
