@@ -42,7 +42,7 @@ def setup():
 def daemon(host):
     """Run POETS daemon."""
 
-    daemon_command = "python pd.py --redis '%s' --name $(hostname) --workers $(nproc)" % host
+    daemon_command = "python pd.py --redis '%s'" % host
     nohup_wrapper = "(nohup %s &> /dev/null &) && true"
 
     with cd("~/psim"), prefix("source env/bin/activate"):

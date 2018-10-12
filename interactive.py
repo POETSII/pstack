@@ -99,6 +99,15 @@ def engines():
         if client['name']
     ]
 
+    def sort_engines(engine):
+        """Sort key function.
+
+        Sorts engines by number of workers (desc) then engine name (asc).
+        """
+        nworkers = int(engine.get("_nresources", 0))
+        name = engine['name']
+        return (-nworkers, name)
+
     if not engines:
         print "No engines are currently connected"
         return
@@ -112,7 +121,7 @@ def engines():
     # Print engine information as a beautifultable
     table = beautifultable.BeautifulTable()
     table.column_headers = ["Engine", "Type", "Resources"]
-    rows = map(create_row, engines)
+    rows = map(create_row, sorted(engines, key=sort_engines))
     map(table.append_row, rows)
     _format_table(table)
     print(table)

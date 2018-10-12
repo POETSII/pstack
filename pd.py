@@ -5,6 +5,7 @@ import redis
 import random
 import docopt
 import datetime
+import subprocess
 
 from Queue import Queue
 from threading import Thread
@@ -20,9 +21,9 @@ Usage:
   pd.py [options]
 
 Options:
-  -w --workers=<n>   Specify number of POETS workers [default: 1].
+  -w --workers=<n>   Specify number of workers (core count by default).
+  -n --name=<name>   Specify engine name (hostname by default)
   -r --redis=<host>  Specify Redis host [default: localhost:6379].
-  -n --name=<name>   Use given engine name [instead of a random name].
   -q --quiet         Suppress all outputs.
 
 """
@@ -89,34 +90,59 @@ def run_worker(redis_cl, queue, index):
         queue_msg("Completed" )
 
 
+def get_capabilities(name=None, nworkers=None):
+    """Get hostname and core count using 'hostname' and 'nproc'.
+
+    Inputs:
+      - name     (str): an *override value*
+      - nworkers (str): an *override value*
+
+    Returns:
+      - (name, workers) tuple of type (str, int)
+
+    These are obtained by running the tools 'hostname' and 'nproc'.
+    """
+
+    def run_command(cmd):
+        """Run command and return output, or None if command fails."""
+        run = subprocess.check_output
+        try:
+            return run(cmd, shell=True, stderr=subprocess.PIPE).strip()
+        except Exception:
+            return None
+
+    def get_rand_name():
+        return "unnamed-%s" % "".join(random.sample("0123456789", 6))
+
+    name = name or run_command("hostname") or get_rand_name()
+    nworkers = int(nworkers or run_command("nproc") or "1")
+
+    return (name, nworkers)
+
+
 def register_engine(redis_cl, name, nworkers):
     """Register engine.
 
-    Stores engine name and other information using client name as key.
+    Stores engine name and capabilities using client name as key.
     """
-
-    if not name:
-        digits = "0123456789"
-        name = "unnamed-%s" % "".join(random.sample(digits, 6))
 
     engine_information = {
         "name": name,
         "type": "Simulator (psim)",
+        "_nresources": nworkers,
         "resources": "%d threads" % nworkers if nworkers>1 else "1 thread"
     }
 
     redis_cl.client_setname(name)
     redis_cl.set(name, json.dumps(engine_information))
 
-    return name
-
 
 def main():
     args = docopt.docopt(usage, version="v0.1")
     host, port = parse_connection_str(args["--redis"])
     redis_cl = redis.StrictRedis(host, port)
-    nworkers = int(args["--workers"])
-    name = register_engine(redis_cl, args["--name"], nworkers)
+    name, nworkers = get_capabilities(args["--name"], args["--workers"])
+    register_engine(redis_cl, name, nworkers)
     log("Starting (Engine %s)..." % name)
     wait_jobs(redis_cl, nworkers)
     log("Shutting down ...")
