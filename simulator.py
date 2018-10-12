@@ -8,6 +8,7 @@ from files import write_file
 from pexpect import spawn
 from datetime import datetime
 from threading import Thread
+from subprocess import call
 
 
 def compile_gpp(code, temp_dir):
@@ -31,10 +32,9 @@ def compile_gpp(code, temp_dir):
 
     # Write source file and compile.
     write_file(source_file, code)
-    gpp = spawn(gpp_cmd)
-    gpp.wait()
+    exit_code = call(gpp_cmd, shell=True)
 
-    if gpp.exitstatus != 0:
+    if exit_code != 0:
         raise Exception("Compilation failed (%s)" % source_file)
 
     # Return path to compiled binary.
@@ -94,14 +94,15 @@ def run_worker(queue, region, cmd):
     queue.put((region, None))
 
 
-def simulate(code, quiet, regions, force_socat=False, temp_dir="/tmp"):
+def simulate(code, quiet, regions, force_socat=False, temp_dir="/tmp",
+             redis_hostport="localhost:6379"):
     """Run distributed simulation."""
 
     engine_file = compile_gpp(code, temp_dir)
 
     # Define simulator invokation command.
     if len(regions)>1 or force_socat:
-        cmd = 'socat exec:"%s %d",fdout=3 tcp:localhost:6379'
+        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis_hostport
     else:
         cmd = "%s %d"
 

@@ -7,8 +7,8 @@ import docopt
 import datetime
 import subprocess
 
-from Queue import Queue
-from threading import Thread
+from multiprocessing import Queue
+from multiprocessing import Process
 
 from psim import psim
 from simple_redis import pop_json
@@ -44,23 +44,22 @@ def parse_connection_str(con_str):
         raise Exception("Could not parse '%s'" % con_str)
 
 
-def wait_jobs(redis_cl, nworkers=1):
+def wait_jobs(redis_cl, nworkers, redis_hostport):
 
     queue = Queue()
 
     def create_worker(index):
-        return Thread(target=run_worker, args=(redis_cl, queue, index))
+        args = (redis_cl, queue, index, redis_hostport)
+        return Process(target=run_worker, args=args)
 
     workers = map(create_worker, range(nworkers))
 
     for worker in workers:
-        worker.setDaemon(True)
         worker.start()
 
     while True:
         try:
-            item = queue.get(timeout=1)
-            queue.task_done()
+            item = queue.get()
             log("[Worker %d] %s" % item)
         except Exception:
             pass
@@ -68,7 +67,7 @@ def wait_jobs(redis_cl, nworkers=1):
             break
 
 
-def run_worker(redis_cl, queue, index):
+def run_worker(redis_cl, queue, index, redis_hostport):
     """Wait for and process jobs from Redis "jobs" queue."""
 
     def queue_msg(msg):
@@ -77,7 +76,10 @@ def run_worker(redis_cl, queue, index):
     queue_msg("Waiting for jobs ...")
 
     while True:
-        job = pop_json(redis_cl, "jobs")
+        try:
+            job = pop_json(redis_cl, "jobs")
+        except KeyboardInterrupt:
+            break
         queue_msg("Running %(name)s (region %(region)s) ..." % job)
         result = psim(
             xml=job["xml"],
@@ -85,7 +87,8 @@ def run_worker(redis_cl, queue, index):
             regions=[job["region"]],
             options={"debug": False, "level": 0},
             quiet=True,
-            force_socat=True)
+            force_socat=True,
+            redis_hostport=redis_hostport)
         push_json(redis_cl, job["result_queue"], result)
         queue_msg("Completed" )
 
@@ -144,7 +147,7 @@ def main():
     name, nworkers = get_capabilities(args["--name"], args["--workers"])
     register_engine(redis_cl, name, nworkers)
     log("Starting (Engine %s)..." % name)
-    wait_jobs(redis_cl, nworkers)
+    wait_jobs(redis_cl, nworkers, args["--redis"])
     log("Shutting down ...")
 
 

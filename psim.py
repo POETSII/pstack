@@ -27,7 +27,7 @@ Options:
 
 
 def psim(xml, region_map={}, regions=[], options={}, quiet=False,
-         temp_dir="/tmp", force_socat=False):
+         temp_dir="/tmp", force_socat=False, redis_hostport="localhost:6379"):
     """Simulate POETS application.
 
     Arguments:
@@ -46,8 +46,9 @@ def psim(xml, region_map={}, regions=[], options={}, quiet=False,
       - result      (dict) : simulation results
     """
     markup = parse_poets_xml(xml)
-    code, all_regs = generate_code(markup, options, region_map)
-    result = simulate(code, quiet, regions or all_regs, force_socat, temp_dir)
+    code, all_regions = generate_code(markup, options, region_map)
+    result = simulate(code, quiet, regions or all_regions, force_socat,
+                      temp_dir, redis_hostport)
     return result
 
 
