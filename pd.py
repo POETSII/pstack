@@ -76,8 +76,9 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
 
     def log_redis(job, msg):
         """Print message to redis job queue."""
-        queue = job["result_queue"]
-        push_json(redis_cl, queue, "[%s] %s" % (engine_name, msg))
+        if job.get("verbose"):
+            queue = job["result_queue"]
+            push_json(redis_cl, queue, "[%s] %s" % (engine_name, msg))
 
     log_local("Waiting for jobs ...")
 
@@ -87,7 +88,7 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
         except KeyboardInterrupt:
             break
 
-        msg = "Running %(name)s (region %(region)s) ..." % job
+        msg = "Starting %(name)s (region %(region)s) ..." % job
         log_local(msg)
         log_redis(job, msg)
 
@@ -99,7 +100,8 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
             quiet=True,
             force_socat=True,
             redis_hostport=redis_hostport)
-        log_redis(job, "Finished running psim")
+
+        log_redis(job, "Finished %(name)s (region %(region)s)" % job)
         push_json(redis_cl, job["result_queue"], result)
         log_local("Completed" )
 

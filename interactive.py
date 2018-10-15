@@ -51,7 +51,7 @@ def combine_subresults(subresults):
 
 
 @user_function
-def run(xml_file, region_map_file=None, name=None):
+def run(xml_file, region_map_file=None, name=None, verbose=False):
     """Run distributed POETS process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
     result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
@@ -65,6 +65,7 @@ def run(xml_file, region_map_file=None, name=None):
             "name": name,
             "xml": xml,
             "region": region,
+            "verbose": verbose,
             "region_map": region_map,
             "result_queue": result_queue
         }
