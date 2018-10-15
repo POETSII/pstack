@@ -99,7 +99,7 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
             quiet=True,
             force_socat=True,
             redis_hostport=redis_hostport)
-        log_redis("Finished running psim")
+        log_redis(job, "Finished running psim")
         push_json(redis_cl, job["result_queue"], result)
         log_local("Completed" )
 
