@@ -30,14 +30,15 @@ Options:
 """
 
 styles = {
-    "prompt": "ansigreen bold",
+    "prompt": "ansiblue bold",
     "error": "gray"
 }
 
 ps1 = '<prompt>pcli> </prompt>'
 
 syntactic_sugar = {
-    "ls": "ls()",
+    "time on": "_timer = True",
+    "time off": "_timer = False",
     "engines": "engines()"
 }
 

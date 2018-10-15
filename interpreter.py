@@ -1,5 +1,6 @@
 import sys
 import pickle
+import time
 
 from code import InteractiveConsole
 
@@ -30,7 +31,11 @@ class PythonInterpreter(InteractiveConsole):
     def push(self, expression):
         """Evaluate an expression"""
         self.exception_happened = False
+        start = time.time()
         InteractiveConsole.push(self, expression)
+        end = time.time()
+        if self.locals.get("_timer"):
+            print "Time: %.2f sec" % (end - start)
         self.write_context()
         return ""
 
