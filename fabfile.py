@@ -48,3 +48,8 @@ def daemon(host):
     with cd("~/psim"), prefix("source env/bin/activate"):
         run("killall -q python || true")  # terminate any existing daemons
         run(nohup_wrapper % daemon_command, pty=False)
+
+
+def stop():
+    """Terminate POETS daemon."""
+    run("killall -q python || true")
