@@ -13,7 +13,9 @@ from prompt_toolkit import print_formatted_text as printc
 from interpreter import PythonInterpreter
 from interactive import user_functions
 
+from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.styles import Style
+from pygments.lexers.python import PythonLexer
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
@@ -50,8 +52,9 @@ def create_prompt(history_file):
     session = PromptSession(style=style, history=history)
     ps1_html = HTML(ps1)
     auto_suggest = AutoSuggestFromHistory()
+    lexer = PygmentsLexer(PythonLexer)
     def prompt():
-        return session.prompt(ps1_html, auto_suggest=auto_suggest)
+        return session.prompt(ps1_html, auto_suggest=auto_suggest, lexer=lexer)
     return prompt
 
 

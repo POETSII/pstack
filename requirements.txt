@@ -2,6 +2,7 @@ redis
 docopt
 jinja2
 pexpect
+pygments
 termcolor
 beautifulsoup4
 beautifultable
