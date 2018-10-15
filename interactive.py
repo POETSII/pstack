@@ -54,7 +54,7 @@ def combine_subresults(subresults):
 def run(xml_file, region_map_file=None, name=None):
     """Run distributed POETS process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
-    result_queue = "cli1"
+    result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
     xml = read_file(xml_file)
     region_map = read_json(region_map_file) if region_map_file else {}
     regions = Schema(parse_poets_xml(xml), region_map).get_regions()
