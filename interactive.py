@@ -69,8 +69,14 @@ def run(xml_file, region_map_file=None, name=None):
             "result_queue": result_queue
         }
         push_json(redis_cl, "jobs", job)
-    # Collection simulation subresults
-    subresults = [pop_json(redis_cl, result_queue) for _ in regions]
+    # Collection simulation log messages and results
+    subresults = []
+    while len(subresults) < len(regions):
+        item = pop_json(redis_cl, result_queue)
+        if type(item) in {str, unicode}:
+            print "-> %s" % item
+        else:
+            subresults.append(item)
     # Combine into and return simulation result
     return combine_subresults(subresults)
 

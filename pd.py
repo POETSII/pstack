@@ -44,12 +44,12 @@ def parse_connection_str(con_str):
         raise Exception("Could not parse '%s'" % con_str)
 
 
-def wait_jobs(redis_cl, nworkers, redis_hostport):
+def wait_jobs(redis_cl, nworkers, redis_hostport, engine_name):
 
     queue = Queue()
 
     def create_worker(index):
-        args = (redis_cl, queue, index, redis_hostport)
+        args = (redis_cl, queue, index, redis_hostport, engine_name)
         return Process(target=run_worker, args=args)
 
     workers = map(create_worker, range(nworkers))
@@ -67,20 +67,30 @@ def wait_jobs(redis_cl, nworkers, redis_hostport):
             break
 
 
-def run_worker(redis_cl, queue, index, redis_hostport):
+def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
     """Wait for and process jobs from Redis "jobs" queue."""
 
-    def queue_msg(msg):
+    def log_local(msg):
+        """Print message to local daemon log."""
         queue.put((index, msg))
 
-    queue_msg("Waiting for jobs ...")
+    def log_redis(job, msg):
+        """Print message to redis job queue."""
+        queue = job["result_queue"]
+        push_json(redis_cl, queue, "[%s] %s" % (engine_name, msg))
+
+    log_local("Waiting for jobs ...")
 
     while True:
         try:
             job = pop_json(redis_cl, "jobs")
         except KeyboardInterrupt:
             break
-        queue_msg("Running %(name)s (region %(region)s) ..." % job)
+
+        msg = "Running %(name)s (region %(region)s) ..." % job
+        log_local(msg)
+        log_redis(job, msg)
+
         result = psim(
             xml=job["xml"],
             region_map=job["region_map"],
@@ -89,8 +99,9 @@ def run_worker(redis_cl, queue, index, redis_hostport):
             quiet=True,
             force_socat=True,
             redis_hostport=redis_hostport)
+        log_redis("Finished running psim")
         push_json(redis_cl, job["result_queue"], result)
-        queue_msg("Completed" )
+        log_local("Completed" )
 
 
 def get_capabilities(name=None, nworkers=None):
@@ -147,7 +158,7 @@ def main():
     name, nworkers = get_capabilities(args["--name"], args["--workers"])
     register_engine(redis_cl, name, nworkers)
     log("Starting (Engine %s)..." % name)
-    wait_jobs(redis_cl, nworkers, args["--redis"])
+    wait_jobs(redis_cl, nworkers, args["--redis"], name)
     log("Shutting down ...")
 
 

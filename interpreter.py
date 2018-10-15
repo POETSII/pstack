@@ -19,9 +19,6 @@ class PythonInterpreter(InteractiveConsole):
         for func in available_functions:
             self.set(func.func_name, func)
 
-    def write(self, data):
-        self.captured_stdout += data
-
     def showtraceback(self):
         self.exception_happened = True
         InteractiveConsole.showtraceback(self)
@@ -33,12 +30,9 @@ class PythonInterpreter(InteractiveConsole):
     def push(self, expression):
         """Evaluate an expression"""
         self.exception_happened = False
-        sys.stdout = self
-        self.captured_stdout = ''
         InteractiveConsole.push(self, expression)
-        sys.stdout = sys.__stdout__
         self.write_context()
-        return self.captured_stdout
+        return ""
 
     def eval(self, cmd):
         """Alias for push"""
