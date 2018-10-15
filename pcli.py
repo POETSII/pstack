@@ -19,6 +19,16 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 banner = "POETS Client (pcli) v0.1"
 
+usage="""POETS Client (pcli) v0.1
+
+Usage:
+  pcli.py [options]
+
+Options:
+  -n --nocolor   Disable terminal colors.
+
+"""
+
 styles = {
     "prompt": "ansigreen bold",
     "error": "gray"
