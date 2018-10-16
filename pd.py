@@ -44,7 +44,7 @@ def parse_connection_str(con_str):
         raise Exception("Could not parse '%s'" % con_str)
 
 
-def wait_jobs(redis_cl, nworkers, redis_hostport, engine_name):
+def start_workers(redis_cl, nworkers, redis_hostport, engine_name):
 
     queue = Queue()
 
@@ -160,7 +160,7 @@ def main():
     name, nworkers = get_capabilities(args["--name"], args["--workers"])
     register_engine(redis_cl, name, nworkers)
     log("Starting (Engine %s)..." % name)
-    wait_jobs(redis_cl, nworkers, args["--redis"], name)
+    start_workers(redis_cl, nworkers, args["--redis"], name)
     log("Shutting down ...")
 
 
