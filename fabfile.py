@@ -22,8 +22,8 @@ def install():
     run("killall -q python || true")  # terminate any existing daemons
 
     with cd("~/psim"):
-        run("git fetch --all")
-        run("git reset --hard origin/master")
+        run("git fetch --all >/dev/null")
+        run("git reset --hard origin/master >/dev/null")
 
 
 def setup():
@@ -42,7 +42,7 @@ def setup():
 def daemon(host):
     """Run POETS daemon."""
 
-    daemon_command = "python pd.py --name '%s' --redis '%s'" % (env.host, host)
+    daemon_command = "python pd.py --name '%s' --host '%s'" % (env.host, host)
     nohup_wrapper = "(nohup %s &> /dev/null &) && true"
 
     with cd("~/psim"), prefix("source env/bin/activate"):
