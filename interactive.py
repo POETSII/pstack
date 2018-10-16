@@ -120,10 +120,10 @@ def engines():
         return
 
     def create_row(engine):
-        name = engine['name'] or "unnamed"
-        type_ = engine['type'] or "undeclared"
-        reso = engine['resources'] or "undeclared"
-        usage = engine['usage'] or "unknown"
+        name = engine.get("name", "unnamed")
+        type_ = engine.get("type", "undeclared")
+        reso = engine.get("resources", "undeclared")
+        usage = engine.get("usage", "unknown")
         return [name, type_, reso, usage]
 
     # Print engine information as a beautifultable
