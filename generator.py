@@ -117,8 +117,8 @@ def mformat(fmt_str, items):
     return [fmt_str % item for item in items]
 
 
-def generate_code(markup, options, region_map={}):
-    """Generate code from template file and POETS markup."""
+def generate_code(schema, options):
+    """Generate code from template file and POETS schema."""
 
     template = 'main.cpp'
 
@@ -154,12 +154,14 @@ def generate_code(markup, options, region_map={}):
     for func in funcs:
         env.globals[func.func_name] = func
 
-    schema = Schema(markup, region_map)
-    regions = schema.get_regions()
-
     env.globals["schema"] = schema
     env.globals["options"] = options
 
+    markup = {
+        "graph_type": schema.graph_type,
+        "graph_instance": schema.graph_inst
+    }
+
     code = env.get_template(template).render(**markup)
 
-    return code, regions
+    return code

@@ -5,7 +5,7 @@ import docopt
 
 from files import read_file
 from files import read_json
-from parser import parse_poets_xml
+from schema import Schema
 from generator import generate_code
 from simulator import simulate
 
@@ -45,9 +45,9 @@ def psim(xml, region_map={}, regions=[], options={}, quiet=False,
     Returns:
       - result      (dict) : simulation results
     """
-    markup = parse_poets_xml(xml)
-    code, all_regions = generate_code(markup, options, region_map)
-    result = simulate(code, quiet, regions or all_regions, force_socat,
+    schema = Schema(xml, region_map)
+    code = generate_code(schema, options)
+    result = simulate(code, quiet, regions or schema.get_regions(), force_socat,
                       temp_dir, redis_hostport)
     return result
 

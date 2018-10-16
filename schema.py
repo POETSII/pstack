@@ -1,9 +1,10 @@
-def _build_pin_map(markup):
+from parser import parse_poets_xml
+
+
+def _build_pin_map(graph_type):
     """Build a map: (device id, pin_name) -> pin."""
 
     result = dict()
-
-    graph_type = markup["graph_type"]
 
     for device in graph_type["device_types"]:
         for pin in device['input_pins'] + device['output_pins']:
@@ -13,20 +14,17 @@ def _build_pin_map(markup):
     return result
 
 
-def _build_device_type_map(markup):
+def _build_device_type_map(graph_type):
     """Build a map: device id -> device."""
 
-    device_types = markup["graph_type"]["device_types"]
-    result = {device["id"]: device for device in device_types}
-    return result
+    return {device["id"]: device for device in graph_type["device_types"]}
 
 
-def _build_pin_index(markup, pin_dir):
+def _build_pin_index(graph_type, pin_dir):
     """Build a map: (device id, pin name) -> index for input/output pins."""
 
     result = dict()
     pins_key = 'input_pins' if pin_dir == 'input' else 'output_pins'
-    graph_type = markup["graph_type"]
 
     for device in graph_type["device_types"]:
         entries = {
@@ -38,37 +36,32 @@ def _build_pin_index(markup, pin_dir):
     return result
 
 
-def _build_device_index(markup):
+def _build_device_index(graph_inst):
     """Build a map: device id -> index."""
-
-    devices = markup['graph_instance']['devices']
 
     def get_key(device):
         return (device['type'], device['id'])
 
-    devices_sorted = sorted(devices, key=get_key)
-
+    devices_sorted = sorted(graph_inst['devices'], key=get_key)
     return {device['id']: index for index, device in enumerate(devices_sorted)}
 
 
-def _build_device_map(markup):
+def _build_device_map(graph_inst):
 
-    devices = markup['graph_instance']['devices']
-
-    return {device['id']: device for device in devices}
+    return {device['id']: device for device in graph_inst['devices']}
 
 
 class Schema(object):
 
-    def __init__(self, markup, region_map):
-        self._markup = markup
+    def __init__(self, xml, region_map={}):
+        self.graph_type, self.graph_inst = parse_poets_xml(xml)
         self._region_map = region_map
-        self._pin_map = _build_pin_map(markup)
-        self._device_map = _build_device_map(markup)
-        self._device_index = _build_device_index(markup)
-        self._device_type_map = _build_device_type_map(markup)
-        self._input_pin_index = _build_pin_index(markup, 'input')
-        self._output_pin_index = _build_pin_index(markup, 'output')
+        self._pin_map = _build_pin_map(self.graph_type)
+        self._device_map = _build_device_map(self.graph_inst)
+        self._device_index = _build_device_index(self.graph_inst)
+        self._device_type_map = _build_device_type_map(self.graph_type)
+        self._input_pin_index = _build_pin_index(self.graph_type, 'input')
+        self._output_pin_index = _build_pin_index(self.graph_type, 'output')
 
     def get_pin(self, device_type, pin_name):
         """Return pin given device and pin names."""
@@ -122,7 +115,7 @@ class Schema(object):
 
             return (src_device_index, dst_device_index, src_pin, dst_pin, dst_dev_region)
 
-        edges = self._markup["graph_instance"]["edges"]
+        edges = self.graph_inst["edges"]
 
         return map(get_table_entry, edges)
 
@@ -134,7 +127,7 @@ class Schema(object):
         _region_map.
         """
 
-        devices = self._markup['graph_instance']['devices']
+        devices = self.graph_inst['devices']
         all_regions = [self._region_map.get(dev["id"], 0) for dev in devices]
         return list(set(all_regions))
 

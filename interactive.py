@@ -5,7 +5,6 @@ import beautifultable
 
 from files import read_file
 from files import read_json
-from parser import parse_poets_xml
 from schema import Schema
 
 from simple_redis import pop_json
@@ -57,7 +56,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False):
     result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
     xml = read_file(xml_file)
     region_map = read_json(region_map_file) if region_map_file else {}
-    regions = Schema(parse_poets_xml(xml), region_map).get_regions()
+    regions = Schema(xml, region_map).get_regions()
     redis_cl.delete(result_queue)
     # Push simulation jobs to queue
     for region in regions:

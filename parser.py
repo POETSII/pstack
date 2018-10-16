@@ -53,13 +53,10 @@ def parse_poets_xml(xml):
 
     root = load_xml(xml)
 
-    graph_type = get_child(root, "GraphType")
-    graph_inst = get_child(root, "GraphInstance")
+    graph_type = parse_graph_type(get_child(root, "GraphType"))
+    graph_inst = parse_graph_instance(get_child(root, "GraphInstance"))
 
-    return {
-        "graph_type": parse_graph_type(graph_type),
-        "graph_instance": parse_graph_instance(graph_inst)
-    }
+    return graph_type, graph_inst
 
 
 def parse_graph_type(graph_type):
