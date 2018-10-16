@@ -116,10 +116,11 @@ def simulate(schema, options):
       - result      (dict) : Simulation results object
     """
 
+    host = options.get("host", "localhost")
+    port = options.get("port", 6379)
     quiet = options.get("quiet", False)
     debug = options.get("debug", False)
     level = options.get("level", 1)
-    redis = options.get("redis", "localhost:6379")
     regions = options.get("regions", schema.get_regions())
     temp_dir = options.get("temp_dir", "/tmp")
     force_socat = options.get("force_socat", False)
@@ -130,7 +131,8 @@ def simulate(schema, options):
 
     # Define simulator invokation command.
     if len(regions)>1 or force_socat:
-        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis
+        redis_connection_str = "%s:%d" % (host, port)
+        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis_connection_str
     else:
         cmd = "%s %d"
 

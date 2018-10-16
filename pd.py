@@ -23,7 +23,8 @@ Usage:
 Options:
   -w --workers=<n>   Specify number of workers (core count by default).
   -n --name=<name>   Specify engine name (hostname by default)
-  -r --redis=<host>  Specify Redis host [default: localhost:6379].
+  -h --host=<host>   Specify Redis host [default: localhost].
+  -p --port=<port>   Specify Redis port [default: 6379].
   -q --quiet         Suppress all outputs.
 
 """
@@ -44,13 +45,15 @@ def parse_connection_str(con_str):
         raise Exception("Could not parse '%s'" % con_str)
 
 
-def start_workers(redis_cl, nworkers, redis_hostport, engine_name):
+def start_workers(engine_name, nworkers, host, port):
+
+    redis_cl = redis.StrictRedis(host, port)
 
     queue = Queue()
     worker_busy = [0] * nworkers
 
     def create_worker(index):
-        args = (redis_cl, queue, index, redis_hostport, engine_name)
+        args = (redis_cl, queue, index, host, port, engine_name)
         return Process(target=run_worker, args=args)
 
     workers = map(create_worker, range(nworkers))
@@ -85,7 +88,7 @@ def start_workers(redis_cl, nworkers, redis_hostport, engine_name):
             break
 
 
-def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
+def run_worker(redis_cl, queue, index, host, port, engine_name):
     """Wait for and process jobs from Redis "jobs" queue."""
 
     def log_local(msg):
@@ -118,10 +121,11 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
 
         options = {
             "level": 0,
+            "host": host,
+            "port": port,
             "quiet": True,
             "debug": False,
             "force_socat": True,
-            "redis": redis_hostport,
             "regions": [job["region"]]
         }
 
@@ -186,11 +190,9 @@ def publish_state(redis_cl, name, nworkers, nused):
 
 def main():
     args = docopt.docopt(usage, version="v0.1")
-    host, port = parse_connection_str(args["--redis"])
-    redis_cl = redis.StrictRedis(host, port)
     name, nworkers = get_capabilities(args["--name"], args["--workers"])
     log("Starting (Engine %s)..." % name)
-    start_workers(redis_cl, nworkers, args["--redis"], name)
+    start_workers(name, nworkers, args["--host"], int(args["--port"]))
     log("Shutting down ...")
 
 
