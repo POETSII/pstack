@@ -5,6 +5,7 @@ from __future__ import print_function
 
 from os.path import expanduser
 
+from docopt import docopt
 from prompt_toolkit import HTML
 from prompt_toolkit import prompt
 from prompt_toolkit import PromptSession
@@ -45,14 +46,14 @@ syntactic_sugar = {
 }
 
 
-def create_prompt(history_file):
+def create_prompt(history_file, nocolor=False):
     """Create a function that prompts the user for a command."""
-    style = Style.from_dict(styles)
+    style = Style.from_dict({} if nocolor else styles)
     history = FileHistory(history_file)
     session = PromptSession(style=style, history=history)
     ps1_html = HTML(ps1)
     auto_suggest = AutoSuggestFromHistory()
-    lexer = PygmentsLexer(PythonLexer)
+    lexer = None if nocolor else PygmentsLexer(PythonLexer)
     def prompt():
         return session.prompt(ps1_html, auto_suggest=auto_suggest, lexer=lexer)
     return prompt
@@ -60,10 +61,12 @@ def create_prompt(history_file):
 
 def main():
 
+    args = docopt(usage, version="pcli v0.1")
+
     context_file = expanduser("~/.pcli_context")
     history_file = expanduser("~/.pcli_history")
 
-    prompt = create_prompt(history_file)
+    prompt = create_prompt(history_file, args["--nocolor"])
     interpreter = PythonInterpreter(user_functions, context_file)
     printc(banner)
 
