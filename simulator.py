@@ -8,7 +8,9 @@ from files import write_file
 from pexpect import spawn
 from datetime import datetime
 from threading import Thread
+from generator import generate_code
 from subprocess import call
+
 
 
 def compile_gpp(code, temp_dir):
@@ -94,15 +96,41 @@ def run_worker(queue, region, cmd):
     queue.put((region, None))
 
 
-def simulate(code, quiet, regions, force_socat=False, temp_dir="/tmp",
-             redis_hostport="localhost:6379"):
-    """Run distributed simulation."""
+def simulate(schema, options):
+    """Simulate a POETS schema.
 
+    Arguments:
+      - schema  (Schema) : POETS schema object
+      - options (dict)   : Simulation parameters.
+
+    Simulation parameters:
+      - quiet       (bool) : Suppress simulation output
+      - debug       (bool) : Print simulator debug information
+      - level       (int)  : Log message verbosity level
+      - redis       (str)  : Hostname and port of Redis instance
+      - regions     (list) : List of regions to simulate
+      - temp_dir    (str)  : Temp directory for simulation file
+      - force_socat (bool) : Force using socat (single-region simulations)
+
+    Returns:
+      - result      (dict) : Simulation results object
+    """
+
+    quiet = options.get("quiet", False)
+    debug = options.get("debug", False)
+    level = options.get("level", 1)
+    redis = options.get("redis", "localhost:6379")
+    regions = options.get("regions", schema.get_regions())
+    temp_dir = options.get("temp_dir", "/tmp")
+    force_socat = options.get("force_socat", False)
+
+    code = generate_code(schema, {"debug": debug, "level": level})
     engine_file = compile_gpp(code, temp_dir)
+    regions = regions or schema.get_regions()
 
     # Define simulator invokation command.
     if len(regions)>1 or force_socat:
-        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis_hostport
+        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis
     else:
         cmd = "%s %d"
 

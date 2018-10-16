@@ -111,18 +111,21 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
             break
 
         msg = "Starting %(name)s (region %(region)s) ..." % job
+
         log_local(msg)
         log_redis(job, msg)
         set_busy(True)
 
-        result = psim(
-            xml=job["xml"],
-            region_map=job["region_map"],
-            regions=[job["region"]],
-            options={"debug": False, "level": 0},
-            quiet=True,
-            force_socat=True,
-            redis_hostport=redis_hostport)
+        options = {
+            "level": 0,
+            "quiet": True,
+            "debug": False,
+            "force_socat": True,
+            "redis": redis_hostport,
+            "regions": [job["region"]]
+        }
+
+        result = psim(job["xml"], job["region_map"], options)
 
         log_redis(job, "Finished %(name)s (region %(region)s)" % job)
         push_json(redis_cl, job["result_queue"], result)

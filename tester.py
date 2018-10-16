@@ -58,7 +58,7 @@ def main():
         fail_str = colored("FAIL", "red", attrs=["bold"])
 
         print("Simulating %s ... " % colored(xml_file, attrs=["bold"]))
-        simulation_result = psim(read_file(xml_file), quiet=True)
+        simulation_result = psim(read_file(xml_file), {}, {"quiet": True})
 
         for checker in cfuncs:
             put("  - %s ... " % get_checker_doc(checker))
