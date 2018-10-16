@@ -47,6 +47,7 @@ def parse_connection_str(con_str):
 def start_workers(redis_cl, nworkers, redis_hostport, engine_name):
 
     queue = Queue()
+    worker_busy = [0] * nworkers
 
     def create_worker(index):
         args = (redis_cl, queue, index, redis_hostport, engine_name)
@@ -57,10 +58,27 @@ def start_workers(redis_cl, nworkers, redis_hostport, engine_name):
     for worker in workers:
         worker.start()
 
+    def publish_s():
+        nused = sum(worker_busy)
+        publish_state(redis_cl, engine_name, nworkers, nused)
+
+    publish_s()
+
+    def process_queue_item():
+
+        worker_index, item_type, item = queue.get()
+
+        if item_type == "msg":
+            log("[Worker %d] %s" % (worker_index, item))
+        elif item_type == "busy":
+            worker_busy[worker_index] = item
+            publish_s()
+        else:
+            raise Exception("Unrecognized queue item type")
+
     while True:
         try:
-            item = queue.get()
-            log("[Worker %d] %s" % item)
+            process_queue_item()
         except Exception:
             pass
         except KeyboardInterrupt:
@@ -72,7 +90,11 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
 
     def log_local(msg):
         """Print message to local daemon log."""
-        queue.put((index, msg))
+        queue.put((index, "msg", msg))
+
+    def set_busy(busy):
+        """Inform parent thread of an update to the worker's busy state."""
+        queue.put((index, "busy", 1 if busy else 0))
 
     def log_redis(job, msg):
         """Print message to redis job queue."""
@@ -91,6 +113,7 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
         msg = "Starting %(name)s (region %(region)s) ..." % job
         log_local(msg)
         log_redis(job, msg)
+        set_busy(True)
 
         result = psim(
             xml=job["xml"],
@@ -103,6 +126,7 @@ def run_worker(redis_cl, queue, index, redis_hostport, engine_name):
 
         log_redis(job, "Finished %(name)s (region %(region)s)" % job)
         push_json(redis_cl, job["result_queue"], result)
+        set_busy(False)
         log_local("Completed" )
 
 
@@ -136,17 +160,21 @@ def get_capabilities(name=None, nworkers=None):
     return (name, nworkers)
 
 
-def register_engine(redis_cl, name, nworkers):
-    """Register engine.
+def publish_state(redis_cl, name, nworkers, nused):
+    """Publish engine information and current state.
 
-    Stores engine name and capabilities using client name as key.
+    Information is stored in redis using client name as key.
     """
+
+    resource_str = "%d threads" % nworkers if nworkers>1 else "1 thread"
+    usage_str = "%.1f%%" % (nused / float(nworkers) * 100)
 
     engine_information = {
         "name": name,
         "type": "Simulator (psim)",
+        "resources": resource_str,
         "_nresources": nworkers,
-        "resources": "%d threads" % nworkers if nworkers>1 else "1 thread"
+        "usage": usage_str
     }
 
     redis_cl.client_setname(name)
@@ -158,7 +186,6 @@ def main():
     host, port = parse_connection_str(args["--redis"])
     redis_cl = redis.StrictRedis(host, port)
     name, nworkers = get_capabilities(args["--name"], args["--workers"])
-    register_engine(redis_cl, name, nworkers)
     log("Starting (Engine %s)..." % name)
     start_workers(redis_cl, nworkers, args["--redis"], name)
     log("Shutting down ...")

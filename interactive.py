@@ -123,11 +123,12 @@ def engines():
         name = engine['name'] or "unnamed"
         type_ = engine['type'] or "undeclared"
         reso = engine['resources'] or "undeclared"
-        return [name, type_, reso]
+        usage = engine['usage'] or "unknown"
+        return [name, type_, reso, usage]
 
     # Print engine information as a beautifultable
     table = beautifultable.BeautifulTable()
-    table.column_headers = ["Engine", "Type", "Resources"]
+    table.column_headers = ["Engine", "Type", "Resources", "Usage"]
     rows = map(create_row, sorted(engines, key=sort_engines))
     map(table.append_row, rows)
     _format_table(table)
