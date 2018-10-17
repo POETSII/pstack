@@ -3,6 +3,7 @@ import redis
 import random
 import beautifultable
 
+from schema import Schema
 from files import read_file
 from files import read_json
 from parser import parse_poets_xml
