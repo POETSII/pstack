@@ -21,12 +21,28 @@ def user_function(func):
 
 
 @user_function
+def help():
+    """Show available functions."""
+    header = ["Function", "Description"]
+    def key(func):
+        return (len(func.__name__), len(func.__doc__))
+    body = [
+        (func.__name__, func.__doc__ or "(unavailable)")
+        for func in sorted(user_functions, key=key)
+    ]
+    table = [header] + body
+    pp_table(table)
+
+
+@user_function
 def read(file):
+    """Read file."""
     return read_file(file)
 
 
 @user_function
 def instance(xml_file):
+    """Show graph instance information of an XML file."""
     xml = read_file(xml_file)
     instance = parse_poets_xml(xml)[1]
     result = {"devices": len(instance["devices"]),
@@ -36,6 +52,7 @@ def instance(xml_file):
 
 @user_function
 def messages(xml_file):
+    """Show message type information of an XML file."""
     xml = read_file(xml_file)
     gtype = parse_poets_xml(xml)[0]
     messages = {msg["id"]: msg for msg in gtype["message_types"]}
@@ -44,6 +61,7 @@ def messages(xml_file):
 
 @user_function
 def devices(xml_file):
+    """Show device type information of an XML file."""
     attr = lambda atribute, items: [item[atribute] for item in items]
     xml = read_file(xml_file)
     graph_type = parse_poets_xml(xml)[0]
@@ -94,7 +112,7 @@ def combine_subresults(subresults):
 
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False):
-    """Run distributed POETS process."""
+    """Start a POETS process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
     result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
     xml = read_file(xml_file)
@@ -148,10 +166,7 @@ def pp_table(table):
 
 @user_function
 def engines():
-    """Print list of online POETS engines.
-
-    Engine information are stored as JSON objects under client names as keys.
-    """
+    """Print list of online POETS engines."""
 
     engines = [
         json.loads(redis_cl.get(client['name']))

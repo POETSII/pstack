@@ -20,7 +20,10 @@ from pygments.lexers.python import PythonLexer
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
-banner = "POETS Client (pcli) v0.1"
+banner = """
+POETS Client (pcli) v0.1
+Type "help" for a list of available functions.
+"""
 
 usage="""POETS Client (pcli) v0.1
 
@@ -29,6 +32,7 @@ Usage:
 
 Options:
   -n --nocolor   Disable terminal colors.
+  -q --quiet     Suppress printing banner.
 
 """
 
@@ -43,7 +47,8 @@ syntactic_sugar = {
     "time on": "_timer = True",
     "time off": "_timer = False",
     "engines": "engines()",
-    "pretty": "pretty(_)"
+    "pretty": "pretty(_)",
+    "help": "help()"
 }
 
 
@@ -69,7 +74,9 @@ def main():
 
     prompt = create_prompt(history_file, args["--nocolor"])
     interpreter = PythonInterpreter(user_functions, context_file)
-    printc(banner)
+
+    if not args["--quiet"]:
+        printc(banner.strip())
 
     while True:
         try:
