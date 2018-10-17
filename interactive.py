@@ -5,7 +5,7 @@ import beautifultable
 
 from files import read_file
 from files import read_json
-from schema import Schema
+from parser import parse_poets_xml
 
 from simple_redis import pop_json
 from simple_redis import push_json
@@ -18,6 +18,49 @@ user_functions = []  # list of functions to import into interpreter
 def user_function(func):
     user_functions.append(func)
     return func
+
+
+@user_function
+def read(file):
+    return read_file(file)
+
+
+@user_function
+def instance(xml_file):
+    xml = read_file(xml_file)
+    instance = parse_poets_xml(xml)[1]
+    result = {"devices": len(instance["devices"]),
+              "edges": len(instance["edges"])}
+    pretty(result)
+
+
+@user_function
+def messages(xml_file):
+    xml = read_file(xml_file)
+    gtype = parse_poets_xml(xml)[0]
+    messages = {msg["id"]: msg for msg in gtype["message_types"]}
+    pretty(messages)
+
+
+@user_function
+def devices(xml_file):
+    attr = lambda atribute, items: [item[atribute] for item in items]
+    xml = read_file(xml_file)
+    graph_type = parse_poets_xml(xml)[0]
+    devices = {
+        dev["id"]: {
+            "state": {
+                "scalars": attr("name", dev["state"].get("scalars", [])),
+                "arrays": attr("name", dev["state"].get("arrays", []))
+            },
+            "pins": {
+                "input": attr("name", dev["input_pins"]),
+                "output": attr("name", dev["output_pins"])
+            }
+        }
+        for dev in graph_type["device_types"]
+    }
+    pretty(devices)
 
 
 def combine_subresults(subresults):
@@ -101,7 +144,6 @@ def pp_table(table):
         btable.column_alignments[column] = left
     map(btable.append_row, table[1:])
     print(btable)
-
 
 
 @user_function

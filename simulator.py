@@ -12,7 +12,6 @@ from generator import generate_code
 from subprocess import call
 
 
-
 def compile_gpp(code, temp_dir):
     """Compile C++ source file and return path to binary.."""
 

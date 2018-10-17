@@ -42,7 +42,8 @@ ps1 = '<prompt>pcli> </prompt>'
 syntactic_sugar = {
     "time on": "_timer = True",
     "time off": "_timer = False",
-    "engines": "engines()"
+    "engines": "engines()",
+    "pretty": "pretty(_)"
 }
 
 
