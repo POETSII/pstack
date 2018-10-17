@@ -196,7 +196,7 @@ def parse_state(root):
     """
 
     if root is None:
-        return []
+        return {}
 
     scalars = [{
         "name": scalar.attrib['name'],
