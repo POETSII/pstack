@@ -81,15 +81,27 @@ def run(xml_file, region_map_file=None, name=None, verbose=False):
     return combine_subresults(subresults)
 
 
-def _format_table(table):
-    """Style a beautifultable."""
-    table.row_separator_char = ''
-    table.intersection_char = ''
-    table.left_border_char = ''
-    table.right_border_char = ''
+def pp_table(table):
+    """Pretty print a table.
+
+    Arguments:
+      - table (list) : list of rows, each a list of str.
+
+    First row is taken as a header and remaining row as table body.
+    """
+
+    btable = beautifultable.BeautifulTable()
+    btable.column_headers = table[0]
+    btable.row_separator_char = ''
+    btable.intersection_char = ''
+    btable.left_border_char = ''
+    btable.right_border_char = ''
     left = beautifultable.BeautifulTable.ALIGN_LEFT
-    for col_name in table.column_headers:
-        table.column_alignments[col_name] = left
+    for column in btable.column_headers:
+        btable.column_alignments[column] = left
+    map(btable.append_row, table[1:])
+    print(btable)
+
 
 
 @user_function
@@ -126,12 +138,10 @@ def engines():
         return [name, type_, reso, usage]
 
     # Print engine information as a beautifultable
-    table = beautifultable.BeautifulTable()
-    table.column_headers = ["Engine", "Type", "Resources", "Usage"]
-    rows = map(create_row, sorted(engines, key=sort_engines))
-    map(table.append_row, rows)
-    _format_table(table)
-    print(table)
+    body = map(create_row, sorted(engines, key=sort_engines))
+    header = ["Engine", "Type", "Resources", "Usage"]
+    table = [header] + map(create_row, engines)
+    pp_table(table)
 
 
 @user_function
