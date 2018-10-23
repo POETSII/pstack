@@ -198,7 +198,7 @@ def engines():
     # Print engine information as a beautifultable
     body = map(create_row, sorted(engines, key=sort_engines))
     header = ["Engine", "Type", "Resources", "Usage"]
-    table = [header] + map(create_row, engines)
+    table = [header] + body
     pp_table(table)
 
 
