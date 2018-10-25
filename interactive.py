@@ -48,7 +48,7 @@ def top():
             engine["_nused"] / float(engine["_nresources"]) * 100
             for engine in engine_info
         ]
-        return sorted(zip(names, usage)), []
+        return zip(names, usage), []
 
     _top(period=0.25, get_state=get_state)
 
@@ -185,11 +185,23 @@ def pp_table(table):
 
 def _get_engines():
     """Retrieve engine information."""
-    return [
+
+    def sort_engines(engine):
+        """Sort key function.
+
+        Sorts engines by number of workers (desc) then engine name (asc).
+        """
+        nworkers = int(engine.get("_nresources", 0))
+        name = engine['name']
+        return (-nworkers, name)
+
+    engines = [
         json.loads(redis_cl.get(client['name']))
         for client in redis_cl.client_list()
         if client['name']
     ]
+
+    return sorted(engines, key=sort_engines)
 
 
 @user_function
@@ -202,15 +214,6 @@ def engines():
         print "No engines are currently connected"
         return
 
-    def sort_engines(engine):
-        """Sort key function.
-
-        Sorts engines by number of workers (desc) then engine name (asc).
-        """
-        nworkers = int(engine.get("_nresources", 0))
-        name = engine['name']
-        return (-nworkers, name)
-
     def create_row(engine):
         name = engine.get("name", "unnamed")
         type_ = engine.get("type", "undeclared")
@@ -219,7 +222,7 @@ def engines():
         return [name, type_, reso, usage]
 
     # Print engine information as a beautifultable
-    body = map(create_row, sorted(engines, key=sort_engines))
+    body = map(create_row, engines)
     header = ["Engine", "Type", "Resources", "Usage"]
     table = [header] + body
     pp_table(table)
