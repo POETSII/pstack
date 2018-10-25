@@ -20,7 +20,7 @@ palette = [
     ('meter', 'dark green', ''),
     ('brack', 'bold', ''),
     ('usage', 'dark gray, bold', ''),
-    ('header', 'dark blue, bold', ''),
+    ('header', 'bold', ''),
     ('section', 'bold', ''),
     ('help', '', ''),
 ]
@@ -38,7 +38,7 @@ linebox_args = [
 ]
 
 
-def update_meter(meter, usage_perc):
+def get_meter_parts(usage_perc):
     """Update the value of a progress meter Text."""
     usage_str = " %5.1f%%" % usage_perc
     meter_w = 40
@@ -52,28 +52,29 @@ def update_meter(meter, usage_perc):
         ("usage", usage_str),
         ("brack", "]")
     ]
-    meter.set_text(parts)
+    return parts
 
 
-def make_engines_section(engines, meters):
-    """Create LineBox with engine usage meters."""
-    titles = [Text(("engine", name), align="right") for name in engines]
-    title_len = max(len(engine) for engine in engines)
-    columns = Columns([(title_len, Pile(titles)), Pile(meters)])
-    return LineBox(columns, **{arg: " " for arg in linebox_args})
+def get_engine_table_content(engines):
+    titles = [Text(("engine", name), align="right") for name, _ in engines]
+    meters = [Text(get_meter_parts(perc), align="right") for _, perc in engines]
+    title_len = max(len(name) for name, _ in engines) if engines else 1
+    return [
+        (Pile(titles), ('given', title_len, False)),
+        (Pile(meters), ('weight', 1, False))
+    ]
 
 
-def get_table_piles(rows):
+def get_process_table_content(rows):
     get_header = lambda items: [("header", item) for item in items]
     rows[0] = get_header(rows[0])
     ncols = len(rows[0])
     get_col = lambda col: [row[col] for row in rows]
     cols = map(get_col, range(ncols))
-    col_piles = [
+    return [
         (Pile(Text(item) for item in col), ('weight', 1, False))
         for col in cols
     ]
-    return col_piles
 
 
 def get_padded(items):
@@ -82,32 +83,31 @@ def get_padded(items):
     return Filler(pad, 'top')
 
 
-def get_state_demo():
-    """Return dummy information for demonstration."""
-    engines = [
-        "byron.cl.cam.ac.uk",
-        "aesop.cl.cam.ac.uk",
-        "coleridge.cl.cam.ac.uk",
-    ]
-    usage = [randint(0, 100) for _ in engines]
+def get_demo_state():
+    """Return demo state information."""
+    engines = [("engine%d" % ind, randint(0, 100)) for ind in range(9)]
     processes = [
-        ["process-123", "user-123", "30.2%", "0:03", "ro", "4", "16"],
-        ["process-123", "user-123", "30.2%", "0:03", "ro", "4", "16"],
-        ["process-123456", "user-123", "30.2%", "0:03", "ro", "4", "16"],
-        ["process-123", "user-123", "30.2%", "0:03", "ro", "4", "16"],
-        ["process-123", "user-123", "30.2%", "0:03", "ro", "4", "65535"],
+        ["process-123", "user-123", "30.2%", "1:10", "ro", "4", "16"],
+        ["process-456", "user-345", "78.1%", "0:01", "ro", "8", "16"],
+        ["process-789", "user-783", "46.9%", "0:22", "ro", "8", "16"],
+        ["process-111", "user-843", "21.3%", "0:15", "ro", "4", "16"],
+        ["process-001", "user-103", "58.2%", "0:17", "ro", "2", "65"],
     ]
     nproc = randint(1, len(processes))
-    return engines, usage, sample(processes, nproc)
+    nengines = randint(1, len(engines))
+    return sample(engines, nengines), sample(processes, nproc)
 
 
-def top(period=1, get_state=get_state_demo):
+def top(period=1, get_state=get_demo_state):
     """Display process information.
 
     Arguments:
       - period (float)       : update period
       - get_state (callable) : function to generate state information
     """
+
+    engine_table = Columns([])
+    process_table = Columns([])
 
     def make_text(title, attr="", align="left"):
         """Create a Text object with given content, style and alignment."""
@@ -117,30 +117,19 @@ def top(period=1, get_state=get_state_demo):
         """Create a separator."""
         return make_text("")
 
-    engines, usage, processes = get_state()
-    meters = [Text(" ", align="left") for _ in engines]
-    process_table = LineBox(Columns([]))
-
-    def update_process_table(processes):
-        new_contents = get_table_piles([header] +processes)
-        process_table.base_widget.contents = new_contents
-
     def update():
-        engines, usage, processes = get_state()
-        update_process_table(processes)
-        for meter, perc in zip(meters, usage):
-            update_meter(meter, perc)
-
-    update()
+        engines, processes = get_state()
+        engine_table.contents = get_engine_table_content(engines)
+        process_table.contents = get_process_table_content([header] + processes)
 
     items = [
         make_separator(),
-        make_text("POETS Process Viewer", attr="section", align="center"),
+        make_text("Process Viewer", attr="section", align="center"),
         make_text("Engine Usage:"),
-        make_engines_section(engines, meters),
+        LineBox(engine_table, **{arg: " " for arg in linebox_args}),
         make_text("Process Table:"),
         make_separator(),
-        process_table,
+        LineBox(process_table),
         make_separator(),
         make_text("Press (q) to quit.")
     ]
@@ -154,7 +143,7 @@ def top(period=1, get_state=get_state_demo):
             raise ExitMainLoop()
 
     loop = MainLoop(get_padded(items), palette, unhandled_input=on_key)
-    loop.set_alarm_in(period, on_timer)
+    on_timer(loop, None)  # Start timer
     loop.run()
 
 if __name__ == '__main__':

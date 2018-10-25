@@ -11,6 +11,8 @@ from parser import parse_poets_xml
 from simple_redis import pop_json
 from simple_redis import push_json
 
+from top import top as _top
+
 
 redis_cl = redis.StrictRedis()
 user_functions = []  # list of functions to import into interpreter
@@ -33,6 +35,22 @@ def help():
     ]
     table = [header] + body
     pp_table(table)
+
+
+@user_function
+def top():
+    """Display live process information."""
+
+    def get_state():
+        engine_info = _get_engines()
+        names = [engine["name"] for engine in engine_info]
+        usage = [
+            engine["_nused"] / float(engine["_nresources"]) * 100
+            for engine in engine_info
+        ]
+        return sorted(zip(names, usage)), []
+
+    _top(period=0.25, get_state=get_state)
 
 
 @user_function
@@ -113,7 +131,7 @@ def combine_subresults(subresults):
 
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False):
-    """Start a POETS process."""
+    """Start process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
     result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
     xml = read_file(xml_file)
@@ -131,7 +149,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False):
             "result_queue": result_queue
         }
         push_json(redis_cl, "jobs", job)
-    # Collection simulation log messages and results
+    # Collect simulation log messages and results
     subresults = []
     while len(subresults) < len(regions):
         item = pop_json(redis_cl, result_queue)
@@ -165,15 +183,24 @@ def pp_table(table):
     print(btable)
 
 
-@user_function
-def engines():
-    """Print list of online POETS engines."""
-
-    engines = [
+def _get_engines():
+    """Retrieve engine information."""
+    return [
         json.loads(redis_cl.get(client['name']))
         for client in redis_cl.client_list()
         if client['name']
     ]
+
+
+@user_function
+def engines():
+    """Print list of online POETS engines."""
+
+    engines = _get_engines()
+
+    if not engines:
+        print "No engines are currently connected"
+        return
 
     def sort_engines(engine):
         """Sort key function.
@@ -183,10 +210,6 @@ def engines():
         nworkers = int(engine.get("_nresources", 0))
         name = engine['name']
         return (-nworkers, name)
-
-    if not engines:
-        print "No engines are currently connected"
-        return
 
     def create_row(engine):
         name = engine.get("name", "unnamed")

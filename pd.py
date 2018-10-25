@@ -181,7 +181,8 @@ def publish_state(redis_cl, name, nworkers, nused):
         "type": "Simulator (psim)",
         "resources": resource_str,
         "_nresources": nworkers,
-        "usage": usage_str
+        "usage": usage_str,
+        "_nused": nused
     }
 
     redis_cl.client_setname(name)
