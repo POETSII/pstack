@@ -220,7 +220,7 @@ def _get_engines():
         if client['name']
     ]
 
-    result = redis_cl.mget(sorted(engine_names))
+    result = redis_cl.mget(sorted(engine_names)) if engine_names else []
     engines = [json.loads(item) for item in result]
     return sorted(engines, key=sort_engines)
 
