@@ -23,6 +23,20 @@ def user_function(func):
     return func
 
 
+class Future():
+    """Pending computation result."""
+
+    def __init__(self, result_queue, nregions):
+        self.result_queue = result_queue
+        self.nregions = nregions
+
+    def __str__(self):
+        return "<Future Object (%s)>" % self.result_queue
+
+    def __repr__(self):
+        return "<Future Object (%s)>" % self.result_queue
+
+
 @user_function
 def help():
     """Show available functions."""
@@ -130,7 +144,7 @@ def combine_subresults(subresults):
 
 
 @user_function
-def run(xml_file, region_map_file=None, name=None, verbose=False):
+def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
     name = name or "process-%s" % "".join(random.sample("0123456789", 6))
     result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
@@ -149,15 +163,20 @@ def run(xml_file, region_map_file=None, name=None, verbose=False):
             "result_queue": result_queue
         }
         push_json(redis_cl, "jobs", job)
-    # Collect simulation log messages and results
+    future = Future(result_queue, len(regions))
+    return future if async else block(future)
+
+
+@user_function
+def block(future):
+    """Wait for a pending future computation to finish."""
     subresults = []
-    while len(subresults) < len(regions):
-        item = pop_json(redis_cl, result_queue)
+    while len(subresults) < future.nregions:
+        item = pop_json(redis_cl, future.result_queue)
         if type(item) in {str, unicode}:
             print "-> %s" % item
         else:
             subresults.append(item)
-    # Combine into and return simulation result
     return combine_subresults(subresults)
 
 
@@ -229,6 +248,6 @@ def engines():
 
 
 @user_function
-def pretty(obj):
+def pp(obj):
     """Pretty-print JSON object."""
     print(json.dumps(obj, indent=4))

@@ -47,7 +47,7 @@ syntactic_sugar = {
     "time on": "_timer = True",
     "time off": "_timer = False",
     "engines": "engines()",
-    "pp": "pretty(_)",
+    "pp": "pp(_)",
     "help": "help()",
     "top": "top()",
 }
