@@ -1,4 +1,5 @@
 redis
+urwid
 docopt
 jinja2
 pexpect
