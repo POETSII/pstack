@@ -214,12 +214,14 @@ def _get_engines():
         name = engine['name']
         return (-nworkers, name)
 
-    engines = [
-        json.loads(redis_cl.get(client['name']))
+    engine_names = [
+        client['name']
         for client in redis_cl.client_list()
         if client['name']
     ]
 
+    result = redis_cl.mget(sorted(engine_names))
+    engines = [json.loads(item) for item in result]
     return sorted(engines, key=sort_engines)
 
 
