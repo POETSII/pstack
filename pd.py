@@ -99,26 +99,33 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         """Inform parent thread of an update to the worker's busy state."""
         queue.put((index, "busy", 1 if busy else 0))
 
-    def log_redis(job, msg):
+    def log_redis(job, process, msg):
         """Print message to redis job queue."""
-        if job.get("verbose"):
-            queue = job["result_queue"]
+        if process.get("verbose"):
+            queue = process["result_queue"]
             push_json(redis_cl, queue, "[%s] %s" % (engine_name, msg))
 
     log_local("Waiting for jobs ...")
 
     while True:
+
         try:
             job = pop_json(redis_cl, "jobs")
         except KeyboardInterrupt:
             break
 
-        msg = "Starting %(name)s (region %(region)s) ..." % job
+        process = json.loads(redis_cl.get(job["process_key"]))
 
-        log_local(msg)
-        log_redis(job, msg)
+        name = process["name"]
+        region = job["region"]
+
+        msg_starting = "Starting %s (region %s) ..." % (name, region)
+        msg_finished = "Finished %s (region %s) ..." % (name, region)
+
         set_busy(True)
-        redis_cl.sadd("running", job["name"])
+        log_local(msg_starting)
+        log_redis(job, process, msg_starting)
+        redis_cl.sadd("running", process["name"])
 
         options = {
             "level": 0,
@@ -127,18 +134,20 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
             "quiet": True,
             "debug": False,
             "force_socat": True,
-            "regions": [job["region"]]
+            "regions": [region]
         }
 
-        result = psim(job["xml"], job["region_map"], options)
+        result = psim(process["xml"], process["region_map"], options)
 
-        log_redis(job, "Finished %(name)s (region %(region)s)" % job)
-        push_json(redis_cl, job["result_queue"], result)
-        new_completed = redis_cl.incr(job["completed"])
-        if new_completed == job["nregions"]:
-            redis_cl.srem("running", job["name"])
         set_busy(False)
-        log_local("Completed")
+        log_local(msg_finished)
+        log_redis(job, process, msg_finished)
+
+        push_json(redis_cl, process["result_queue"], result)
+
+        new_completed = redis_cl.incr(process["completed"])
+        if new_completed == process["nregions"]:
+            redis_cl.srem("running", process["name"])
 
 
 def get_capabilities(name=None, nworkers=None):

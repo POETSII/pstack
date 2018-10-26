@@ -179,37 +179,48 @@ def combine_subresults(subresults):
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
-    process_counter = redis_cl.incr("process_counter")
-    uniq_id = "%06d" % process_counter
-    key = "process-%s" % (name or str(uniq_id))
+
+    # Prepare Redis keys.
+    counter = redis_cl.incr("process_counter")
+    uniq_id = "%06d" % counter
     name = name or str(uniq_id)
-    result_queue = "result-%s" % uniq_id
+
     completed = "completed-%s" % uniq_id
+    process_key = "process-%s" % name
+    result_queue = "result-%s" % uniq_id
+
+    # Prepare Schema.
     xml = read_file(xml_file)
     region_map = read_json(region_map_file) if region_map_file else {}
     schema = Schema(xml, region_map)
     regions = schema.get_regions()
-    redis_cl.delete(result_queue)
+
+    # Prepare process and job information
     process = {
+        "xml": xml,
         "name": name,
-        "graph_type": schema.graph_type["id"],
         "nedges": len(schema.graph_inst["edges"]),
-        "ndevices": len(schema.graph_inst["devices"])
+        "verbose": verbose,
+        "ndevices": len(schema.graph_inst["devices"]),
+        "nregions": len(regions),
+        "completed": completed,
+        "region_map": region_map,
+        "graph_type": schema.graph_type["id"],
+        "result_queue": result_queue,
     }
-    redis_cl.set(key, json.dumps(process))
-    # Push simulation jobs to queue
-    for region in regions:
-        job = {
-            "xml": xml,
-            "name": name,
-            "region": region,
-            "verbose": verbose,
-            "nregions": len(regions),
-            "completed": completed,
-            "region_map": region_map,
-            "result_queue": result_queue
-        }
-        push_json(redis_cl, "jobs", job)
+
+    jobs = [
+        {"process_key": process_key, "region": region}
+        for region in regions
+    ]
+
+    # Push process and job information to Redis.
+    redis_cl.set(process_key, json.dumps(process))
+    redis_cl.delete(result_queue)
+    push_job = lambda job: push_json(redis_cl, "jobs", job)
+    map(push_job, jobs)
+
+    # Return Future (or collect results).
     future = Future(result_queue, len(regions))
     return future if async else block(future)
 
