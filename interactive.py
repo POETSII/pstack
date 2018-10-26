@@ -24,7 +24,7 @@ def user_function(func):
     return func
 
 
-class Future():
+class Future(object):
     """Pending computation result."""
 
     def __init__(self, result_queue, nregions):
@@ -61,7 +61,7 @@ def flush():
         "result-*",
         "process-*",
         "completed-*",
-        "process-counter",
+        "process_counter",
     ]
 
     for pattern in key_patterns:
@@ -217,6 +217,13 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
 @user_function
 def block(future):
     """Wait for a pending future computation to finish."""
+
+    if type(future) is list:
+        return map(block, future)  # block all items in list of futures
+
+    if type(future) is not Future:
+        raise Exception("Block called on non-future (or list of futures)")
+
     subresults = []
     while len(subresults) < future.nregions:
         item = pop_json(redis_cl, future.result_queue)
