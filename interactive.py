@@ -53,6 +53,21 @@ def help():
 
 
 @user_function
+def flush():
+    """Delete any pending/completed computation results."""
+
+    key_patterns = [
+        "result-*",
+        "completed-*"
+    ]
+
+    for pattern in key_patterns:
+        matches = redis_cl.keys(pattern)
+        if matches:
+            redis_cl.delete(*matches)
+
+
+@user_function
 def top():
     """Display live process information."""
 
