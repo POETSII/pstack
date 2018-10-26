@@ -113,7 +113,7 @@ def instance(xml_file):
     instance = parse_poets_xml(xml)[1]
     result = {"devices": len(instance["devices"]),
               "edges": len(instance["edges"])}
-    pretty(result)
+    pp(result)
 
 
 @user_function
@@ -122,7 +122,7 @@ def messages(xml_file):
     xml = read_file(xml_file)
     gtype = parse_poets_xml(xml)[0]
     messages = {msg["id"]: msg for msg in gtype["message_types"]}
-    pretty(messages)
+    pp(messages)
 
 
 @user_function
@@ -144,7 +144,7 @@ def devices(xml_file):
         }
         for dev in graph_type["device_types"]
     }
-    pretty(devices)
+    pp(devices)
 
 
 def combine_subresults(subresults):
