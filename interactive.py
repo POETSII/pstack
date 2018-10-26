@@ -161,7 +161,8 @@ def combine_subresults(subresults):
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
-    uniq_id = "".join(random.sample("0123456789", 6))
+    process_counter = redis_cl.incr("process_counter")
+    uniq_id = "%06d" % process_counter
     name = name or str(uniq_id)
     result_queue = "result-%s" % uniq_id
     completed = "completed-%s" % uniq_id
