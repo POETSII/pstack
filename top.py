@@ -13,7 +13,7 @@ from urwid import (
 from random import randint
 from random import sample
 
-header = ["Process", "User", "CPU", "Time", "Schema", "Devices", "Edges"]
+header = ["Process", "User", "CPU", "Time", "Graph Type", "Devices", "Edges"]
 
 palette = [
     ('engine', 'dark cyan', 'light gray'),

@@ -12,3 +12,8 @@ def pop_json(redis_cl, queue):
     """Pop JSON object from Redis queue."""
     obj_str = redis_cl.blpop(queue)[1]
     return json.loads(obj_str)
+
+
+def mget(redis_cl, keys):
+    """Get multiple values."""
+    return redis_cl.mget(keys) if keys else []

@@ -8,6 +8,7 @@ from files import read_file
 from files import read_json
 from parser import parse_poets_xml
 
+from simple_redis import mget
 from simple_redis import pop_json
 from simple_redis import push_json
 
@@ -62,7 +63,21 @@ def top():
             engine["_nused"] / float(engine["_nresources"]) * 100
             for engine in engine_info
         ]
-        return zip(names, usage), []
+        process_names = redis_cl.smembers("running") or []
+        process_info = map(json.loads, mget(redis_cl, process_names))
+        processes = [
+            [
+                info.get("name", "n/a"),
+                "-",
+                "-",
+                "-",
+                info.get("graph_type", "n/a"),
+                str(info.get("ndevices", "n/a")),
+                str(info.get("nedges", "n/a")),
+            ]
+            for info in process_info
+        ]
+        return zip(names, usage), processes
 
     _top(period=0.25, get_state=get_state)
 
@@ -146,19 +161,31 @@ def combine_subresults(subresults):
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
-    name = name or "process-%s" % "".join(random.sample("0123456789", 6))
-    result_queue = "result-%s" % "".join(random.sample("0123456789", 6))
+    uniq_id = "".join(random.sample("0123456789", 6))
+    name = name or str(uniq_id)
+    result_queue = "result-%s" % uniq_id
+    completed = "completed-%s" % uniq_id
     xml = read_file(xml_file)
     region_map = read_json(region_map_file) if region_map_file else {}
-    regions = Schema(xml, region_map).get_regions()
+    schema = Schema(xml, region_map)
+    regions = schema.get_regions()
     redis_cl.delete(result_queue)
+    process = {
+        "name": name,
+        "graph_type": schema.graph_type["id"],
+        "nedges": len(schema.graph_inst["edges"]),
+        "ndevices": len(schema.graph_inst["devices"])
+    }
+    redis_cl.set(name, json.dumps(process))
     # Push simulation jobs to queue
     for region in regions:
         job = {
-            "name": name,
             "xml": xml,
+            "name": name,
             "region": region,
             "verbose": verbose,
+            "nregions": len(regions),
+            "completed": completed,
             "region_map": region_map,
             "result_queue": result_queue
         }
@@ -220,7 +247,7 @@ def _get_engines():
         if client['name']
     ]
 
-    result = redis_cl.mget(sorted(engine_names)) if engine_names else []
+    result = mget(redis_cl, sorted(engine_names))
     engines = [json.loads(item) for item in result]
     return sorted(engines, key=sort_engines)
 
