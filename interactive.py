@@ -1,11 +1,13 @@
+import os
 import json
+import time
 import redis
 import random
 import beautifultable
 
-from schema import Schema
 from files import read_file
 from files import read_json
+from schema import Schema
 from parser import parse_poets_xml
 
 from simple_redis import mget
@@ -74,8 +76,34 @@ def flush():
 def top():
     """Display live process information."""
 
+    def show_time(start_time):
+        """Return pretty string of time elasped since start_time."""
+
+        if not start_time:
+            return "-"
+
+        total_seconds = time.time() - float(start_time)
+
+        days = total_seconds // 86400
+        hours = total_seconds // 3600 % 24
+        minutes = total_seconds // 60 % 60
+        seconds = total_seconds % 60
+
+        if days:
+            return "%dd %dh" % (days, hours)
+        elif hours:
+            return "%dh %dm" % (hours, minutes)
+        elif minutes:
+            return "%dm %ds" % (minutes, seconds)
+        else:
+            return "%ds" % seconds
+
+    def show_cpu(used, total):
+        return "%.1f%%" % (float(used) / total * 100)
+
     def get_state():
         engine_info = _get_engines()
+        sum_nresources = sum(engine["_nresources"] for engine in engine_info)
         names = [engine["name"] for engine in engine_info]
         usage = [
             engine["_nused"] / float(engine["_nresources"]) * 100
@@ -86,9 +114,10 @@ def top():
         processes = [
             [
                 info.get("name", "zombie <%s>" % key),
-                "-",
-                "-",
-                "-",
+                str(info.get("nregions", 0)),
+                info.get("user", "n/a"),
+                show_cpu(info.get("nregions"), sum_nresources),
+                show_time(info.get("start_time")),
                 info.get("graph_type", "n/a"),
                 str(info.get("ndevices", "n/a")),
                 str(info.get("nedges", "n/a")),
@@ -176,6 +205,12 @@ def combine_subresults(subresults):
     }
 
 
+def whoami():
+    user = os.environ.get("USER")
+    host = os.environ.get("HOST")
+    return user or host or "<n/a>"
+
+
 @user_function
 def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
@@ -199,11 +234,13 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     process = {
         "xml": xml,
         "name": name,
+        "user": whoami(),
         "nedges": len(schema.graph_inst["edges"]),
         "verbose": verbose,
         "ndevices": len(schema.graph_inst["devices"]),
         "nregions": len(regions),
         "completed": completed,
+        "start_time": time.time(),
         "region_map": region_map,
         "graph_type": schema.graph_type["id"],
         "result_queue": result_queue,

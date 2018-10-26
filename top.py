@@ -13,7 +13,16 @@ from urwid import (
 from random import randint
 from random import sample
 
-header = ["Process", "User", "CPU", "Time", "Graph Type", "Devices", "Edges"]
+header = [
+    "Process",
+    "Regions",
+    "User",
+    "CPU",
+    "Time",
+    "Graph Type",
+    "Devices",
+    "Edges"
+]
 
 palette = [
     ('engine', 'dark cyan', 'light gray'),
@@ -24,7 +33,6 @@ palette = [
     ('section', 'bold', ''),
     ('help', '', ''),
 ]
-
 
 linebox_args = [
     "tlcorner",
@@ -87,11 +95,11 @@ def get_demo_state():
     """Return demo state information."""
     engines = [("engine%d" % ind, randint(0, 100)) for ind in range(9)]
     processes = [
-        ["process-123", "user-123", "30.2%", "1:10", "ro", "4", "16"],
-        ["process-456", "user-345", "78.1%", "0:01", "ro", "8", "16"],
-        ["process-789", "user-783", "46.9%", "0:22", "ro", "8", "16"],
-        ["process-111", "user-843", "21.3%", "0:15", "ro", "4", "16"],
-        ["process-001", "user-103", "58.2%", "0:17", "ro", "2", "65"],
+        ["process-123", "3", "user-123", "30.2%", "1:10", "ro", "4", "16"],
+        ["process-456", "1", "user-345", "78.1%", "0:01", "ro", "8", "16"],
+        ["process-789", "6", "user-783", "46.9%", "0:22", "ro", "8", "16"],
+        ["process-111", "2", "user-843", "21.3%", "0:15", "ro", "4", "16"],
+        ["process-001", "4", "user-103", "58.2%", "0:17", "ro", "2", "65"],
     ]
     nproc = randint(1, len(processes))
     nengines = randint(1, len(engines))
