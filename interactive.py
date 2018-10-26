@@ -57,8 +57,11 @@ def flush():
     """Delete any pending/completed computation results."""
 
     key_patterns = [
+        "running",
         "result-*",
-        "completed-*"
+        "process-*",
+        "completed-*",
+        "process-counter",
     ]
 
     for pattern in key_patterns:
@@ -178,6 +181,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
     process_counter = redis_cl.incr("process_counter")
     uniq_id = "%06d" % process_counter
+    key = "process-%s" % (name or str(uniq_id))
     name = name or str(uniq_id)
     result_queue = "result-%s" % uniq_id
     completed = "completed-%s" % uniq_id
@@ -192,7 +196,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
         "nedges": len(schema.graph_inst["edges"]),
         "ndevices": len(schema.graph_inst["devices"])
     }
-    redis_cl.set(name, json.dumps(process))
+    redis_cl.set(key, json.dumps(process))
     # Push simulation jobs to queue
     for region in regions:
         job = {
