@@ -79,10 +79,10 @@ def top():
             for engine in engine_info
         ]
         process_names = redis_cl.smembers("running") or []
-        process_info = map(json.loads, mget(redis_cl, process_names))
+        process_info = map(json.loads, mget(redis_cl, process_names, '{}'))
         processes = [
             [
-                info.get("name", "n/a"),
+                name,
                 "-",
                 "-",
                 "-",
@@ -90,7 +90,7 @@ def top():
                 str(info.get("ndevices", "n/a")),
                 str(info.get("nedges", "n/a")),
             ]
-            for info in process_info
+            for name, info in zip(process_names, process_info)
         ]
         return zip(names, usage), processes
 
