@@ -81,11 +81,11 @@ def top():
             engine["_nused"] / float(engine["_nresources"]) * 100
             for engine in engine_info
         ]
-        process_names = redis_cl.smembers("running") or []
-        process_info = map(json.loads, mget(redis_cl, process_names, '{}'))
+        process_keys = redis_cl.smembers("running") or []
+        process_info = map(json.loads, mget(redis_cl, process_keys, '{}'))
         processes = [
             [
-                name,
+                info.get("name", "zombie <%s>" % key),
                 "-",
                 "-",
                 "-",
@@ -93,7 +93,7 @@ def top():
                 str(info.get("ndevices", "n/a")),
                 str(info.get("nedges", "n/a")),
             ]
-            for name, info in zip(process_names, process_info)
+            for key, info in zip(process_keys, process_info)
         ]
         return zip(names, usage), processes
 

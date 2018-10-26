@@ -125,7 +125,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         set_busy(True)
         log_local(msg_starting)
         log_redis(job, process, msg_starting)
-        redis_cl.sadd("running", process["name"])
+        redis_cl.sadd("running", job["process_key"])
 
         options = {
             "level": 0,
@@ -147,7 +147,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
 
         new_completed = redis_cl.incr(process["completed"])
         if new_completed == process["nregions"]:
-            redis_cl.srem("running", process["name"])
+            redis_cl.srem("running", job["process_key"])
 
 
 def get_capabilities(name=None, nworkers=None):
