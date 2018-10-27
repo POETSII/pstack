@@ -270,6 +270,8 @@ def kill(pid):
         redis_cl.rpush(key, 1)  # 1 is rtype.SHUTDOWN (psim/externals.cpp)
 
     map(kill_region, regions)
+    redis_cl.srem("pids", pid)
+    redis_cl.srem("running", pid)
 
 
 @user_function
