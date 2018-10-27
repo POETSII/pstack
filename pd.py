@@ -173,6 +173,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         new_completed = redis_cl.incr(process["completed"])
         if new_completed == process["nregions"]:
             redis_cl.srem("running", pid)
+            redis_cl.srem("pids", pid)
 
 
 def get_capabilities(name=None, nworkers=None):

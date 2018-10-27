@@ -60,6 +60,7 @@ def flush():
     """Delete any pending/completed computation results."""
 
     key_patterns = [
+        "pids",
         "running",
         "result-*",
         "process-*",
@@ -99,8 +100,6 @@ def top():
         else:
             return "%ds" % seconds
 
-    def show_cpu(used, total):
-        return "%.1f%%" % (float(used) / total * 100)
 
     def get_state():
         engine_info = _get_engines()
@@ -110,14 +109,33 @@ def top():
             engine["_nused"] / float(engine["_nresources"]) * 100
             for engine in engine_info
         ]
-        process_keys = map(get_process_key, ps())
+        pids = ps()
+        running = get_running_pids()
+        process_keys = map(get_process_key, pids)
         process_info = map(json.loads, mget(redis_cl, process_keys, '{}'))
+
+        def get_state(pid):
+            """Return a tuple (top style, text) describing process state."""
+            if pid in running:
+                return ("running", "Running")
+            elif pid in pids:
+                return ("waiting", "Waiting")
+            else:
+                return ("waiting", "Detached")
+
+        def show_cpu(pid, used, total):
+            """Return CPU usage of process with given pid."""
+            if pid not in running:
+                return "0%"
+            return "%.1f%%" % (float(used) / total * 100) if total else "-"
+
         processes = [
             [
                 str(info.get("pid", -1)),
+                get_state(info.get("pid")),
                 str(info.get("nregions", 0)),
                 info.get("user", "n/a"),
-                show_cpu(info.get("nregions"), sum_nresources),
+                show_cpu(info.get("pid"), info.get("nregions"), sum_nresources),
                 show_time(info.get("start_time")),
                 info.get("graph_type", "n/a"),
                 str(info.get("ndevices", "n/a")),
@@ -222,7 +240,14 @@ def whoami():
 
 @user_function
 def ps():
-    """Return list of running process pids."""
+    """Return list of process pids."""
+    pids = map(int, redis_cl.smembers("pids"))
+    return sorted(pids)
+
+
+@user_function
+def get_running_pids():
+    """Return list of *running* process pids."""
     pids = map(int, redis_cl.smembers("running"))
     return sorted(pids)
 
@@ -288,6 +313,7 @@ def run(xml_file, rmap={}, verbose=False, async=False):
     redis_cl.set(process_key, json.dumps(process))
     redis_cl.delete(result_queue)
     redis_cl.delete(completed)
+    redis_cl.sadd("pids", pid)
     push_job = lambda job: push_json(redis_cl, "jobs", job)
     map(push_job, jobs)
 
