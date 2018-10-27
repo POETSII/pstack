@@ -127,7 +127,10 @@ def top():
         ]
         return zip(names, usage), processes
 
-    _top(period=0.25, get_state=get_state)
+    try:
+        _top(period=0.25, get_state=get_state)
+    except redis.ConnectionError:
+        print "Connection lost"
 
 
 @user_function

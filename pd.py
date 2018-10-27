@@ -76,16 +76,29 @@ def start_workers(engine_name, nworkers, host, port):
         elif item_type == "busy":
             worker_busy[worker_index] = item
             publish_s()
+        elif item_type == "abort":
+            raise redis.ConnectionError()
         else:
             raise Exception("Unrecognized queue item type")
 
     while True:
         try:
             process_queue_item()
-        except Exception:
-            pass
         except KeyboardInterrupt:
             break
+        except redis.ConnectionError:
+            log("Connection lost")
+            break
+        except Exception:
+            print "Got something"
+            pass
+
+    # Read any items remaining in queue
+    while not queue.empty():
+        queue.get()
+
+    for worker in workers:
+        worker.join()
 
 
 def run_worker(redis_cl, queue, index, host, port, engine_name):
@@ -98,6 +111,10 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
     def set_busy(busy):
         """Inform parent thread of an update to the worker's busy state."""
         queue.put((index, "busy", 1 if busy else 0))
+
+    def abort():
+        """Inform parent thread that connection was clost."""
+        queue.put((index, "abort", None))
 
     def log_redis(job, process, msg):
         """Print message to redis job queue."""
@@ -112,6 +129,9 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         try:
             job = pop_json(redis_cl, "jobs")
         except KeyboardInterrupt:
+            break
+        except redis.ConnectionError:
+            abort()
             break
 
         process = json.loads(redis_cl.get(job["process_key"]))
