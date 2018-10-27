@@ -134,7 +134,11 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
             abort()
             break
 
-        process = json.loads(redis_cl.get(job["process_key"]))
+        try:
+            process = json.loads(redis_cl.get(job["process_key"]))
+        except TypeError:
+            log_local("Received invalid job")
+            continue
 
         pid = process["pid"]
         region = job["region"]
@@ -145,7 +149,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         set_busy(True)
         log_local(msg_starting)
         log_redis(job, process, msg_starting)
-        redis_cl.sadd("running", job["process_key"])
+        redis_cl.sadd("running", pid)
 
         options = {
             "pid": pid,
@@ -168,7 +172,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
 
         new_completed = redis_cl.incr(process["completed"])
         if new_completed == process["nregions"]:
-            redis_cl.srem("running", job["process_key"])
+            redis_cl.srem("running", pid)
 
 
 def get_capabilities(name=None, nworkers=None):

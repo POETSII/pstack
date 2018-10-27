@@ -110,7 +110,7 @@ def top():
             engine["_nused"] / float(engine["_nresources"]) * 100
             for engine in engine_info
         ]
-        process_keys = redis_cl.smembers("running") or []
+        process_keys = map(get_process_key, ps())
         process_info = map(json.loads, mget(redis_cl, process_keys, '{}'))
         processes = [
             [
@@ -123,7 +123,7 @@ def top():
                 str(info.get("ndevices", "n/a")),
                 str(info.get("nedges", "n/a")),
             ]
-            for key, info in zip(process_keys, process_info)
+            for info in process_info
         ]
         return zip(names, usage), processes
 
@@ -209,6 +209,11 @@ def combine_subresults(subresults):
     }
 
 
+def get_process_key(pid):
+    """Return Redis key of a process value."""
+    return "process-%d" % pid
+
+
 def whoami():
     user = os.environ.get("USER")
     host = os.environ.get("HOST")
@@ -218,13 +223,7 @@ def whoami():
 @user_function
 def ps():
     """Return list of running process pids."""
-
-    def get_pid(key):
-        """Get pid from process key."""
-        return int(key[8:])
-
-    pids = [get_pid(key) for key in redis_cl.smembers("running")]
-
+    pids = map(int, redis_cl.smembers("running"))
     return sorted(pids)
 
 
@@ -232,7 +231,7 @@ def ps():
 def kill(pid):
     """Terminate a process."""
 
-    process_key = "process-%d" % pid
+    process_key = get_process_key(pid)
     process = json.loads(redis_cl.get(process_key))
 
     # Prepare Schema.
@@ -256,7 +255,7 @@ def run(xml_file, rmap={}, verbose=False, async=False):
     pid = redis_cl.incr("process_counter")
 
     completed = "completed-%d" % pid
-    process_key = "process-%d" % pid
+    process_key = get_process_key(pid)
     result_queue = "result-%d" % pid
 
     # Prepare Schema.

@@ -45,6 +45,7 @@ ps1 = '<prompt>pcli> </prompt>'
 
 syntactic_sugar = {
     "pp": "pp(_)",
+    "ps": "ps()",
     "top": "top()",
     "help": "help()",
     "flush": "flush()",
