@@ -116,11 +116,11 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
 
         process = json.loads(redis_cl.get(job["process_key"]))
 
-        name = process["name"]
+        pid = process["pid"]
         region = job["region"]
 
-        msg_starting = "Starting %s (region %s) ..." % (name, region)
-        msg_finished = "Finished %s (region %s) ..." % (name, region)
+        msg_starting = "Starting %s (region %s) ..." % (pid, region)
+        msg_finished = "Finished %s (region %s) ..." % (pid, region)
 
         set_busy(True)
         log_local(msg_starting)

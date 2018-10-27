@@ -14,7 +14,7 @@ from random import randint
 from random import sample
 
 header = [
-    "Process",
+    "PID",
     "Regions",
     "User",
     "CPU",

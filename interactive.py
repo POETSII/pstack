@@ -29,15 +29,16 @@ def user_function(func):
 class Future(object):
     """Pending computation result."""
 
-    def __init__(self, result_queue, nregions):
+    def __init__(self, pid, result_queue, nregions):
+        self.pid = pid
         self.result_queue = result_queue
         self.nregions = nregions
 
     def __str__(self):
-        return "<Future Object (%s)>" % self.result_queue
+        return "<Future Object (%s)>" % self.pid
 
     def __repr__(self):
-        return "<Future Object (%s)>" % self.result_queue
+        return "<Future Object (%s)>" % self.pid
 
 
 @user_function
@@ -113,7 +114,7 @@ def top():
         process_info = map(json.loads, mget(redis_cl, process_keys, '{}'))
         processes = [
             [
-                info.get("name", "zombie <%s>" % key),
+                info.get("pid", "zombie <%s>" % key),
                 str(info.get("nregions", 0)),
                 info.get("user", "n/a"),
                 show_cpu(info.get("nregions"), sum_nresources),
@@ -216,13 +217,11 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     """Start process."""
 
     # Prepare Redis keys.
-    counter = redis_cl.incr("process_counter")
-    uniq_id = "%06d" % counter
-    name = name or str(uniq_id)
+    pid = pid or "%06d" % redis_cl.incr("process_counter")
 
-    completed = "completed-%s" % uniq_id
-    process_key = "process-%s" % name
-    result_queue = "result-%s" % uniq_id
+    completed = "completed-%s" % pid
+    process_key = "process-%s" % pid
+    result_queue = "result-%s" % pid
 
     # Prepare Schema.
     xml = read_file(xml_file)
@@ -233,7 +232,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     # Prepare process and job information
     process = {
         "xml": xml,
-        "name": name,
+        "pid": pid,
         "user": whoami(),
         "nedges": len(schema.graph_inst["edges"]),
         "verbose": verbose,
@@ -258,7 +257,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
     map(push_job, jobs)
 
     # Return Future (or collect results).
-    future = Future(result_queue, len(regions))
+    future = Future(pid, result_queue, len(regions))
     return future if async else block(future)
 
 
