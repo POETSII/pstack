@@ -35,10 +35,10 @@ class Future(object):
         self.nregions = nregions
 
     def __str__(self):
-        return "<Future Object (%s)>" % self.pid
+        return "<Future Object (%d)>" % self.pid
 
     def __repr__(self):
-        return "<Future Object (%s)>" % self.pid
+        return "<Future Object (%d)>" % self.pid
 
 
 @user_function
@@ -114,7 +114,7 @@ def top():
         process_info = map(json.loads, mget(redis_cl, process_keys, '{}'))
         processes = [
             [
-                info.get("pid", "zombie <%s>" % key),
+                str(info.get("pid", -1)),
                 str(info.get("nregions", 0)),
                 info.get("user", "n/a"),
                 show_cpu(info.get("nregions"), sum_nresources),
@@ -216,15 +216,15 @@ def whoami():
 
 
 @user_function
-def run(xml_file, rmap={}, pid=None, verbose=False, async=False):
+def run(xml_file, rmap={}, verbose=False, async=False):
     """Start process."""
 
     # Prepare Redis keys.
-    pid = pid or "%06d" % redis_cl.incr("process_counter")
+    pid = redis_cl.incr("process_counter")
 
-    completed = "completed-%s" % pid
-    process_key = "process-%s" % pid
-    result_queue = "result-%s" % pid
+    completed = "completed-%d" % pid
+    process_key = "process-%d" % pid
+    result_queue = "result-%d" % pid
 
     # Prepare Schema.
     xml = read_file(xml_file)

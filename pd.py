@@ -148,6 +148,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         redis_cl.sadd("running", job["process_key"])
 
         options = {
+            "pid": pid,
             "level": 0,
             "host": host,
             "port": port,

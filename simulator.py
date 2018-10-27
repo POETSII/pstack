@@ -108,6 +108,7 @@ def simulate(schema, options):
       - level       (int)  : Log message verbosity level
       - redis       (str)  : Hostname and port of Redis instance
       - regions     (list) : List of regions to simulate
+      - pid         (int)  : process identifier
       - temp_dir    (str)  : Temp directory for simulation file
       - force_socat (bool) : Force using socat (single-region simulations)
 
@@ -115,6 +116,7 @@ def simulate(schema, options):
       - result      (dict) : Simulation results object
     """
 
+    pid = options.get("pid", 0)
     host = options.get("host", "localhost")
     port = options.get("port", 6379)
     quiet = options.get("quiet", False)
@@ -131,14 +133,14 @@ def simulate(schema, options):
     # Define simulator invokation command.
     if len(regions)>1 or force_socat:
         redis_connection_str = "%s:%d" % (host, port)
-        cmd = 'socat exec:"%s %d",fdout=3 tcp:' + redis_connection_str
+        cmd = 'socat exec:"%s %d %d",fdout=3 tcp:' + redis_connection_str
     else:
-        cmd = "%s %d"
+        cmd = "%s %d %d"
 
     queue = Queue()
 
     def create_worker(region):
-        args = (queue, region, cmd % (engine_file, region))
+        args = (queue, region, cmd % (engine_file, region, pid))
         return Thread(target=run_worker, args=args)
 
     workers = map(create_worker, regions)
