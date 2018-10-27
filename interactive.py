@@ -252,6 +252,7 @@ def run(xml_file, rmap={}, pid=None, verbose=False, async=False):
     # Push process and job information to Redis.
     redis_cl.set(process_key, json.dumps(process))
     redis_cl.delete(result_queue)
+    redis_cl.delete(completed)
     push_job = lambda job: push_json(redis_cl, "jobs", job)
     map(push_job, jobs)
 
