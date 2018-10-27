@@ -84,7 +84,7 @@ def top():
         if not start_time:
             return "-"
 
-        total_seconds = time.time() - float(start_time)
+        total_seconds = time.time() - int(start_time)
 
         days = total_seconds // 86400
         hours = total_seconds // 3600 % 24
