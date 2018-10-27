@@ -275,7 +275,7 @@ def kill(pid):
 
 
 @user_function
-def run(xml_file, rmap={}, verbose=False, async=False):
+def run(xml_file, rmap={}, rcon={}, verbose=False, async=False):
     """Start process."""
 
     # Prepare Redis keys.
@@ -316,7 +316,12 @@ def run(xml_file, rmap={}, verbose=False, async=False):
     redis_cl.delete(result_queue)
     redis_cl.delete(completed)
     redis_cl.sadd("pids", pid)
-    push_job = lambda job: push_json(redis_cl, "jobs", job)
+
+    def push_job(job):
+        engine = rcon.get(job["region"])
+        queue = "jobs-%s" % engine if engine else "jobs"
+        push_json(redis_cl, queue, job)
+
     map(push_job, jobs)
 
     # Return Future (or collect results).

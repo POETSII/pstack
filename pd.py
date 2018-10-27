@@ -127,7 +127,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
     while True:
 
         try:
-            job = pop_json(redis_cl, "jobs")
+            job = pop_json(redis_cl, ["jobs", "jobs-%s" % engine_name])
         except KeyboardInterrupt:
             break
         except redis.ConnectionError:
