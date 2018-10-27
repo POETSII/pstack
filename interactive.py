@@ -213,7 +213,7 @@ def whoami():
 
 
 @user_function
-def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
+def run(xml_file, rmap={}, pid=None, verbose=False, async=False):
     """Start process."""
 
     # Prepare Redis keys.
@@ -225,8 +225,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
 
     # Prepare Schema.
     xml = read_file(xml_file)
-    region_map = read_json(region_map_file) if region_map_file else {}
-    schema = Schema(xml, region_map)
+    schema = Schema(xml, rmap)
     regions = schema.get_regions()
 
     # Prepare process and job information
@@ -240,7 +239,7 @@ def run(xml_file, region_map_file=None, name=None, verbose=False, async=False):
         "nregions": len(regions),
         "completed": completed,
         "start_time": time.time(),
-        "region_map": region_map,
+        "region_map": rmap,
         "graph_type": schema.graph_type["id"],
         "result_queue": result_queue,
     }
