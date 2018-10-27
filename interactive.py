@@ -216,6 +216,39 @@ def whoami():
 
 
 @user_function
+def ps():
+    """Return list of running process pids."""
+
+    def get_pid(key):
+        """Get pid from process key."""
+        return int(key[8:])
+
+    pids = [get_pid(key) for key in redis_cl.smembers("running")]
+
+    return sorted(pids)
+
+
+@user_function
+def kill(pid):
+    """Terminate a process."""
+
+    process_key = "process-%d" % pid
+    process = json.loads(redis_cl.get(process_key))
+
+    # Prepare Schema.
+    xml = process["xml"]
+    rmap = process["region_map"]
+    schema = Schema(xml, rmap)
+    regions = schema.get_regions()
+
+    def kill_region(region):
+        key = "%d.%d" % (pid, region)
+        redis_cl.rpush(key, 1)  # 1 is rtype.SHUTDOWN (psim/externals.cpp)
+
+    map(kill_region, regions)
+
+
+@user_function
 def run(xml_file, rmap={}, verbose=False, async=False):
     """Start process."""
 
