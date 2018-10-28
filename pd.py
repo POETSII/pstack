@@ -153,7 +153,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
 
         options = {
             "pid": pid,
-            "level": 0,
+            "level": 1 if process["log"] else 0,
             "host": host,
             "port": port,
             "quiet": True,
