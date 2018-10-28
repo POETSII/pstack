@@ -9,6 +9,7 @@ from files import read_file
 from files import read_json
 from schema import Schema
 from parser import parse_poets_xml
+from tester import run_tests
 
 from simple_redis import mget
 from simple_redis import pop_json
@@ -198,6 +199,14 @@ def devices(xml_file):
     pp(devices)
 
 
+@user_function
+def test(result, test_py_file, verbose=False):
+    """Run unit tests on simulation result."""
+    if verbose:
+        print("Running tests ... ")
+    return run_tests(result, test_py_file, verbose)
+
+
 def combine_subresults(subresults):
     """Combine the subresults of region simulations."""
 
@@ -221,7 +230,7 @@ def combine_subresults(subresults):
         return sum(lists, [])
 
     return {
-        "logs": flatten(sub["log"] for sub in subresults),
+        "log": flatten(sub["log"] for sub in subresults),
         "states": merge_dicts(sub["states"] for sub in subresults),
         "metrics": sum_dict_fields(sub["metrics"] for sub in subresults)
     }
