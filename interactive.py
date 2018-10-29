@@ -10,6 +10,7 @@ from files import read_json
 from schema import Schema
 from parser import parse_poets_xml
 from tester import run_tests
+from engine import Engine
 
 from simple_redis import mget
 from simple_redis import pop_json
@@ -330,8 +331,11 @@ def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=False):
 
     def push_job(job):
         engine = rcon.get(job["region"])
-        queue = "jobs-%s" % engine if engine else "jobs"
-        push_json(redis_cl, queue, job)
+        if type(engine) is Engine:
+            engine.setup(redis_cl, schema, pid, job["region"])
+        else:
+            queue = "jobs-%s" % engine if engine else "jobs"
+            push_json(redis_cl, queue, job)
 
     map(push_job, jobs)
 
