@@ -256,7 +256,6 @@ def ps():
     return sorted(pids)
 
 
-@user_function
 def get_running_pids():
     """Return list of *running* process pids."""
     pids = map(int, redis_cl.smembers("running"))
