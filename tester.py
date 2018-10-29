@@ -57,7 +57,7 @@ def run_tests(sim_result, py_file, verbose=True):
         try:
             checker(sim_result)
             cprint(pass_str)
-        except AssertionError:
+        except Exception:
             cprint(fail_str)
             return False
 
