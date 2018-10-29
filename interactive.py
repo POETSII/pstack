@@ -200,11 +200,13 @@ def devices(xml_file):
 
 
 @user_function
-def test(result, test_py_file, verbose=False):
-    """Run unit tests on simulation result."""
-    if verbose:
-        print("Running tests ... ")
-    return run_tests(result, test_py_file, verbose)
+def unit(test_py_file):
+    """Load a unit test function."""
+    def run_unit_test(result, verbose=False):
+        if verbose:
+            print("Running tests ... ")
+        return run_tests(result, test_py_file, verbose)
+    return run_unit_test
 
 
 def combine_subresults(subresults):
