@@ -1,4 +1,11 @@
+import os
 import json
+
+
+def is_file(path):
+    """Return True if path is a valid filename."""
+    return os.path.isfile(path)
+
 
 def read_json(file):
     """Read a JSON file."""

@@ -117,7 +117,7 @@ def simulate(schema, options):
 
     host = options.get("host", "localhost")
     port = options.get("port", 6379)
-    quiet = options.get("quiet", False)
+    quiet = options.get("quiet", True)
     debug = options.get("debug", False)
     level = options.get("level", 1)
     regions = options.get("regions", schema.get_regions())
