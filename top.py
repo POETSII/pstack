@@ -13,7 +13,17 @@ from urwid import (
 from random import randint
 from random import sample
 
-header = ["Process", "User", "CPU", "Time", "Graph Type", "Devices", "Edges"]
+header = [
+    "PID",
+    "Status",
+    "Regions",
+    "User",
+    "CPU",
+    "Time",
+    "Graph",
+    "Devices",
+    "Edges"
+]
 
 palette = [
     ('engine', 'dark cyan', 'light gray'),
@@ -23,8 +33,9 @@ palette = [
     ('header', 'bold', ''),
     ('section', 'bold', ''),
     ('help', '', ''),
+    ('running', 'dark green, bold', ''),
+    ('waiting', 'dark gray, bold', ''),
 ]
-
 
 linebox_args = [
     "tlcorner",
@@ -71,9 +82,10 @@ def get_process_table_content(rows):
     ncols = len(rows[0])
     get_col = lambda col: [row[col] for row in rows]
     cols = map(get_col, range(ncols))
+    weights = [10, 10, 10, 10, 8, 8, 8, 8, 8]
     return [
-        (Pile(Text(item) for item in col), ('weight', 1, False))
-        for col in cols
+        (Pile(Text(item) for item in col), ('weight', weight, False))
+        for col, weight in zip(cols, weights)
     ]
 
 
@@ -87,11 +99,11 @@ def get_demo_state():
     """Return demo state information."""
     engines = [("engine%d" % ind, randint(0, 100)) for ind in range(9)]
     processes = [
-        ["process-123", "user-123", "30.2%", "1:10", "ro", "4", "16"],
-        ["process-456", "user-345", "78.1%", "0:01", "ro", "8", "16"],
-        ["process-789", "user-783", "46.9%", "0:22", "ro", "8", "16"],
-        ["process-111", "user-843", "21.3%", "0:15", "ro", "4", "16"],
-        ["process-001", "user-103", "58.2%", "0:17", "ro", "2", "65"],
+        ["123", ("running", "Running"), "3", "user-123", "30.2%", "1:10", "ro", "4", "16"],
+        ["456", ("waiting", "Waiting"), "1", "user-345", "78.1%", "0:01", "ro", "8", "16"],
+        ["789", ("waiting", "Waiting"), "6", "user-783", "46.9%", "0:22", "ro", "8", "16"],
+        ["111", ("running", "Running"), "2", "user-843", "21.3%", "0:15", "ro", "4", "16"],
+        ["001", ("running", "Running"), "4", "user-103", "58.2%", "0:17", "ro", "2", "65"],
     ]
     nproc = randint(1, len(processes))
     nengines = randint(1, len(engines))

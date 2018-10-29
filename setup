@@ -1,3 +1,0 @@
-alias mg="make pretty"
-alias mr="make sim |& pen"
-alias md="make debug |& pen"

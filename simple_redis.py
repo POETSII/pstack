@@ -14,6 +14,9 @@ def pop_json(redis_cl, queue):
     return json.loads(obj_str)
 
 
-def mget(redis_cl, keys):
+def mget(redis_cl, keys, default=None):
     """Get multiple values."""
-    return redis_cl.mget(keys) if keys else []
+    if not keys:
+        return []
+
+    return [(item if item else default) for item in redis_cl.mget(keys)]

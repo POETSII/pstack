@@ -44,12 +44,14 @@ styles = {
 ps1 = '<prompt>pcli> </prompt>'
 
 syntactic_sugar = {
+    "pp": "pp(_)",
+    "ps": "ps()",
+    "top": "top()",
+    "help": "help()",
+    "flush": "flush()",
+    "engines": "engines()",
     "time on": "_timer = True",
     "time off": "_timer = False",
-    "engines": "engines()",
-    "pp": "pp(_)",
-    "help": "help()",
-    "top": "top()",
 }
 
 

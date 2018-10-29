@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Get real path of current file (dereferences symbolic links)
+SCRIPT=$(readlink -f $0)
+
+# Get parent directory
+DIR=$(dirname $SCRIPT)
+
+# Run main with virtualenv python and pass it all arguments
+"exec" "$DIR/../env/bin/python" "$DIR/../pcli.py" "$@"

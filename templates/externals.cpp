@@ -25,7 +25,7 @@ int comp_arr(char *a1, const char *a2, int n) {
     return 0;
 }
 
-remote_command_t read_remote_command(uint32_t simulation_region) {
+remote_command_t read_remote_command(uint32_t pid, uint32_t simulation_region) {
 
     // Read remote command from stdin.
 
@@ -34,7 +34,7 @@ remote_command_t read_remote_command(uint32_t simulation_region) {
     int nfields;
     char temp[256];
 
-    printf3("blpop %d 0\n", simulation_region);
+    printf3("blpop %d.%d 0\n", pid, simulation_region);
 
     cprintf("Waiting for external commands ...\n");
 
@@ -105,13 +105,13 @@ bool is_valid_message_command(remote_command_t rcmd) {
 
 }
 
-int write_remote_command(remote_command_t rcmd, int region) {
+int write_remote_command(remote_command_t rcmd, uint32_t pid, int region) {
 
     // Push a remote command to a Redis queue.
 
     // Return 0 iff successful.
 
-    printf3("rpush %d \"%d", region, rcmd.type);
+    printf3("rpush %d.%d \"%d", pid, region, rcmd.type);
 
     if (rcmd.type == MSG) {
 
@@ -134,14 +134,14 @@ int write_remote_command(remote_command_t rcmd, int region) {
     return response[0] == ':' ? 0 : 1;
 }
 
-int write_remote_command_multi(remote_command_t rcmd, reg_set_t* regions) {
+int write_remote_command_multi(remote_command_t rcmd, uint32_t pid, reg_set_t* regions) {
 
     // Send remote command to multiple regions.
 
     reg_set_t::iterator it = (*regions).begin(); // create iterator
 
     for (; it != (*regions).end(); ++it) {
-        int result = write_remote_command(rcmd, *it);
+        int result = write_remote_command(rcmd, pid, *it);
         if (result) return result; // bubble up error
     }
 

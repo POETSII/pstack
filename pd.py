@@ -76,16 +76,29 @@ def start_workers(engine_name, nworkers, host, port):
         elif item_type == "busy":
             worker_busy[worker_index] = item
             publish_s()
+        elif item_type == "abort":
+            raise redis.ConnectionError()
         else:
             raise Exception("Unrecognized queue item type")
 
     while True:
         try:
             process_queue_item()
-        except Exception:
-            pass
         except KeyboardInterrupt:
             break
+        except redis.ConnectionError:
+            log("Connection lost")
+            break
+        except Exception:
+            print "Got something"
+            pass
+
+    # Read any items remaining in queue
+    while not queue.empty():
+        queue.get()
+
+    for worker in workers:
+        worker.join()
 
 
 def run_worker(redis_cl, queue, index, host, port, engine_name):
@@ -99,46 +112,68 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         """Inform parent thread of an update to the worker's busy state."""
         queue.put((index, "busy", 1 if busy else 0))
 
-    def log_redis(job, msg):
+    def abort():
+        """Inform parent thread that connection was clost."""
+        queue.put((index, "abort", None))
+
+    def log_redis(job, process, msg):
         """Print message to redis job queue."""
-        if job.get("verbose"):
-            queue = job["result_queue"]
+        if process.get("verbose"):
+            queue = process["result_queue"]
             push_json(redis_cl, queue, "[%s] %s" % (engine_name, msg))
 
     log_local("Waiting for jobs ...")
 
     while True:
+
         try:
-            job = pop_json(redis_cl, "jobs")
+            job = pop_json(redis_cl, ["jobs", "jobs-%s" % engine_name])
         except KeyboardInterrupt:
             break
+        except redis.ConnectionError:
+            abort()
+            break
 
-        msg = "Starting %(name)s (region %(region)s) ..." % job
+        try:
+            process = json.loads(redis_cl.get(job["process_key"]))
+        except TypeError:
+            log_local("Received invalid job")
+            continue
 
-        log_local(msg)
-        log_redis(job, msg)
+        pid = process["pid"]
+        region = job["region"]
+
+        msg_starting = "Starting %s (region %s) ..." % (pid, region)
+        msg_finished = "Finished %s (region %s) ..." % (pid, region)
+
         set_busy(True)
-        redis_cl.sadd("running", job["name"])
+        log_local(msg_starting)
+        log_redis(job, process, msg_starting)
+        redis_cl.sadd("running", pid)
 
         options = {
-            "level": 0,
+            "pid": pid,
+            "level": 1 if process["log"] else 0,
             "host": host,
             "port": port,
             "quiet": True,
             "debug": False,
             "force_socat": True,
-            "regions": [job["region"]]
+            "regions": [region]
         }
 
-        result = psim(job["xml"], job["region_map"], options)
+        result = psim(process["xml"], process["region_map"], options)
 
-        log_redis(job, "Finished %(name)s (region %(region)s)" % job)
-        push_json(redis_cl, job["result_queue"], result)
-        new_completed = redis_cl.incr(job["completed"])
-        if new_completed == job["nregions"]:
-            redis_cl.srem("running", job["name"])
         set_busy(False)
-        log_local("Completed")
+        log_local(msg_finished)
+        log_redis(job, process, msg_finished)
+
+        push_json(redis_cl, process["result_queue"], result)
+
+        new_completed = redis_cl.incr(process["completed"])
+        if new_completed == process["nregions"]:
+            redis_cl.srem("running", pid)
+            redis_cl.srem("pids", pid)
 
 
 def get_capabilities(name=None, nworkers=None):

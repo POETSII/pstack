@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     cprintf("Initialization:\n---------------\n");
 
     const uint32_t simulation_region = (argc > 1) ? std::stoi(argv[1]) : 0;
+    const uint32_t pid = (argc > 2) ? std::stoi(argv[2]) : 0;
 
     reg_set_t other_regions;
 
@@ -184,7 +185,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-                result = write_remote_command_multi(rcmd, regs);
+                result = write_remote_command_multi(rcmd, pid, regs);
 
                 if (result) {
                     printf("Encountered error while sending to external regions, aborting simulation.\n");
@@ -291,7 +292,7 @@ int main(int argc, char *argv[]) {
 
                     // Wait for external commands.
 
-                    remote_command_t rcmd = read_remote_command(simulation_region);
+                    remote_command_t rcmd = read_remote_command(pid, simulation_region);
 
                     if (!rcmd._wellformed) {
                         printf("Received malformed remote command\n");
@@ -358,7 +359,7 @@ int main(int argc, char *argv[]) {
         remote_command_t rcmd;
         rcmd.type = SHUTDOWN;
 
-        int result = write_remote_command_multi(rcmd, &other_regions);
+        int result = write_remote_command_multi(rcmd, pid, &other_regions);
 
         if (result)
             printf("Encountered error while sending shutdown signal to external regions.\n");
