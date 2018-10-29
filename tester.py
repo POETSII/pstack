@@ -36,9 +36,13 @@ def run_tests(sim_result, py_file, verbose=True):
         if verbose:
             print text
 
-    for checker in cfuncs:
+    lines = ["  - %s ... " % get_checker_doc(checker) for checker in cfuncs]
+
+    mlen = max(len(line) for line in lines)
+
+    for checker, line in zip(cfuncs, lines):
         if verbose:
-            put("  - %s ... " % get_checker_doc(checker))
+            put(line.ljust(mlen))
         try:
             checker(sim_result)
             cprint(pass_str)
