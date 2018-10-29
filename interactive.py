@@ -286,7 +286,7 @@ def kill(pid):
 
 
 @user_function
-def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=False):
+def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=True):
     """Start process."""
 
     # Prepare Redis keys.
