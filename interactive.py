@@ -332,7 +332,7 @@ def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=True):
     def push_job(job):
         engine = rcon.get(job["region"])
         if type(engine) is Engine:
-            engine.setup(redis_cl, schema, pid, job["region"])
+            engine.setup(redis_cl, schema, pid, job, process)
         else:
             queue = "jobs-%s" % engine if engine else "jobs"
             push_json(redis_cl, queue, job)

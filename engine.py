@@ -1,54 +1,81 @@
+from datetime import datetime
+from simple_redis import push_json
+
+
+def clog(enabled, msg):
+    """Print a log message, conditionally."""
+    if enabled:
+        now = datetime.utcnow()
+        dt_str = now.strftime("%y-%m-%d %H:%M")
+        print "%s - %s" % (dt_str, msg)
+
+
 class Engine(object):
 
-    def __init__(self):
+    def __init__(self, handler):
         self._initialized = False
+        self.handler = handler
+        self.verbose = False
+        self.exit_code = None
 
-    def setup(self, redis_cl, schema, pid, region):
+    def setup(self, redis_cl, schema, pid, job, process):
         """Setup the engine."""
         self.pid = pid
-        self.region = region
+        self.job = job
+        self.process = process
         self.schema = schema
         self.device_list = get_device_list(schema)
         self.message_map = get_message_map(schema)
-        self.local_edge_table = get_local_edge_table(schema, region)
+        self.incoming_edges = get_incoming_edges(schema, job["region"])
+        self.outgoing_edges = get_outgoing_edges(schema, job["region"])
         self.redis_cl = redis_cl
-        self.queue = "%d.%d" % (pid, region)
-        self.get_handlers = {
-            0: self._get_rcmd_msg,
-            1: self._get_rcmd_shutdown
-        }
+        self.queue = "%d.%d" % (process["pid"], job["region"])
         self._initialized = True
 
-    def _get_rcmd_shutdown(self, rcm):
+    def _get_rcmd_shutdown(self, rcmd):
         """Process a remote command of type 'shutdown'."""
-        assert rcm[0] == 1, "Remote command is not of 'shutdown' type"
-        return "<shutdown>"
+        self.exit_code = 0
+
+        new_completed = self.redis_cl.incr(self.process["completed"])
+
+        if new_completed == self.process["nregions"]:
+            self.redis_cl.srem("running", pid)
+            self.redis_cl.srem("pids", pid)
+
+        dummy = {
+            "log": [],
+            "states": {},
+            "metrics": {}
+        }  # Returning results is not supported atm (TODO)
+
+        push_json(self.redis_cl, self.process["result_queue"], dummy)
 
     def _get_rcmd_msg(self, rcmd):
         """Process a remote command of type 'message'."""
 
-        assert rcmd[0] == 0, "Remote command is not of 'message' type"
-
         # Unpack parts of remote command
-        header, fields = rcmd[1:4], rcmd[4:]
-        device_ind, port, nfields = header
-
+        (device_ind, port, nfields), fields = rcmd[1:4], rcmd[4:]
         assert nfields == len(fields), "Message field count is incorrect"
 
-        messages = []  # list of local messages to generate
+        # Generate local messages
+        for edge in self.incoming_edges:
 
-        for src_dev, dst_dev, src_pin, dst_pin, _ in self.local_edge_table:
+            # edge: (src_dev, dst_dev, src_pin, dst_pin, dst_dev_region)
 
-            if (src_dev, src_pin) != (device_ind, port):
+            if (edge[0], edge[2]) != (device_ind, port):
                 continue
 
-            device = self.device_list[dst_dev]
-            dev_type_id = device["type"]
-            dev_type = self.schema.get_device_type(dev_type_id)
-            dst_pin = dev_type["input_pins"][dst_pin]
-            msg_type_id = dst_pin["message_type"]
-            msg_type = self.message_map[msg_type_id]
-            scalars = msg_type["fields"]["scalars"]
+            src_device = self.device_list[edge[0]]
+            dst_device = self.device_list[edge[1]]
+
+            src_t = self.schema.get_device_type(src_device["type"])
+            dst_t = self.schema.get_device_type(dst_device["type"])
+
+            src_pin = src_t["output_pins"][edge[2]]
+            dst_pin = dst_t["input_pins"][edge[3]]
+
+            msg_t = self.message_map[dst_pin["message_type"]]
+            scalars = msg_t["fields"]["scalars"]
 
             assert len(scalars) == len(fields), "Incorrect number of fields"
 
@@ -58,26 +85,64 @@ class Engine(object):
             }
 
             message = {
-                "to": (device["id"], dst_pin["name"]),
-                "type": msg_type_id,
+                "src": (src_device["id"], src_pin["name"]),
+                "dst": (dst_device["id"], dst_pin["name"]),
+                "type": msg_t["id"],
                 "payload": payload
             }
 
-            messages.append(message)
+            clog(self.verbose, "Received message: %s" % message)
+            self.handler(self, message)
 
-        return messages
+    def get(self):
+        """Retrieve and process a remote command."""
 
-    def _get_rcmd_unknown(self, _):
-        raise Exception("Received malformed remote command")
-
-    def get(self, async=False):
         if not self._initialized:
             raise Exception("Engine is not initialized")
-        _, rcmd_str = self.redis_cl.blpop(self.queue)
-        rcmd = [int(word) for word in rcmd_str.split()]
-        rcmd_type = rcmd[0]  # remote command type
-        handler = self.get_handlers.get(rcmd_type, self._get_rcmd_unknown)
-        return handler(rcmd)
+
+        rcmd_str = self.redis_cl.blpop(self.queue)[1]
+        rcmd_int = [int(word) for word in rcmd_str.split()]
+        rcmd_type = rcmd_int[0]  # remote command type
+
+        if rcmd_type == 0:
+            return self._get_rcmd_msg(rcmd_int)
+        elif rcmd_type == 1:
+            return self._get_rcmd_shutdown(rcmd_int)
+
+        raise Exception("Received malformed remote command")
+
+    def send(self, src, pin, **kwargs):
+        src_dev = self.schema.get_device(src)
+        src_dev_t = self.schema.get_device_type(src_dev["type"])
+        src_pin = self.schema.get_pin(src_dev_t["id"], pin)
+        msg_t = self.message_map[src_pin["message_type"]]
+        fields = [
+            kwargs.get(scalar["name"], 0)
+            for scalar in msg_t["fields"]["scalars"]
+        ]
+        src_dev_ind = self.schema.get_device_index(src_dev["id"])
+        src_pin_ind = self.schema.get_pin_index(src_dev_t["id"], pin, "output")
+        rcmd = [0, src_dev_ind, src_pin_ind, len(fields)] + fields
+
+        dst_regions = [
+            item[4] for item in self.outgoing_edges
+            if (item[0], item[2]) == (src_dev_ind, src_pin_ind)
+        ]
+
+        queues = ["%d.%d" % (self.pid, region) for region in dst_regions]
+        rcmd_str = " ".join(map(str, rcmd))
+        for queue in queues:
+            self.redis_cl.rpush(queue, rcmd_str)
+
+    def run(self, verbose=False):
+        self.verbose = verbose
+        clog(self.verbose, "Starting")
+        while self.exit_code is None:
+            self.get()
+        clog(self.verbose, "Finished")
+
+
+
 
 
 def get_device_list(schema):
@@ -93,11 +158,26 @@ def get_message_map(schema):
     return {msg_tp["id"]: msg_tp for msg_tp in msg_types}
 
 
-def get_local_edge_table(schema, region):
-    """Return local subset of edge table.
+def get_incoming_edges(schema, region):
+    """Return incoming subset of edge table.
 
-    An edge table entry is "local" if the destination device is within the
+    An edge table entry is "incoming" if the destination device is within the
     current simulation region.
     """
     return [item for item in schema.get_edge_table() if item[-1] == region]
 
+
+def get_outgoing_edges(schema, region):
+    """Return outgoing subset of edge table.
+
+    An edge table entry is "outgoing" if the source device is within the current
+    simulation region.
+    """
+
+    devices = schema.graph_inst["devices"]
+    regions = schema.get_device_regions(devices)
+
+    return [
+        item for item in schema.get_edge_table()
+        if regions[item[0]] == region
+    ]
