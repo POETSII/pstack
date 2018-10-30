@@ -11,6 +11,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit import PromptSession
 from prompt_toolkit import print_formatted_text as printc
 
+from engine import Engine
 from interpreter import PythonInterpreter
 from interactive import user_functions
 
@@ -19,6 +20,7 @@ from prompt_toolkit.styles import Style
 from pygments.lexers.python import PythonLexer
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+
 
 banner = """
 POETS Client (pcli) v0.1
@@ -95,3 +97,10 @@ def main():
 
 if __name__ == '__main__':
     main()
+else:
+    # Import user_functions into global scope. This is just to make the
+    # various functions available from the pcli shell available for importing
+    # from this module directory.
+    pcli_locals = locals()
+    for func in user_functions:
+        pcli_locals[func.func_name] = func
