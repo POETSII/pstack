@@ -39,8 +39,8 @@ class Engine(object):
         new_completed = self.redis_cl.incr(self.process["completed"])
 
         if new_completed == self.process["nregions"]:
-            self.redis_cl.srem("running", pid)
-            self.redis_cl.srem("pids", pid)
+            self.redis_cl.srem("running", self.process["pid"])
+            self.redis_cl.srem("pids", self.process["pid"])
 
         dummy = {
             "log": [],
