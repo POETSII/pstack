@@ -142,9 +142,6 @@ class Engine(object):
         clog(self.verbose, "Finished")
 
 
-
-
-
 def get_device_list(schema):
     """Return list of schema devices."""
     def get_key(device):
