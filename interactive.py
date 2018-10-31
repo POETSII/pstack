@@ -5,6 +5,7 @@ import redis
 import random
 import beautifultable
 
+from files import is_file
 from files import read_file
 from files import read_json
 from schema import Schema
@@ -286,7 +287,7 @@ def kill(pid):
 
 
 @user_function
-def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=True):
+def run(xml_input, rmap={}, rcon={}, verbose=False, async=False, log=True):
     """Start process."""
 
     # Prepare Redis keys.
@@ -297,6 +298,7 @@ def run(xml_file, rmap={}, rcon={}, verbose=False, async=False, log=True):
     result_queue = "result-%d" % pid
 
     # Prepare Schema.
+    xml = read_file(xml_input) if is_file(xml_input) else xml_input
     xml = read_file(xml_file)
     schema = Schema(xml, rmap)
     regions = schema.get_regions()
