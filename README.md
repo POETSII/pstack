@@ -6,10 +6,10 @@
 
 ### Overview
 
-`pstack` is a spec-compliant distributed [POETS](https://poets-project.org)
-simulation stack that uses [Redis](http://redis.io/) as an orchestration
-layer. It exposes the compute power of a hetrogeneous array of POETS back-end
-engines to multiple users in a POSIX-like environment.
+`pstack` is a distributed [POETS](https://poets-project.org) simulation stack
+based on [Redis](http://redis.io/). It exposes the compute power of a
+hetrogeneous array of POETS back-end engines to multiple users in a POSIX-like
+environment.
 
 Features:
 
@@ -18,7 +18,7 @@ Features:
 - **Distributed execution**: a single application can be distributed across several machines in arbitrary arrangements
 - **Real-time Monitoring**: live monitor of running processes and back-end engine resource utilisation
 - **Heterogeneity**: supports arbitrary back-end engines (e.g. different simulators or even actual hardware)
-- **Job queues**: processes are queued when back end engines are unavailable or insufficient
+- **Job queues**: processes are queued when back-end engines are unavailable or insufficient
 - **Terminal**: command line user interface with built-in Python interpreter
 - **Debugging**: supports debug breakpoints and manual inspection/injection of messages
 - **Unit Testing**: Down-to-earth [unit testing framework](tests) supporting push-button testing over entire back-end infrastructure
@@ -31,9 +31,9 @@ Design Goals:
 programming chores to existing specialized tools and technologies
 ([Redis](http://redis.io/) for distributed shared memory and
 [socat](https://linux.die.net/man/1/socat) for socket communication).
-- Decouple the hardware, orchestration and application layers using TCP
-connections to permit reliable, performant and secure distributed deployment
-using standard communication technologies (Ethernet, SSH tunnels etc.).
+- Decouple stack layers using TCP connections to permit reliable,
+performant and secure distributed operation using standard communication
+technologies (Ethernet, SSH tunnels etc.).
 - Leverage Python for productivity
 ([multiprocessing](https://docs.python.org/2/library/multiprocessing.html),
 [jinja](http://jinja.pocoo.org/docs/2.10/)) and C for performance
@@ -43,14 +43,11 @@ implementation as simple and maintainable as possible.
 
 ### Organization
 
-The stack consists of hardware, orchestration and application layers as shown
-below.
+The main components of the stack are shown and described below.
 
 <p align="center">
 	<img align="center" src="docs/diagram-v2.svg" width="80%" alt="PSIM Setup">
 </p>
-
-The main components are:
 
 #### 1. POETS Engines
 
@@ -58,8 +55,8 @@ Engines are arbitrary software/hardware components capable of simulating POETS
 devices as specified in the
 [`graph-schema`](https://github.com/POETSII/graph_schema) spec and conforming
 to an additional (simple and minimal) protocol to govern their communication
-with the Redis orchestration layer. `pstack` ships with an stand-alone POETS
-simulator `psim` that doubles as a compliant engine.
+with Redis. `pstack` ships with an stand-alone POETS simulator `psim` that
+doubles as a compliant engine.
 
 #### 2. POETS Daemon ([`pd`](pd.py))
 
@@ -83,23 +80,25 @@ service. It allows users to:
 ### Programming with `pstack`
 
 While `pstack` is essentially a tool to _run_ POETS applications, it is also
-very useful as an application development tool. The stack plays nice with
-existing tools developed at Newcastle and introduces new concepts that makes
-it useful to develop, debug and profile POETS applications.
+an environment to _develop_ applications. The stack plays nicely with
+application generation tools developed at Newcastle
+([`pml`](https://github.com/POETSII/pml/blob/master/pml.py) and
+[`gml`](https://github.com/POETSII/pml/blob/master/gml.py)) and introduces new
+features aimed at improving programming productivity.
 
 #### 1. Application Engines
 
 `pstack` is back-end agnostic and can run POETS applications on top of
 anything that can compute the state of POETS devices, usually a
 high-performance simulator such as [`psim`](psim.py) or actual POETS hardware.
-Through [`pcli`](pcli.py), however, the user can also load and use lightweight
-programmatic application-specific engines that they developed. These, like all
-other engines, would be tasked with simulating a subset of devices in the
-user's application. However, they differ from conventional engines in two
-important aspects:
+Through [`pcli`](pcli.py), however, users can also load and use lightweight
+application-specific engines that they developed as part of their
+applications. These, like other engines, would be tasked with simulating a
+subset of devices in the user's application. However, they differ from
+conventional engines in two important aspects:
 
 1. They run locally on the user's machine (specifically within `pcli`), and
-2. They are developed in a high-level language, namely Python! :tada:
+2. They are developed in Python! :tada:
 
 Applications engines may be slower than dedicated general-purpose engines but
 they permit powerful manipulations of POETS processes with several end goals
@@ -116,15 +115,10 @@ channels.
 when certain conditions are met, allowing users to inspect local message
 buffers and debug problematic execution scenarios.
 
-- **Instrumentation**: they make it very easy to log events of interest and
-profile applications.
-
 - **Productivity**: they make it possible to leverage high-level programming
-productivity to prototype POETS applications. Application engines allow
-messages to be consumed and generated by user-supplied Python functions,
-giving users the full power of the entire Python ecosystem.
+productivity to develop POETS applications.
 
-For a real-life example of an application engine in use see
+For a real-life example of an application engine in action see
 [`example-engine.py`](example-engine.py).
 
 ---
