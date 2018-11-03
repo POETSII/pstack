@@ -32,9 +32,6 @@ message types then prototype handlers in Python! This has the advantage of
 making the entire Python ecosystem of tools and packages available for
 developing applications for POETS. Once happy with the implementation,
 translate to C.
-
-The example must be run from the root directory of the repository (one level
-up), i.e. python examples/python-engines.py
 """
 
 
