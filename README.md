@@ -60,10 +60,9 @@ doubles as a compliant engine.
 
 #### 2. POETS Daemon ([`pd`](pd.py))
 
-This is a persistent background process that monitors the job queue on the
-Redis orchestration layer and spawns engines to execute accepted jobs. It
-handles all aspects of job and process control (e.g. queueing, status
-reporting and logging).
+This is a persistent background process that monitors the job queue on Redis
+and spawns engines to execute accepted jobs. It handles all aspects of job and
+process control (e.g. queueing, status reporting and logging).
 
 #### 3. POETS Client ([`pcli`](pcli.py))
 
@@ -71,7 +70,7 @@ A super-charged Python terminal (syntax-coloring, auto-completion and
 persistent context) that serves as an entry point for users into a `pstack`
 service. It allows users to:
 
-- Connect to the orchestration layer of a `pstack` deployment
+- Connect to a `pstack` deployment
 - Start a process by loading a POETS XML file from their machines
 - List and control running processes (through equivalent implementations of `ps` and `kill`)
 - Monitor processes and back-end infrastructure in real time (through an equivalent implementation of `top`)
