@@ -55,7 +55,7 @@ Engines are arbitrary software/hardware components capable of simulating POETS
 devices as specified in the
 [`graph-schema`](https://github.com/POETSII/graph_schema) spec and conforming
 to an additional (simple and minimal) protocol to govern their communication
-with Redis. `pstack` ships with an stand-alone POETS simulator `psim` that
+with Redis. `pstack` ships with a stand-alone POETS simulator `psim` that
 doubles as a compliant engine.
 
 #### 2. POETS Daemon ([`pd`](pd.py))
@@ -99,7 +99,7 @@ conventional engines in two important aspects:
 1. They run locally on the user's machine (specifically within `pcli`), and
 2. They are developed in Python! :tada:
 
-Applications engines may be slower than dedicated general-purpose engines but
+Application engines may be slower than dedicated general-purpose engines but
 they permit powerful manipulations of POETS processes with several end goals
 in mind:
 
