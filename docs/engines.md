@@ -58,11 +58,39 @@ some execution statistics to `stdout`. This output is captured by `pd` and
 pushed to a _results_ queue on Redis. It is subsequently dequed by the `pcli`
 instance that created the job and displayed to the user.
 
-### Regions
+### Distributed Simulations
 
-Point 2 in the previous subsection mentioned that engines can send and receive
-messages from/to "external devices". `pstack` supports distributed simulations
-by splitting POETS applications into multiple device subsets called _Regions_
-and assigning each to an engine. An "external device" is any device that
-doesn't belong to the engine's allocated region.
+The above subsection described a scenario where a simulation job is picked up
+and processed by a single engine. Point 2 described how messages are sent and
+received from "external devices" by relaying `stdin` and `fd3` through `socat`
+to Redis. This in fact only relevant to distributed (multi-engine) simulations.
 
+`pstack` supports distributed simulations by splitting POETS applications into
+multiple device subsets called _Regions_ and assigning each to an engine. An
+"external device" is any device that doesn't belong to the engine's allocated
+region.
+
+Note that `pstack` uses a more general definition of external devices compared
+to `graph-schema`. In `pstack`, an external device is any device that's
+outside the engine's _region_, whether defined as a `<DevI>` or an `<ExtI>`
+element. When an engine is simulating a given region of an application, all
+devices not belonging to this region are externals from its perspective.
+
+#### Example
+
+This subsection will walk through an example distributed simulation to show
+how multiple engines interact. You may be able to get the majority of what
+this is about just by glancing at the diagram below so feel free to skip
+ahead.
+
+<p align="center">
+	<img align="center" src="regions.svg" width="75%">
+</p>
+
+The diagram above depicts a simulation of ring-oscillator application that's
+split across three engines.
+
+The application behaves as follows. At the start, device `n0` send a message
+and increments a state counter. The message is then relayed by subsequent
+nodes back to `n0` and the process is repeated until the counter reaches a
+certain value.
