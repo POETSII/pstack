@@ -24,39 +24,39 @@ and their only interfaces to the world are good old `printf` and `scanf`.
 
 2. Engines are spawned and given processing job details by other parts of the
 stack (specifically, by the daemon process `pd`) meaning that they don't need
-to worry about service-level concerns such as persistence or availability. An
-engine is a processing tool which `pd` uses to expose a persistent service.
+to worry about service-level concerns such as persistence. An engine is a
+processing tool used by `pd` to expose a persistent service.
 
 ### How do Engines Work?
 
 Before delving into the spec, it's probably a good idea to start with a
-simplified description of how engines work within `pstack`, mainly to develop
-some background intuition which will make understanding the details easier.
+simplified description of how engines work within `pstack`, to develop some
+background intuition and make understanding the details easier.
 
-As you're probably aware from a quick glance at [README](../readme.md),
-`pstack` uses Redis as a communication infrastructure to relay messages and
-process/job information between daemon (`pd`) and client (`pcli`) processes on
-different machines. [Redis](https://redis.io/) is a distributed shared memory
-server that allows processes on different machines to store and access various
-data structures (e.g. dictionaries, lists, sets and queues). For simplicity,
-we can assume that a processing _job_ is a POETS XML string which a user has
-pushed to a Redis queue named `jobs` through `pcli`. Here's what happens
-afterwards:
+As you're probably aware from [README](../readme.md), `pstack` uses
+[Redis](https://redis.io/), a distributed in-memory data structure server, to
+relay messages and process information between daemon (`pd`) and client
+(`pcli`) instances running on different machines. Simulation jobs are pushed
+to a Redis queue named `jobs` by users using `pcli`. For simplicity, we can
+assume that a _job_ is a POETS XML string that the user intends to simulate.
+Here's what happens after a job is pushed to Redis:
 
-1. An instance of `pd`, which is running on some machine and monitoring the
-`jobs` queue, deques the job and spawns an engine as a subprocess, passing it
-the job's XML string and connecting its streams as shown in the diagram above.
-Here, `pd` redirects the engine's `stdout` and `stderr` streams to itself
-while hooking its `stdin` and a custom stream (`fd3`, more on this in a bit)
-to `socat`, a tool which relays standard stream data to a TCP connection.
+1. An instance of `pd` (which is monitoring the job queue) deques the job and
+spawns an engine as a subprocess, passing it the job's XML string and
+connecting its streams as shown in the diagram above. Here, `pd` redirects the
+engine's `stdout` and `stderr` streams to itself while hooking its `stdin` and
+a custom stream (`fd3`, more on this later) to
+[`socat`](https://linux.die.net/man/1/socat), a versatile tool that can relay
+standard streams to a TCP connection.
 
 2. The engine runs, reading from `stdin` and printing to `fd3` messages
-from/to external devices. These are communicated through `socat` to Redis.
+from/to external devices. These are communicated through `socat` to message
+transfer queues on Redis.
 
-3. The engine terminates and prints final device states plus some execution
-statistics to `stdout`. This output is captured by `pd` and pushed to a
-_results_ queue on Redis. It's subsequently dequed by the `pcli` instance that
-created the job and displayed to the user.
+3. Some time later, the engine terminates and prints final device states plus
+some execution statistics to `stdout`. This output is captured by `pd` and
+pushed to a _results_ queue on Redis. It is subsequently dequed by the `pcli`
+instance that created the job and displayed to the user.
 
 ### Regions
 
