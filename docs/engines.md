@@ -137,7 +137,7 @@ diagram.
 From here on, things are somewhat straightforward. Each engine knows its
 allocated region so it can tell which devices are local vs. external from its
 perspective. It starts an event loop to process messages and update (local)
-device states. Any time a local device generates a message which fans out to
+device states. Any time a local device generates a message that fans out to
 devices in a remote region, the engine pushes it to a dedicated region queue
 on Redis. The engine responsible for simulating the remote region then deques
 and processes the transmitted message. For example, when `n0` sends a message
@@ -150,17 +150,17 @@ command is printed to `fd3` and relayed to Redis by `socat`.
 
 2. Engine 1 prints a Redis [pop command](https://redis.io/commands/blpop) to
 its `fd3` when it finishes processing local messages. It then block-reads on
-`stdin` which receives (via `socat`) any items pushed to Queue1. The tuple
+`stdin` which receives (via `socat`) any items pushed to Queue 1. The tuple
 pushed by Engine 0 is then read by Engine 1.
 
 3. Engine 1 looks up which local devices are destinations of the originating
 device and pin specified in the tuple (in this case just `n1`) and calls their
-receive handlers to process the remotely-generated message.
+receive handlers to process the message.
 
 You may be able to see that things are somewhat simple from an engine
 programmer's point of view. Messages to remote destinations should be printed
-to `fd3` and, when there are no local messages to process, just block-read on
-`stdin` for incoming messages :relieved:
+with `printf` (to `fd3`) and, when there are no local messages to process,
+just wait for incoming messages with `scanf` :relieved:
 
 This leaves application termination and the collection of simulation results.
 These are straightforward too; when device `n0` calls `handler_exit(0)` this
