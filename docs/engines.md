@@ -1,5 +1,13 @@
 ## Developing `pstack` Engines
 
+### Content
+
+- [What is an Engine?](#what-is-an-engine)
+- [How does an Engine Work?](#how-does-an-engine-work)
+- [Distributed Simulations](#distributed-simulations)
+	- [Simulation Regions](#simulation-regions)
+	- [Engine Communication](#engine-communication)
+
 ### What is an Engine?
 
 Engines are the bottom layer of `pstack` and are responsible for computing
@@ -27,7 +35,7 @@ stack (specifically, by the daemon process `pd`) meaning that they don't need
 to worry about service-level concerns such as persistence. An engine is a
 processing tool used by `pd` to expose a persistent service.
 
-### How do Engines Work?
+### How does an Engine Work?
 
 Before delving into the spec, it's probably a good idea to start with a
 simplified description of how engines work within `pstack`, to develop some
@@ -90,7 +98,7 @@ to `graph-schema`. In `pstack`, an external device is any device that's
 outside the engine's region, whether defined as a `<DevI>` or an `<ExtI>`
 element.
 
-#### How Engines Work Together
+#### Engine Communication
 
 This subsection will walk through an example distributed simulation to explain
 how multiple engines interact.
