@@ -51,7 +51,7 @@ using the `run` command in `pcli` as follows:
 pcli> run("application.xml")
 ```
 
-Here's what happens after this command is executed:
+Here's what happens when this command is executed:
 
 1. `pcli` reads `application.xml` and pushes its content to the Redis queue
 `jobs`.
@@ -82,14 +82,14 @@ pcli>
 ### Distributed Simulations
 
 The above subsection described a scenario where a simulation job is picked up
-and processed by a single engine. Point 2 described how messages are sent and
+and processed by a single engine. Point 3 described how messages are sent and
 received from "external devices" by relaying `stdin` and `fd3` through `socat`
 to Redis. This in fact only relevant to distributed (multi-engine) simulations.
 
 #### Simulation Regions
 
 `pstack` supports distributed simulations by splitting POETS applications into
-multiple device subsets called **Regions** and assigning each to an engine. An
+multiple device subsets called **regions** and assigning each to an engine. An
 _external device_ is any device that doesn't belong to the engine's allocated
 region.
 
@@ -116,9 +116,9 @@ relayed by subsequent nodes across the loop back to `n0` and the process is
 repeated until the counter at `n0` reaches a certain value. Device `n0` then
 terminates the application by calling `handler_exit(0)`.
 
-The distributed simulation starts when the user executes the `run` command on
+The distributed simulation starts when the user executes the `run` command in
 `pcli`. In this case, the user passes an additional parameter to `run` which
-breaks the simulation into three jobs, here's how ...
+breaks the simulation into three parts, here's how ...
 
 ```javascript
 pcli> run(xml2, rmap={"n0": 0, "n5": 0, "n1": 1, "n4": 1, "n2": 2, "n3": 2})
@@ -127,7 +127,7 @@ pcli> run(xml2, rmap={"n0": 0, "n5": 0, "n1": 1, "n4": 1, "n2": 2, "n3": 2})
 The parameter `rmap` is a **region map**. It's a mapping between device names
 and regions, identified as non-negative integers.
 
-After executing `run`, `pcli` pushes three simulation jobs to Redis,
+When `run` is executed, `pcli` pushes three simulation jobs to Redis,
 corresponding to the regions `0`, `1` and `2`. These get subsequently dequed
 by three `pd` instances, each receiving copies of the application's XML string
 and the region map. The `pd` instances now launch three engines, each
