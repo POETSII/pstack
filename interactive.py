@@ -299,7 +299,6 @@ def run(xml_input, rmap={}, rcon={}, verbose=False, async=False, log=True):
 
     # Prepare Schema.
     xml = read_file(xml_input) if is_file(xml_input) else xml_input
-    xml = read_file(xml_file)
     schema = Schema(xml, rmap)
     regions = schema.get_regions()
 
