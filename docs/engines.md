@@ -125,7 +125,7 @@ pcli> run(xml2, rmap={"n0": 0, "n5": 0, "n1": 1, "n4": 1, "n2": 2, "n3": 2})
 ```
 
 The parameter `rmap` is a **region map**. It's a mapping between device names
-and regions, identified as non-zero integers.
+and regions, identified as non-negative integers.
 
 After executing `run`, `pcli` pushes three simulation jobs to Redis,
 corresponding to the regions `0`, `1` and `2`. These get subsequently dequed
