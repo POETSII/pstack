@@ -7,6 +7,9 @@
 - [Distributed Simulations](#distributed-simulations)
 	- [Simulation Regions](#simulation-regions)
 	- [Engine Communication](#engine-communication)
+- [The Specification](#the-specification)
+	- [Engine Launch](#engine-launch)
+	- Stream Protocols (work in progress)
 
 ### What is an Engine?
 
@@ -170,3 +173,88 @@ states to `stdout`. These are then picked up by the parent `pd` processes and
 pushed to a _results_ queue dedicated to the simulation. The content of this
 queue are dequeued and combined by `pcli`, which then prints simulation
 results to the user.
+
+### The Specification
+
+#### Engine Launch
+
+The engine must be wrapped in a Python module and exposed as a single Python
+function with the following signature:
+
+```python
+def run_engine(xml, rmap={}, options={}):
+```
+
+Note that this is not to say that the engine must be _developed_ in Python,
+only that it should be exposed as a Python function. The function above may
+call the actual engine binary through [`subprocess.call`](https://docs.python.org/2/library/subprocess.html#using-the-subprocess-module) or equivalent. The reason for mandating Python wrapping is to enforce programmatic access for interoperability with the unit test framework and other `pstack` tools.
+
+##### Input Arguments
+
+1. `xml`: content of application XML file (required, type `str`)
+2. `rmap`: a region map as described in the [Engine Communication](#engine-communication) subsection (optional, type `dict: str -> int`)
+3. `options` additional **simulation parameters**, detailed below (optional, type `dist: str -> obj`)
+
+##### Simulation Parameters
+
+This a `dict` containing simulation process `pid` and `region`, plus the
+desired log verbosity `level` and an additional parameter `quiet` that
+enables/disables printing any additional (debug) information by the simulator
+(note: these are captured by `pd`, sent to `pcli` and displayed to the user).
+
+Here's an example simulation parameters object with some dummy values.
+
+```python
+options = {
+    "pid":    1,     # process ID (int)
+    "region": 1,     # simulation region (int)
+    "level":  1,     # log level (int)
+    "quiet":  True,  # suppress output messages (bool)
+}
+```
+
+##### Results
+
+The function must return a _result object_ of type `dict`. This is in fact the
+same object printed in `pcli` after executing `run`, as shown in the
+subsection [How does an engine work?](#how-does-an-engine-work)
+
+This dictionary contains (1) final device states and (2) few simulation
+metrics such as number of delivered messages and exit code. Here's an example
+(formatted as JSON for clarity) ...
+
+```javascript
+{
+    "states": {
+        "n0": {
+            "state": 0,
+            "counter": 10,
+        },
+        "n1": {
+            "state": 0,
+            "counter": 10,
+        },
+        "n2": {
+            "state": 0,
+            "counter": 10,
+        },
+        "n3": {
+            "state": 0,
+            "counter": 10,
+        }
+    },
+    "metrics": {
+        "Delivered messages": 40,
+        "Exit code": 0
+    }
+}
+```
+
+Note: in the current implementation there's also an additional `log` field
+that contains a complete list of all log messages printed during the
+simulation. This field is being retired.
+
+At the domain, the `metrics` field must contain the follow keys:
+
+- `Delivered messages`: a count of messages consumed by receive handlers
+- `Exit code`: obtained through either a call to `handler_exit` or from a remote shutdown command (more on this in a bit)
