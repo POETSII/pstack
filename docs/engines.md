@@ -254,7 +254,7 @@ Note: in the current implementation there's also an additional `log` field
 that contains a complete list of all log messages printed during the
 simulation. This field is being retired.
 
-At the domain, the `metrics` field must contain the follow keys:
+The `metrics` dictionary must contain the follow fields:
 
 - `Delivered messages`: a count of messages consumed by receive handlers
 - `Exit code`: obtained through either a call to `handler_exit` or from a remote shutdown command (more on this in a bit)
