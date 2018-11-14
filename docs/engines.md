@@ -300,7 +300,7 @@ while a message item's payload has the form
 <device> <port> <nfields> <field1> <field2> ... <fieldn>
 ```
 
-while `<device>` and `<port>` are the device id and port id of the *source*
+where `<device>` and `<port>` are the device and port ids of the *source*
 device, `<nfields>` is the number of message fields and the remaining numbers
 are field values.
 
@@ -320,7 +320,7 @@ within the XML (in this case `src` and `dst`). At the moment, `pstack` does
 not support message array fields.
 
 Having described the format of a queue item, it's now time to describe queue
-_names_. Each queue has a name in the format `<pid>.<region>` where `<pid`> is
+_name notation_. Engines queues are named as `<pid>.<region>` where `<pid`> is
 the simulation process id (which is assigned and passed to the engine by `pd`,
 and is shared by all engines within the same simulation) while `<region>` is
 the engine's simulation region.
@@ -334,21 +334,20 @@ rpush 100.2 "1 0 2 1 -1"
 ```
 
 Here we assume that the simulation pid is 100, so the name of Engine 2's queue
-is `100.2`. The Redis command simply pushes the item `1 0 2 1 -1` on this
-queue (the double-quotes are needed to group numeric values into a single
-queue item.)
+is `100.2`. The Redis command simply pushes the item `1 0 2 1 -1` to this
+queue (the double-quotes are needed to group values into a single queue item).
 
 Note that it is the source engine's responsibility to determine which regions
 must the message be sent to (the engine has a copy of the region map so it can
 determine which regions house the destination devices of each local device and
 port). Anoter important detail is that only the source device and port info
 are transmitted; recipient engines are responsible for determining the local
-destination(s) and routing the message internally.
+destination(s) and duplicating/routing the message internally.
 
-Receiving queue items is the mirror image of the above. This can be done at
-any time by printing `blpop <pid>.<region>` to `fd3`, which will block-read
-items from Redis queue `<pid>.<region>`. However, since IO is expensive it's
-best to block-read when the engine's local message delivery queue is empty.
-Continuing the previous example, Engine 2 can block by writing `blpop 100.2`
-to `fd3` and would then receive `1 0 2 1 -1` which it can then parse as
-described earlier.
+Receiving queue items is the mirror image of the above; the engine block-reads
+on its queue by printing `blpop <pid>.<region>` to `fd3`. This can be done at
+any time but is best left to when the local message delivery queue is empty
+(doing it periodically within the simulation loop will likely slow the engine
+down considerably). Continuing the previous example, Engine 2 can block by
+writing `blpop 100.2` to `fd3` and would then receive the item `1 0 2 1 -1`
+pushed by Engine 1.
