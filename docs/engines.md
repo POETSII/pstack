@@ -9,7 +9,7 @@
 	- [Engine Communication](#engine-communication)
 - [The Specification](#the-specification)
 	- [Engine Launch](#engine-launch)
-	- Stream Protocols (work in progress)
+	- [Stream Protocols](#stream-protocols)
 
 ### What is an Engine?
 
@@ -258,3 +258,97 @@ The `metrics` dictionary must contain the follow fields:
 
 - `Delivered messages`: a count of messages consumed by receive handlers
 - `Exit code`: obtained through either a call to `handler_exit` or from a remote shutdown command (more on this in a bit)
+
+#### Stream Protocols
+
+As mentioned previously, an engine communicates with its environment (`pd` and
+`socat`) using input/output streams. There are four streams in total, and they
+can be grouped into two channels that are optimized for different purposes:
+
+##### 1. `socat` Communication (High Performance)
+
+This channel consists of the two streams:
+
+- `fd0` (stdin, engine input)
+- `fd3` (engine output)
+
+and is used to exchange messages with Redis via `socat`. The protocol is very
+simple and consists of Redis commands to push and block-read messages and
+other information to and from qeues. Here's the essential read:
+
+- [The Redis Protocol Specification](https://redis.io/topics/protocol)
+- [`RPUSH` Documentation](https://redis.io/commands/rpush)
+- [`BLPOP` Documentation](https://redis.io/commands/blpop)
+
+These three documents cover the details of how items are pushed to and from a
+Redis queue, leaving two questions: what is an _item_? and to what queues
+should items be pushed?
+
+As shown in the diagram under [Engine Communication](#engine-communication),
+each engine is assigned a queue for incoming items. An _item_ is a unit of
+information exchange between engines and is either (1) a message or a (2)
+shutdown command (more types may be added in the future). Messages are simply
+POETS messages while a shutdown command is a special symbol sent to all
+engines when one engine encounters a call to `handler_exit`.
+
+Each item is a space-delimited string of any number of numeric values (e.g. `0
+1 2`). The first value is item type (`0` is message and `1` is shutdown) while
+the remaining values are the item's  _payload_. Shutdown items have no payload
+while a message item's payload has the form
+
+```
+<device> <port> <nfields> <field1> <field2> ... <fieldn>
+```
+
+while `<device>` and `<port>` are the device id and port id of the *source*
+device, `<nfields>` is the number of message fields and the remaining numbers
+are field values.
+
+Device and port ids are zero-indexed based on the order of device instances
+and output port declarations within the source XML. For example, in a simulation of
+[ring-oscillator-01.xml](../tests/ring-oscillator-01.xml), the following
+message payload
+
+```
+1 0 2 1 -1
+```
+
+indicates a message originating from the device `n1` (index 1) using output
+port `toggle_out` (index 0) and consisting of two message values `1` and `-1`.
+The latter are the scalar fields of the message in their order of declaration
+within the XML (in this case `src` and `dst`). At the moment, `pstack` does
+not support message array fields.
+
+Having described the format of a queue item, it's now time to describe queue
+_names_. Each queue has a name in the format `<pid>.<region>` where `<pid`> is
+the simulation process id (which is assigned and passed to the engine by `pd`,
+and is shared by all engines within the same simulation) while `<region>` is
+the engine's simulation region.
+
+As a complete example, here's what Engine 1 in the diagram under [Engine
+Communication](#engine-communication) should fprint to `fd3` to send out a
+message from `n1` to `n2` (where `n2` is housed in Engine 2):
+
+```
+rpush 100.2 "1 0 2 1 -1"
+```
+
+Here we assume that the simulation pid is 100, so the name of Engine 2's queue
+is `100.2`. The Redis command simply pushes the item `1 0 2 1 -1` on this
+queue (the double-quotes are needed to group numeric values into a single
+queue item.)
+
+Note that it is the source engine's responsibility to determine which regions
+must the message be sent to (the engine has a copy of the region map so it can
+determine which regions house the destination devices of each local device and
+port). Anoter important detail is that only the source device and port info
+are transmitted; recipient engines are responsible for determining the local
+destination(s) and routing the message internally.
+
+Receiving queue items is the mirror image of the above. This can be done at
+any time by printing `blpop <pid>.<region>` to `fd3`, which will block-read
+items from Redis queue `<pid>.<region>`. However, since IO is expensive it's
+best to block-read when the engine's local message delivery queue is empty.
+Continuing the previous example, Engine 2 can block by writing `blpop 100.2`
+to `fd3` and would then receive `1 0 2 1 -1` which it can then parse as
+described earlier.
