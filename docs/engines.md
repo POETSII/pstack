@@ -265,7 +265,7 @@ As mentioned previously, an engine communicates with its environment (`pd` and
 `socat`) using input/output streams. There are four streams in total, and they
 can be grouped into two channels that are optimized for different purposes:
 
-##### 1. `socat` Communication (High Performance)
+##### 1. `socat` Communication (High Performance Channel)
 
 This channel consists of the two streams:
 
@@ -320,7 +320,7 @@ within the XML (in this case `src` and `dst`). At the moment, `pstack` does
 not support message array fields.
 
 Having described the format of a queue item, it's now time to describe queue
-_name notation_. Engines queues are named as `<pid>.<region>` where `<pid`> is
+_name notation_. Engine queues are named as `<pid>.<region>` where `<pid`> is
 the simulation process id (which is assigned and passed to the engine by `pd`,
 and is shared by all engines within the same simulation) while `<region>` is
 the engine's simulation region.
@@ -344,10 +344,24 @@ port). Anoter important detail is that only the source device and port info
 are transmitted; recipient engines are responsible for determining the local
 destination(s) and duplicating/routing the message internally.
 
-Receiving queue items is the mirror image of the above; the engine block-reads
-on its queue by printing `blpop <pid>.<region>` to `fd3`. This can be done at
-any time but is best left to when the local message delivery queue is empty
-(doing it periodically within the simulation loop will likely slow the engine
-down considerably). Continuing the previous example, Engine 2 can block by
-writing `blpop 100.2` to `fd3` and would then receive the item `1 0 2 1 -1`
-pushed by Engine 1.
+Receiving queue items is the mirror image of the above; the receiving engine
+block-reads on its queue by printing `blpop <pid>.<region>` to `fd3`. This can
+be done at any time but is best left to when the local message delivery queue
+is empty (to minimize the overhead of expensive IO). Continuing the previous
+example, Engine 2 can block by writing `blpop 100.2` to `fd3` and would then
+receive the item `1 0 2 1 -1` pushed by Engine 1.
+
+##### 2. `daemon` Communication (High Convenience Channel)
+
+This is a uni-direction communication channel from the engine to `pd`,
+consisting of the streams
+
+- `fd1 (stdout)`
+- `fd2 (stderr)`
+
+and is used to communicate errors, final simulation results and log messages.
+It's slower than pushing things through `socat` to Redis directly, since it
+involves processing engine output by `pd` (in Python). However, this interface
+offloads some output formatting and process management concerns from the
+engine to `pd` where they can be iterated on and developed faster, again
+simplifying things for engine developers.
