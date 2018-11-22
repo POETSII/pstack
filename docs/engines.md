@@ -291,8 +291,8 @@ shutdown command (more types may be added in the future). Messages are simply
 POETS messages while a shutdown command is a special symbol sent to all
 engines when one engine encounters a call to `handler_exit`.
 
-Each item is a space-delimited string of any number of numeric values (e.g. `0
-1 2`). The first value is item type (`0` is message and `1` is shutdown) while
+Each item is a variable-length space-delimited string of numbers (e.g. `0 1
+2`). The first value is item type (`0` is message and `1` is shutdown) while
 the remaining values are the item's  _payload_. Shutdown items have no payload
 while a message item's payload has the form
 
@@ -314,10 +314,10 @@ message payload
 ```
 
 indicates a message originating from the device `n1` (index 1) using output
-port `toggle_out` (index 0) and consisting of two message values `1` and `-1`.
-The latter are the scalar fields of the message in their order of declaration
-within the XML (in this case `src` and `dst`). At the moment, `pstack` does
-not support message array fields.
+port `toggle_out` (index 0) and consisting of two message field values `1` and
+`-1`. The latter are the scalar fields of the message in their order of
+declaration within the XML (in this case `src` and `dst`). At the moment,
+`pstack` does not support message array fields.
 
 Having described the format of a queue item, it's now time to describe queue
 _name notation_. Engine queues are named as `<pid>.<region>` where `<pid`> is
@@ -335,14 +335,14 @@ rpush 100.2 "1 0 2 1 -1"
 
 Here we assume that the simulation pid is 100, so the name of Engine 2's queue
 is `100.2`. The Redis command simply pushes the item `1 0 2 1 -1` to this
-queue (the double-quotes are needed to group values into a single queue item).
+queue (the double quotes are needed to group values into a single queue item).
 
-Note that it is the source engine's responsibility to determine which regions
-must the message be sent to (the engine has a copy of the region map so it can
-determine which regions house the destination devices of each local device and
-port). Anoter important detail is that only the source device and port info
-are transmitted; recipient engines are responsible for determining the local
-destination(s) and duplicating/routing the message internally.
+Note that it is the source engine's responsibility to determine the
+destination regions of a message (the engine has a copy of the region map so
+it can determine which regions house destination devices of each local device
+and port). Another important detail is that only the source device and output
+port info are transmitted; recipient engines are responsible for duplicating
+and routing messages to local destination devices.
 
 Receiving queue items is the mirror image of the above; the receiving engine
 block-reads on its queue by printing `blpop <pid>.<region>` to `fd3`. This can
@@ -353,6 +353,8 @@ receive the item `1 0 2 1 -1` pushed by Engine 1.
 
 ##### 2. `daemon` Communication (High Convenience Channel)
 
+**Note: this part of the specification is still incomplete [TODO]**
+
 This is a uni-direction communication channel from the engine to `pd`,
 consisting of the streams
 
@@ -360,8 +362,8 @@ consisting of the streams
 - `fd2 (stderr)`
 
 and is used to communicate errors, final simulation results and log messages.
-It's slower than pushing things through `socat` to Redis directly, since it
+It's slower than pushing things through `socat` to Redis directly since it
 involves processing engine output by `pd` (in Python). However, this interface
-offloads some output formatting and process management concerns from the
-engine to `pd` where they can be iterated on and developed faster, again
-simplifying things for engine developers.
+offloads few (infrequent) output formatting and process management operations
+from the engine to `pd` where they can be iterated on and developed faster,
+again simplifying things for engine developers.
