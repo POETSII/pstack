@@ -7,4 +7,4 @@ SCRIPT=$(readlink -f $0)
 DIR=$(dirname $SCRIPT)
 
 # Run main with virtualenv python and pass it all arguments
-"exec" "$DIR/../env/bin/python" "$DIR/../pcli.py" "$@"
+"exec" "$DIR/../env/bin/python" "$DIR/../py/pcli.py" "$@"

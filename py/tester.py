@@ -4,6 +4,7 @@ import json
 
 from psim import psim
 from files import read_file
+from files import get_basedir
 from pyloader import load_functions
 from termcolor import colored
 
@@ -55,9 +56,13 @@ def run_tests(sim_result, py_file, verbose=True):
 
 def get_files():
     """Return list of (xml, py) file tuples in tests dir."""
+
+    base = get_basedir();
+    test_dir = os.path.join(base, "tests")
+
     xml_files = [
-        os.path.join("tests", file)
-        for file in os.listdir("tests")
+        os.path.join(base, "tests", file)
+        for file in os.listdir(test_dir)
         if file.lower().endswith(".xml")
     ]
 

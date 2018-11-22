@@ -23,3 +23,9 @@ def write_file(file, content):
     """Write string to file."""
     with open(file, "w") as fid:
         fid.write(content)
+
+
+def get_basedir():
+    """Return absolute path of the repo's base directory."""
+    pydir = os.path.dirname(os.path.realpath(__file__))
+    return os.path.abspath(os.path.join(pydir, os.pardir))

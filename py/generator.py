@@ -122,7 +122,7 @@ def generate_code(schema, options):
 
     template = 'main.cpp'
 
-    loader = jinja2.PackageLoader(__name__, 'templates')
+    loader = jinja2.PackageLoader(__name__, '../templates')
     env = jinja2.Environment(loader=loader)
     env.line_statement_prefix = '@'
 

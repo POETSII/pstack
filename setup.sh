@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Create virtual environment and install requirements
+
+virtualenv -p python2 env
+
+(source env/bin/activate && pip install -r requirements.txt)
+
 # Create symbolic links to the wrappers in ./bin which invoke the tools within
 # the virtualenv setup in this directory.
 
