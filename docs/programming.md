@@ -11,11 +11,11 @@ features aimed at improving programming productivity.
 
 `pstack` is back-end agnostic and can run POETS applications on top of
 anything that can compute the state of POETS devices, usually a
-high-performance simulator such as [`psim`](psim.py) or actual POETS hardware.
-Through [`pcli`](pcli.py), however, users can also load and use lightweight
-application-specific engines that they developed as part of their
-applications. These, like other engines, would be tasked with simulating a
-subset of devices in the user's application. However, they differ from
+high-performance simulator such as [`psim`](../py/psim.py) or actual POETS
+hardware. Through [`pcli`](../py/pcli.py), however, users can also load and
+use lightweight application-specific engines that they developed as part of
+their applications. These, like other engines, would be tasked with simulating
+a subset of devices in the user's application. However, they differ from
 conventional engines in two important aspects:
 
 1. They run locally on the user's machine (specifically within `pcli`), and
@@ -40,4 +40,4 @@ buffers and debug problematic execution scenarios.
 productivity to develop POETS applications.
 
 For a real-life example of an application engine in action see
-[`example-engine.py`](example-engine.py).
+[`example-engine.py`](../py/example-engine.py).

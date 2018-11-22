@@ -18,13 +18,13 @@ doubles as a compliant engine.
 The engine specification is described in [Developing `pstack`
 Engines](engines.md).
 
-#### 2. POETS Daemon ([`pd`](../pd.py))
+#### 2. POETS Daemon ([`pd`](../py/pd.py))
 
 This is a persistent background process that monitors the job queue on Redis
 and spawns engines to execute accepted jobs. It handles all aspects of job and
 process control (e.g. queueing, status reporting and logging).
 
-#### 3. POETS Client ([`pcli`](../pcli.py))
+#### 3. POETS Client ([`pcli`](../py/pcli.py))
 
 A super-charged Python terminal (syntax-coloring, auto-completion and
 persistent context) that serves as an entry point for users into a `pstack`

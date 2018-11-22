@@ -17,9 +17,9 @@ Engines are the bottom layer of `pstack` and are responsible for computing
 device states and consuming/generating messages. This document describes the
 `pstack` engine specification.
 
-The diagram below is a more refined view of the organization diagram in
-[README](../readme.md), showing how engines communicate with their surrounding
-components in `pstack`.
+The diagram below is a more refined view of the organization diagram in [Stack
+Organization](organization.md), showing how engines communicate with their
+surrounding components in `pstack`.
 
 <p align="center">
 	<img align="center" src="engine.svg" width="75%">
@@ -44,11 +44,11 @@ Before delving into the spec, it's probably a good idea to start with a
 simplified description of how engines work within `pstack`, to develop some
 background intuition and make understanding the details easier.
 
-As you're probably aware from [README](../readme.md), `pstack` uses
-[Redis](https://redis.io/), a distributed in-memory data structure server, to
-relay messages and process information between daemon (`pd`) and client
-(`pcli`) instances running on different machines. Simulation jobs are started
-using the `run` command in `pcli` as follows:
+As you're probably aware from [Stack Organization](organization.md), `pstack`
+uses [Redis](https://redis.io/), a distributed in-memory data structure
+server, to relay messages and process information between daemon (`pd`) and
+client (`pcli`) instances running on different machines. Simulation jobs are
+started using the `run` command in `pcli` as follows:
 
 ```javascript
 pcli> run("application.xml")
