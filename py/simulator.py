@@ -1,13 +1,13 @@
+from __future__ import print_function
+
 import os
 import re
 import sys
 import random
 
-from Queue import Queue
 from files import write_file
 from pexpect import spawn
 from datetime import datetime
-from threading import Thread
 from generator import generate_code
 from subprocess import call
 
@@ -42,7 +42,7 @@ def compile_gpp(code, temp_dir):
     return output_file
 
 
-def create_line_parser(log, states, metrics):
+def create_line_parser(states, metrics):
 
     def parse_field_str(field_str):
         fields = {}
@@ -50,10 +50,6 @@ def create_line_parser(log, states, metrics):
             key, val = item.split(' = ')
             fields[key] = int(val)
         return fields
-
-    def parse_app_line(device_name, log_level, msg):
-        entry = device_name, int(log_level), msg
-        log.append(entry)
 
     def parse_state_line(device_name, field_str):
         states[device_name] = parse_field_str(field_str)
@@ -66,7 +62,6 @@ def create_line_parser(log, states, metrics):
             metrics[metric_name] = int(value)
 
     preprocessors = [
-        (r"^App \[(.+), (\d+)]: (.+)", parse_app_line),
         (r"^State \[(.+)\]: (.+)", parse_state_line),
         (r"^Metric \[(.+)\]: (.+)", parse_metric_line)
     ]
@@ -81,20 +76,6 @@ def create_line_parser(log, states, metrics):
     return parse_line
 
 
-def run_worker(queue, region, cmd):
-    """Run simulation worker."""
-
-    engine = spawn(cmd, echo=False, timeout=None)
-
-    while True:
-        line = engine.readline()
-        queue.put((region, line.strip()))
-        if not line:
-            break
-
-    queue.put((region, None))
-
-
 def simulate(schema, options):
     """Simulate a POETS schema.
 
@@ -103,14 +84,16 @@ def simulate(schema, options):
       - options (dict)   : Simulation parameters.
 
     Simulation parameters:
-      - quiet       (bool) : Suppress simulation output
-      - debug       (bool) : Print simulator debug information
-      - level       (int)  : Log message verbosity level
-      - redis       (str)  : Hostname and port of Redis instance
-      - regions     (list) : List of regions to simulate
-      - pid         (int)  : process identifier
-      - temp_dir    (str)  : Temp directory for simulation file
-      - force_socat (bool) : Force using socat (single-region simulations)
+      - pid         (int)      : Process identifier
+      - host        (str)      : Hostname of Redis instance
+      - port        (int)      : Port of Redis instance
+      - quiet       (bool)     : Suppress simulation output
+      - debug       (bool)     : Print simulator debug information
+      - level       (int)      : Log message verbosity level
+      - region      (int)      : Simulation region
+      - printer     (callable) : Print function for in-simulation outputs.
+      - temp_dir    (str)      : Temp directory for simulation file
+      - use_redis   (bool)     : Hook simulator to Redis via socat.
 
     Returns:
       - result      (dict) : Simulation results object
@@ -122,56 +105,42 @@ def simulate(schema, options):
     quiet = options.get("quiet", True)
     debug = options.get("debug", False)
     level = options.get("level", 1)
-    regions = options.get("regions", schema.get_regions())
+    region = options.get("region", 0)
+    printer = options.get("printer", print)
     temp_dir = options.get("temp_dir", "/tmp")
-    force_socat = options.get("force_socat", False)
+    use_redis = options.get("use_redis", False)
 
     code = generate_code(schema, {"debug": debug, "level": level})
     engine_file = compile_gpp(code, temp_dir)
-    regions = regions or schema.get_regions()
 
-    # Define simulator invokation command.
-    if len(regions)>1 or force_socat:
-        redis_connection_str = "%s:%d" % (host, port)
-        cmd = 'socat exec:"%s %d %d",fdout=3 tcp:' + redis_connection_str
+    # Define simulator invocation command.
+
+    if use_redis:
+        redis_con_str = "%s:%d" % (host, port)
+        cmd_template = 'socat exec:"%s %d %d",fdout=3 tcp:' + redis_con_str
     else:
-        cmd = "%s %d %d"
+        cmd_template = "%s %d %d"
 
-    queue = Queue()
+    cmd = cmd_template % (engine_file, region, pid)
 
-    def create_worker(region):
-        args = (queue, region, cmd % (engine_file, region, pid))
-        return Thread(target=run_worker, args=args)
+    # Run simulation loop.
 
-    workers = map(create_worker, regions)
-
-    for worker in workers:
-        worker.setDaemon(True)
-        worker.start()
-
-    log = []
     states = {}
     metrics = {}
-    done = {region: False for region in regions}
+    parse_line = create_line_parser(states, metrics)
 
-    parse_line = create_line_parser(log, states, metrics)
+    engine = spawn(cmd, echo=False, timeout=None)
 
     while True:
 
-        region, payload = queue.get()
+        line = engine.readline().strip()
 
-        queue.task_done()
-
-        if type(payload) is str:
-            line = payload
-            if not quiet:
-                print "%s -> %s" % (region, line)
-            parse_line(line.strip())
-            continue
-
-        done[region] = True
-
-        if all(done.values()):
+        if not line:
             break
 
-    return {"log": log, "states": states, "metrics": metrics}
+        if not quiet:
+            printer(line)
+
+        parse_line(line)
+
+    return {"states": states, "metrics": metrics}

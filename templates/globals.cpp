@@ -14,7 +14,7 @@ void handler_log(int level, const char *fmt, ...) {
     if (level > {{ options.get('level', 1) }})
         return;
 
-    printf("App [%s, %d]: ", active_device->name.c_str(), level);
+    printf("Log [device %s, level %d]: ", active_device->name.c_str(), level);
     va_list va;
     va_start (va, fmt);
     vprintf (fmt, va);
@@ -23,7 +23,7 @@ void handler_log(int level, const char *fmt, ...) {
 }
 
 void handler_exit(int handler_exit_code) {
-    printf("App [%s, X]: handler_exit(%d) called\n", active_device->name.c_str(), handler_exit_code);
+    printf("Exit [device %s]: handler_exit(%d) called\n", active_device->name.c_str(), handler_exit_code);
     exit_code = handler_exit_code;
     abort_flag = 1;
 }

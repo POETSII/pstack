@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import json
 import docopt
 
@@ -16,12 +18,11 @@ Usage:
   psim.py [options] <app.xml>
 
 Options:
-  -d --debug            Print debug information.
   -l --level=<n>        Specify log messages verbosity [default: 1].
-  -t --temp=<dir>       Specify simulation file directory [default: /tmp].
-  -m --map=<file.json>  Load device region map from file.
+  -q --quiet            Suppress in-simulation outputs.
   -r --result           Print simulation result as JSON object.
-  -q --quiet            Suppress all outputs (except --result).
+  -t --temp=<dir>       Specify simulation file directory [default: /tmp].
+  -d --debug            Print debug information.
 
 """
 
@@ -48,14 +49,14 @@ def psim(xml_input, rmap={}, options={}):
 
 def main():
     args = docopt.docopt(usage, version="v0.1")
-    rmap = read_json(args["--map"]) if args["--map"] else {}
     options = {
         "debug": args["--debug"],
         "quiet": args["--quiet"],
         "level": int(args["--level"]),
-        "temp_dir": args["--temp"]
+        "temp_dir": args["--temp"],
+        "printer": print
     }
-    result = psim(args["<app.xml>"], rmap, options)
+    result = psim(args["<app.xml>"], {}, options)
     if args["--result"]:
         print(json.dumps(result))
 

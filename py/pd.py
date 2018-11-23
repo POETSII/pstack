@@ -153,13 +153,13 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
 
         options = {
             "pid": pid,
-            "level": 1 if process["log"] else 0,
             "host": host,
             "port": port,
             "quiet": True,
             "debug": False,
-            "force_socat": True,
-            "regions": [region]
+            "level": 1 if process["log"] else 0,
+            "region": region,
+            "use_redis": True
         }
 
         result = psim(process["xml"], process["region_map"], options)

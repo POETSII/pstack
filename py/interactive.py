@@ -229,12 +229,7 @@ def combine_subresults(subresults):
                 result[key] = result.get(key, 0) + val
         return result
 
-    def flatten(lists):
-        """Flatten list of lists."""
-        return sum(lists, [])
-
     return {
-        "log": flatten(sub["log"] for sub in subresults),
         "states": merge_dicts(sub["states"] for sub in subresults),
         "metrics": sum_dict_fields(sub["metrics"] for sub in subresults)
     }
