@@ -351,12 +351,17 @@ def block(future):
         raise Exception("Block called on non-future (or list of futures)")
 
     subresults = []
+
     while len(subresults) < future.nregions:
+
         item = pop_json(redis_cl, future.result_queue)
+
         if type(item) in {str, unicode}:
-            print "-> %s" % item
-        else:
+            print item
+
+        if type(item) is dict:
             subresults.append(item)
+
     return combine_subresults(subresults)
 
 

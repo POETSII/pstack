@@ -146,6 +146,10 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
         msg_starting = "Starting %s (region %s) ..." % (pid, region)
         msg_finished = "Finished %s (region %s) ..." % (pid, region)
 
+        def printer(line):
+            msg = "Region %d -> %s" % (region, line)
+            log_redis(job, process, msg)
+
         set_busy(True)
         log_local(msg_starting)
         log_redis(job, process, msg_starting)
@@ -155,10 +159,11 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
             "pid": pid,
             "host": host,
             "port": port,
-            "quiet": True,
+            "quiet": not process["verbose"],
             "debug": False,
             "level": 1 if process["log"] else 0,
             "region": region,
+            "printer": printer,
             "use_redis": True
         }
 
