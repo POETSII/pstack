@@ -41,10 +41,18 @@ technologies (Ethernet, SSH tunnels etc.).
 - Deliver the best performance and feature set while keeping the
 implementation as simple and maintainable as possible.
 
-### Documentation
+### Documentation (_work in progress_)
 
-(work in progress)
+#### Design Notes
 
 - [Stack Organization](docs/organization.md)
+
+#### User Guides
+
+- [Using `psim`](docs/psim.md) (standalone simulations)
+- Using `pcli` (distributed simulations)
+
+#### Developer Guides
+
 - [Programming with `pstack`](docs/programming.md)
 - [Developing `pstack` Engines](docs/engines.md)
