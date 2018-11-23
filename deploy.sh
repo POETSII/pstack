@@ -3,4 +3,4 @@
 REDIS_HOST="coleridge"
 DAEMON_HOSTS="aesop,coleridge,byron"
 
-time fab -P -H $DAEMON_HOSTS install setup daemon:"$REDIS_HOST"
+time fab -H $DAEMON_HOSTS install setup daemon:"$REDIS_HOST"

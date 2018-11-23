@@ -42,7 +42,7 @@ def setup():
 def daemon(host):
     """Run POETS daemon."""
 
-    daemon_command = "python pd.py --name '%s' --host '%s'" % (env.host, host)
+    daemon_command = "python py/pd.py --name '%s' --host '%s'" % (env.host, host)
     nohup_wrapper = "(nohup %s &> /dev/null &) && true"
 
     with cd(PSTACK_DIR), prefix("source env/bin/activate"):
