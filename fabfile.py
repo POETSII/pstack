@@ -6,7 +6,7 @@ from fabric.context_managers import prefix
 
 
 env.use_ssh_config = True
-PSTACK_DIR         = "~/psim"
+PSTACK_DIR         = "~/pstack"
 
 def install():
     """Pull latest master commit.
