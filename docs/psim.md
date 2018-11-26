@@ -1,9 +1,10 @@
 ### Using `psim`
 
-`psim` is a stand-alone POETS simulator that ships with `pstack` and exposes
-an engine interface. This manual will walk you through using `psim` as an
-independent simulation tool that can be used locally without a `pstack`
-deployment.
+`psim` is a simulation engine that sits at the bottom of `pstack`, as well as
+a stand-alone simulator that can run POETS applications without a `pstack`
+deployment. This manual describes the usage of `psim` as an independent tool
+to run non-distributed simulations. For distributed simulations using `pcli`,
+see the corresponding manual [Using `pcli`](pcli.md).
 
 #### Usage
 
@@ -26,7 +27,7 @@ Options:
 After installing `pstack`, the tool `psim` should be available on the command
 line.
 
-`psim` has a simple command line interface; it can take a POETS XML file as a
+`psim` has a simple command line interface and can take a POETS XML file as a
 single argument. A quick way to try this is to use one of the applications
 from the unit test framework, located in the repo's `tests` directory. Here's
 an example ...
