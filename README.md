@@ -50,7 +50,7 @@ implementation as simple and maintainable as possible.
 #### User Guides
 
 - [Using `psim`](docs/psim.md) (standalone simulations)
-- Using `pcli` (distributed simulations)
+- [Using `pcli`](docs/pcli.md) (distributed simulations)
 
 #### Developer Guides
 
