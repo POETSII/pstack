@@ -35,10 +35,10 @@ pcli>
 ```
 
 In other words, `pcli` is essentially the same as the off-the-shelve Python
-interpreter available on most systems but with some new functions imported
-(from the module [`interactive.py`](../py/interactive.py) in fact).
+interpreter available on most systems but with built-in `pstack` functions
+(that are in fact imported from the module [`interactive.py`](../py/interactive.py)).
 
-To improve user experience, `pcli` features fish-like [autosuggestions](https://fishshell.com/docs/current/tutorial.html#tut_autosuggestions) and
+To improve user experience, `pcli` features syntax colouring, fish-like [autosuggestions](https://fishshell.com/docs/current/tutorial.html#tut_autosuggestions) and
 [persistent context](http://docs.http-prompt.com/en/latest/user-guide.html#persistent-context). Variables of basic data types and command history are retained between
 sessions.
 
@@ -60,6 +60,22 @@ similar to invoking `psim` (with the `--quiet` and `--result` switches) but
 with the crucial difference that it's been executed by one of the engines
 connected to the `pstack` deployment in use.
 
+#### Processes
+
+One of the design goals of `pstack` is to provide a desktop-like POETS
+environment. To this end, some concepts are burrowed from POSIX including the
+notion of a process as an instance of an executable binary. In `pstack`, a
+_process_ is an in-memory instance of a POETS XML application.
+
+Processes are in one of two states:
+
+1. _Waiting_: the process is held in memory but awaits the availability of
+a sufficient number of suitable engines to start.
+
+2. _Running_: the process has started; all of its
+[regions](engines.md#simulation-regions) are being simulated by suitable
+engines.
+
 #### The Process Viewer
 
 Before delving into more commands and  usage scenarios, it's probably a good
@@ -72,9 +88,9 @@ Here's what it looks like ...
 </p>
 
 This tool can be started by typing `top` in `pcli`. It shows available engines
-(three in this case), their resource utilization plus a process table with
-pending simulations (called _processes_ in `pstack`). Changes in the process
-table or engine availability/utilization are updated in real-time.
+(three in this case), their resource utilization plus a process table. Changes
+in the process table or engine availability/utilization are updated in
+real-time.
 
 Having a separate instance of `pcli` with the process viewer running may be
 helpful to visualize what happens when following the remaining steps in this
@@ -87,15 +103,13 @@ processes. Here are more ways to use `run` ...
 
 ##### The `async` Switch
 
-When used with no additional arguments other than the XML file (and when the
-result is not assigned to a variable), `run` will block until the process
-terminates then print a simulation result object. This behavior can be changed
-by passing `async=True` which will make `run` return immediately with a
-pending computation result called _a future_ (read [this
+With no additional arguments other than the XML file, `run` will block until
+the process terminates then return a simulation result object. This behavior
+can be changed by passing `async=True` which will make `run` return
+immediately with a pending computation result called _a future_ (read [this
 article](https://en.m.wikipedia.org/wiki/Futures_and_promises) for background
 if you're unfamiliar with futures). The future object can be blocked on using
-the function `block` which will (wait if the process is still running then)
-return the simulation result.
+the function `block` to return the simulation result.
 
 Here's an example ...
 
@@ -107,10 +121,9 @@ pcli> block(future)
 {'states': {u'n0': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n1': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n2': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n3': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}}, 'metrics': {u'Exit code': 0, u'Delivered messages': 40}}
 ```
 
-This mechanism allows users to start processes and move on to do other things.
-In the unimaginative example above, the user evaluates `1 + 2` while the
-process runs but this can be just about anything, including more calls to
-`run` (more on this in a minute).
+This mechanism allows users to start processes and move on to do other things
+while the process executes (in the unimaginative example above the user
+evaluates `1 + 2`).
 
 ##### The `verbose` Switch
 
@@ -147,4 +160,41 @@ lines prefixed with
 `[byron.cl.cam.ac.uk] Region 0 -> `
 
 are intermediate engine outputs (in this case, the [human-friendly output of
-`psim`](psim.md#output-formats)).
+`psim`](psim.md#output-formats)) while other lines such as
+
+```
+[byron.cl.cam.ac.uk] Starting 6177 (region 0) ...
+[byron.cl.cam.ac.uk] Finished 6177 (region 0) ...
+```
+
+are `pd` outputs.
+
+##### Log Message Verbosity `level`
+
+The maximum log level for applications can be specified by passing the `level`
+argument to `run` (the default log level is 1). For example ...
+
+```
+pcli> run("tests/ring-oscillator-01.xml", verbose=True, level=0)
+[byron.cl.cam.ac.uk] Starting 4 (region 0) ...
+[byron.cl.cam.ac.uk] Region 0 -> Exit [device n0]: handler_exit(0) called
+[byron.cl.cam.ac.uk] Region 0 -> Metric [Delivered messages]: 40
+[byron.cl.cam.ac.uk] Region 0 -> Metric [Exit code]: 0
+[byron.cl.cam.ac.uk] Region 0 -> State [n0]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[byron.cl.cam.ac.uk] Region 0 -> State [n1]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[byron.cl.cam.ac.uk] Region 0 -> State [n2]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[byron.cl.cam.ac.uk] Region 0 -> State [n3]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[byron.cl.cam.ac.uk] Finished 4 (region 0) ...
+{'states': {u'n0': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n1': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n2': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n3': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}}, 'metrics': {u'Exit code': 0, u'Delivered messages': 40}}
+```
+
+The above example shows a useful trick whereby setting `level=0` suppresses
+application log messages, leaving only engine and `pd` outputs. Notice that
+specifying `level` without using `verbose=True` is meaningless (since log
+messages won't be collected in the first place).
+
+**Note on performance**: log messages are relayed through a high-level
+slow-performance interface and will therefore slow processes considerably.
+It's therefore recommended that you pass `verbose=True` only when debugging.
+
+(work in progress)
