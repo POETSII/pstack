@@ -122,9 +122,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.7919619"
-     inkscape:cx="298.51785"
-     inkscape:cy="207.82102"
+     inkscape:zoom="2.5342168"
+     inkscape:cx="288.28167"
+     inkscape:cy="280.59952"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -147,7 +147,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -156,6 +156,33 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-3.5067209,-257.843)">
+    <text
+       id="text550"
+       style="font-variant:normal;font-weight:normal;font-size:7.50202179px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;fill:#bfbfbf;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       transform="matrix(0,-1.00027,0.99973008,0,0,0)"
+       x="-324.9715"
+       y="488.76736">
+      <tspan
+         id="tspan552"
+         sodipodi:role="line"
+         y="488.76736"
+         x="-324.9715 -320.02277 -315.82504 -311.62729 -309.979 -308.33075 -304.58176 -300.384 -298.43329 -296.63504 -292.58728 -288.3895">Application</tspan>
+      <tspan
+         id="tspan554"
+         sodipodi:role="line"
+         y="497.76981"
+         x="-316.12387 -311.92615 -307.72842 -303.9794 -299.78168">Layer</tspan>
+      <tspan
+         id="tspan556"
+         sodipodi:role="line"
+         y="488.76736"
+         x="-411.94794 -406.4007 -404.75244 -401.00345 -398.90274 -396.50348 -394.85522 -390.65744 -386.45972 -384.35904 -380.16129 -376.11349 -374.01282 -368.61554 -364.41782 -362.31714">Distributed Data</tspan>
+      <tspan
+         id="tspan558"
+         sodipodi:role="line"
+         y="497.76981"
+         x="-394.40271 -390.20499 -386.00723 -382.25824 -378.06052">Layer</tspan>
+    </text>
     <g
        transform="matrix(0,1.25,1.25,0,-14.890142,-35.966904)"
        inkscape:label="p2"
@@ -1297,33 +1324,7 @@
            d="m 2514,3212.92 c 2,15 14,28 30,29 l -1,0 240,0 0,0 c 16,2 28,14 30,30 2,-16 14,-28 30,-30 l -1,0 230,0 c 15,-1 28,-14 29,-29" />
         <g
            transform="scale(8.33333,8.33333)"
-           id="g4672">
-          <text
-             id="text4674"
-             style="font-variant:normal;font-weight:normal;font-size:6.00324011px;font-family:Arial;-inkscape-font-specification:Arial;writing-mode:lr-tb;fill:#bfbfbf;fill-opacity:1;fill-rule:nonzero;stroke:none"
-             transform="matrix(-1,0,0,0.99946029,288.84,402.471)">
-            <tspan
-               id="tspan4676"
-               sodipodi:role="line"
-               y="0"
-               x="0 3.9600399 7.3191404 10.678241 11.99722 13.316198 16.316208 19.675308 21.236307 22.675287 25.914387 29.273487">Application</tspan>
-            <tspan
-               id="tspan4678"
-               sodipodi:role="line"
-               y="7.2038879"
-               x="7.0800014 10.439101 13.798202 16.79821 20.15731">Layer</tspan>
-            <tspan
-               id="tspan4680"
-               sodipodi:role="line"
-               y="0"
-               x="-66.000038 -61.319031 -59.399082 -56.399075 -53.039974 -49.680874 -46.680866 -44.999866 -43.079918 -39.720818 -38.039818 -36.720837 -33.361736 -30.002638">Orchestration</tspan>
-            <tspan
-               id="tspan4682"
-               sodipodi:role="line"
-               y="7.2038879"
-               x="-55.560005 -52.200905 -48.841805 -45.841797 -42.482697">Layer</tspan>
-          </text>
-        </g>
+           id="g4672" />
         <path
            inkscape:connector-curvature="0"
            id="path4684"
