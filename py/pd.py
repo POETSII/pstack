@@ -161,7 +161,7 @@ def run_worker(redis_cl, queue, index, host, port, engine_name):
             "port": port,
             "quiet": not process["verbose"],
             "debug": False,
-            "level": 1 if process["log"] else 0,
+            "level": process["level"],
             "region": region,
             "printer": printer,
             "use_redis": True
