@@ -4,6 +4,16 @@
 and manage a `pstack` deployment. This manual provides an overview of `pcli`
 and some usage examples.
 
+#### Content
+
+- [Usage](#usage)
+- [The Basics](#the-basics)
+- [Quick Start](#quick-start)
+- [Processes](#processes)
+- [The Process Viewer](#the-process-viewer)
+- [Starting a Process](#starting-a-process)
+- [Process Management](#process-management)
+
 #### Usage
 
 ```
@@ -72,8 +82,8 @@ Processes are in one of two states:
 1. _Waiting_: the process is held in memory but awaits the availability of
 a sufficient number of suitable engines to start.
 
-2. _Running_: the process has started; all of its
-[regions](engines.md#simulation-regions) are being simulated by suitable
+2. _Running_: the process has started; its
+[regions](engines.md#simulation-regions) are all being simulated by suitable
 engines.
 
 #### The Process Viewer
@@ -96,7 +106,7 @@ Having a separate instance of `pcli` with the process viewer running may be
 helpful to visualize what happens when following the remaining steps in this
 guide.
 
-#### Starting Processes with `run`
+#### Starting a Process
 
 As shown in [Quick Start](#quick-start), the command `run` is used to start
 processes. Here are more ways to use `run` ...
@@ -193,8 +203,29 @@ application log messages, leaving only engine and `pd` outputs. Notice that
 specifying `level` without using `verbose=True` is meaningless (since log
 messages won't be collected in the first place).
 
-**Note on performance**: log messages are relayed through a high-level
+_Note on performance_: log messages are relayed through a high-level
 slow-performance interface and will therefore slow processes considerably.
 It's therefore recommended that you pass `verbose=True` only when debugging.
+
+#### Process Management
+
+At the moment, `pstack` does not support many ways to interact with a process
+_after_ it has been started ([Application
+Engines](programming.md#application-engines) are a powerful mechanism to
+manipulate processes but they must be hooked in during process creation).
+
+Processes can be killed using the command `kill` which takes the process
+identifier (PID) as a single argument. The PID can be retrieved from the
+future object, here's how ...
+
+```
+pcli> future = run("tests/ring-oscillator-01.xml", async=True)
+pcli> kill(future.pid)
+```
+
+Explicit PIDs can be passed to `kill` too (for example by looking up processes
+in the [process viewer](#the-process-viewer), or through the command `ps`
+which returns a list of current process PIDs). However, this is discouraged as
+it may affect other users.
 
 (work in progress)

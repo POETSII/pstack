@@ -13,13 +13,13 @@ environment.
 
 Features:
 
-- **Processes**: application instances modeled after POSIX processes
+- **Processes**: application instances modeled after POSIX [processes](docs/pcli.md#processes)
 - **Multi-user support**: multiple users can run processes on a single `pstack` service simultaneously
-- **Distributed execution**: a single application can be distributed across several machines in arbitrary arrangements
-- **Real-time Monitoring**: live monitor of running processes and back-end engine resource utilisation
-- **Heterogeneity**: supports arbitrary back-end engines (e.g. different simulators or even actual hardware)
+- **Distributed execution**: a single application can be [distributed across several machines in arbitrary arrangements](docs/engines.md#simulation-regions)
+- **Real-time Monitoring**: [live monitor](docs/pcli.md#the-process-viewer) of running processes and back-end engine resource utilisation
+- **Heterogeneity**: supports [arbitrary back-end engines](docs/engines.md#what-is-an-engine) (e.g. different simulators or even actual hardware)
 - **Job queues**: processes are queued when back-end engines are unavailable or insufficient
-- **Terminal**: command line user interface with built-in Python interpreter
+- **Terminal**: [command line user interface](docs/pcli.md) with built-in Python interpreter
 - **Debugging**: supports debug breakpoints and manual inspection/injection of messages
 - **Unit Testing**: Down-to-earth [unit testing framework](tests) supporting push-button testing over entire back-end infrastructure
 - **Minimal dependencies**: just [pip](https://pip.pypa.io/en/stable/installing/) and [socat](https://www.howtoinstall.co/en/ubuntu/xenial/socat) on a fresh Ubuntu installation.
