@@ -13,6 +13,8 @@ and some usage examples.
 - [The Process Viewer](#the-process-viewer)
 - [Starting a Process](#starting-a-process)
 - [Process Management](#process-management)
+- [Distributed Processes](#distributed-processes)
+- [The Job Queue](#the-job-queue)
 
 #### Usage
 
@@ -216,7 +218,7 @@ manipulate processes but they must be hooked in during process creation).
 
 Processes can be killed using the command `kill` which takes the process
 identifier (PID) as a single argument. The PID can be retrieved from the
-future object, here's how ...
+[future object](#the-async-switch), here's how ...
 
 ```
 pcli> future = run("tests/ring-oscillator-01.xml", async=True)
@@ -228,4 +230,128 @@ in the [process viewer](#the-process-viewer), or through the command `ps`
 which returns a list of current process PIDs). However, this is discouraged as
 it may affect other users.
 
-(work in progress)
+#### Distributed Processes
+
+The examples above described various ways to start processes using `run`, all
+of which relied on using a single engine per process. `pstack` supports
+distributed simulations through [simulation
+regions](engines.md#simulation-regions); device subsets that get mapped to
+different engines for distributed execution.
+
+Distributed processes are started by passing the argument `rmap` (region map)
+to `run` and specifying device-region mappings. Here's an example, again using
+the ring oscillator application from the tests suite ...
+
+```
+pcli> run("tests/ring-oscillator-01.xml", rmap={"n1": 1}, verbose=True)
+[aesop.cl.cam.ac.uk] Starting 4 (region 0) ...
+[byron.cl.cam.ac.uk] Starting 4 (region 1) ...
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 1
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 1
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 1
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 1
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 2
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 2
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 3
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 2
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 2
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 4
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 3
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 3
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 5
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 3
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 4
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 6
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 4
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 7
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 4
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 5
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 8
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 5
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 5
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 9
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 6
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 6
+[byron.cl.cam.ac.uk] Region 1 -> Log [device n1, level 1]: counter = 10
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 6
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 7
+[byron.cl.cam.ac.uk] Region 1 -> Received external shutdown command
+[byron.cl.cam.ac.uk] Region 1 -> Metric [Delivered messages]: 10
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 7
+[byron.cl.cam.ac.uk] Region 1 -> Metric [Exit code]: 0
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 7
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 8
+[byron.cl.cam.ac.uk] Region 1 -> State [n1]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 8
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 8
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 9
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 9
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 9
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n0, level 1]: counter = 10
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n2, level 1]: counter = 10
+[aesop.cl.cam.ac.uk] Region 0 -> Log [device n3, level 1]: counter = 10
+[aesop.cl.cam.ac.uk] Region 0 -> Exit [device n0]: handler_exit(0) called
+[aesop.cl.cam.ac.uk] Region 0 -> Metric [Delivered messages]: 30
+[aesop.cl.cam.ac.uk] Region 0 -> Metric [Exit code]: 0
+[aesop.cl.cam.ac.uk] Region 0 -> State [n0]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[aesop.cl.cam.ac.uk] Region 0 -> State [n2]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[aesop.cl.cam.ac.uk] Region 0 -> State [n3]: state = 0, counter = 10, toggle_buffer_ptr = 0
+[byron.cl.cam.ac.uk] Finished 4 (region 1) ...
+[aesop.cl.cam.ac.uk] Finished 4 (region 0) ...
+{'states': {u'n0': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n1': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n2': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}, u'n3': {u'state': 0, u'counter': 10, u'toggle_buffer_ptr': 0}}, 'metrics': {u'Exit code': 0, u'Delivered messages': 40}}
+```
+
+This output is very similar to the one produced by a single-engine simulation
+of the same application [in an earlier subsection](#the-verbose-switch).
+Crucially, the machine-friendly output (i.e. the JSON object at the bottom) is
+identical.
+
+Where the single and distributed versions differ are the human-friendly
+output; application log and in-simulation messages. You may have already
+noticed that there are now two distinct prefixes for in-simulation outputs:
+
+```
+[aesop.cl.cam.ac.uk] Region 0 ->
+[byron.cl.cam.ac.uk] Region 1 ->
+```
+
+Here indicating that the log messages were produced by two engines, each
+simulating one of the regions `0` and `1`.
+
+As explained in [simulation regions](engines.md#simulation-regions), regions
+are identified by non-zero integers and the default region is `0`. In the
+above example, the region map was `{"n1": 1}` which placed device `n1` in
+region `1` while leaving all others in the default region. The process
+therefore consisted of two regions and was picked up by two of the available
+engines.
+
+It is common for in-simulation log messages to appear out of order in
+distributed simulations. Also notice that each engine produced its own
+simulation metrics; exit code and number of (locally) delivered messages.
+These are combined by `pcli` to produce the final simulation result.
+
+##### Constraining Region Mapping
+
+By default, available engines take turns in accepting simulation jobs.  This
+behavior can be constrained by specifying region-engine mapping using the
+argument `rcon` (region constraints) of the `run` command. Here's how ...
+
+```
+run("tests/ring-oscillator-01.xml", rmap={"n1": 1}, rcon={1: "byron.cl.cam.ac.uk"})
+```
+
+Here mandating that region `1` is mapped to the engine `byron.cl.cam.ac.uk`.
+If the named engine is busy or unavailable, the process will start in a
+waiting state until the engine becomes available.
+
+#### The Job Queue
+
+Created processes are pushed to a job queue on Redis in a waiting state. If
+suitable engines are unavailable (either offline or occupied with other
+simulations) then the pushed process will wait and start executing whenever
+engines become available.
+
+Job queuing is handled transparently to the user. The command `run` will
+behave in the same way whether the process is queued or not (i.e. it will
+block until the process finishes or return a future object is `async=True` is
+passed).
