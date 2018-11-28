@@ -353,5 +353,5 @@ engines become available.
 
 Job queuing is handled transparently to the user. The command `run` will
 behave in the same way whether the process is queued or not (i.e. it will
-block until the process finishes or return a future object is `async=True` is
+block until the process finishes or return a future object if `async=True` is
 passed).
