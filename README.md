@@ -41,7 +41,7 @@ technologies (Ethernet, SSH tunnels etc.).
 - Deliver the best performance and feature set while keeping the
 implementation as simple and maintainable as possible.
 
-### Documentation (_work in progress_)
+### Documentation
 
 #### Design Notes
 
