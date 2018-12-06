@@ -26,8 +26,8 @@ Coleridge.
 The easiest way to use `pstack` is to SSH into Coleridge (follow the
 instructions [here](https://github.com/POETSII/poets-cloud) to request access).
 
-The tools `psim` and `pcli` are available for all users on Coleridge and do
-not require any setup. You can get started immediately after login using the
+The tools `psim` and `pcli` are available to all users on Coleridge and do not
+require any setup. You can get started immediately after login using the
 respective user guides:
 
 - [Using `psim`](psim.md) (standalone simulations)
